@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>PK RER A – Branche Chessy (V2 + Urgence)</title>
+  <title>PK RER A – Branche Chessy (Urgence + SMS)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -94,6 +94,10 @@
       border: 1px dashed #555;
       white-space: pre-wrap;
     }
+    .btn-secondary {
+      background: #444;
+      margin-left: 6px;
+    }
   </style>
 </head>
 <body>
@@ -145,12 +149,25 @@
     </div>
 
     <div class="card">
+      <div class="label">Numéro SMS d'urgence</div>
+      <div class="small">
+        Entre le numéro qui recevra le SMS d’urgence (format 06… ou +336…).<br>
+        Il sera mémorisé dans le navigateur.
+      </div>
+      <input id="smsNumberInput" type="text" placeholder="ex : 0612345678 ou +33612345678">
+      <button id="saveSmsBtn" style="margin-top:8px;">Enregistrer le numéro</button>
+      <div class="small" id="smsInfo" style="margin-top:6px;">Aucun numéro enregistré.</div>
+    </div>
+
+    <div class="card">
       <div class="label">Bouton d’urgence</div>
       <div class="small">
-        En cas d’incident, appuie sur ce bouton pour générer un message clair à transmettre au PC / régulation
-        avec PK, gare la plus proche et coordonnées GPS.
+        En cas d’incident, appuie sur “Générer le message d’urgence”, puis sur “Ouvrir SMS” pour envoyer au numéro configuré.
       </div>
-      <button id="sosBtn" style="margin-top:8px;">Générer le message d’urgence</button>
+      <div style="margin-top:8px;">
+        <button id="sosBtn">Générer le message d’urgence</button>
+        <button id="smsBtn" class="btn-secondary">Ouvrir SMS avec ce message</button>
+      </div>
       <div class="sos-box small" id="sosText">
 Message d'urgence non généré. Démarre d’abord la géoloc et attends une position.
       </div>
@@ -223,7 +240,8 @@ Message d'urgence non généré. Démarre d’abord la géoloc et attends une po
     let targetPk = null;
     let lastLat = null;
     let lastLon = null;
-    let lastNearest = null; // {station, dPk}
+    let lastNearest = null;
+    let lastSosMessage = null;
 
     function computePkFromGps(lat, lon) {
       let best = null;
@@ -301,10 +319,26 @@ Message d'urgence non généré. Démarre d’abord la géoloc et attends une po
     const setTargetBtn = document.getElementById("setTargetBtn");
     const targetPkInfo = document.getElementById("targetPkInfo");
 
+    const smsNumberInput = document.getElementById("smsNumberInput");
+    const saveSmsBtn = document.getElementById("saveSmsBtn");
+    const smsInfo = document.getElementById("smsInfo");
+
     const sosBtn = document.getElementById("sosBtn");
+    const smsBtn = document.getElementById("smsBtn");
     const sosText = document.getElementById("sosText");
 
     let watchId = null;
+
+    // Chargement du numéro SMS depuis le localStorage
+    const SMS_STORAGE_KEY = "pk_rera_sms_number";
+    function loadSmsNumber() {
+      const stored = localStorage.getItem(SMS_STORAGE_KEY);
+      if (stored) {
+        smsNumberInput.value = stored;
+        smsInfo.textContent = "Numéro enregistré : " + stored;
+      }
+    }
+    loadSmsNumber();
 
     function updateUI(result, lat, lon) {
       if (!result) {
@@ -420,9 +454,20 @@ Message d'urgence non généré. Démarre d’abord la géoloc et attends une po
       targetPkInfo.textContent = "PK cible défini : " + formatPk(targetPk);
     });
 
+    saveSmsBtn.addEventListener("click", () => {
+      const num = smsNumberInput.value.trim();
+      if (!num) {
+        smsInfo.textContent = "Aucun numéro à enregistrer.";
+        return;
+      }
+      localStorage.setItem(SMS_STORAGE_KEY, num);
+      smsInfo.textContent = "Numéro enregistré : " + num;
+    });
+
     sosBtn.addEventListener("click", () => {
       if (lastPk == null || lastLat == null || lastLon == null) {
         sosText.textContent = "Impossible de générer un message : aucune position valide reçue. Vérifie la géolocalisation.";
+        lastSosMessage = null;
         return;
       }
 
@@ -430,29 +475,44 @@ Message d'urgence non généré. Démarre d’abord la géoloc et attends une po
       const latTxt = lastLat.toFixed(5);
       const lonTxt = lastLon.toFixed(5);
 
-      let gareTxt = "gare inconnue";
       let posRelTxt = "";
       if (lastNearest && lastNearest.station) {
         const st = lastNearest.station;
-        gareTxt = st.name;
         const diffPk = Math.round(lastPk - st.pk_m);
         const absDiff = Math.abs(diffPk);
         if (absDiff < 15) {
-          posRelTxt = `au niveau de ${gareTxt}`;
+          posRelTxt = `au niveau de ${st.name}`;
         } else {
           const avantApres = diffPk > 0 ? "après" : "avant";
           const sens = diffPk > 0 ? "vers Chessy" : "vers Paris";
-          posRelTxt = `${absDiff} m ${avantApres} ${gareTxt} (${sens})`;
+          posRelTxt = `${absDiff} m ${avantApres} ${st.name} (${sens})`;
         }
       }
 
       const msg =
-`Message d'urgence à transmettre :
+`Message d'urgence :
 RER A – branche Chessy.
 Position estimée : ${pkTxt}${posRelTxt ? ", " + posRelTxt : ""}.
 Coordonnées GPS : ${latTxt}, ${lonTxt}.`;
 
       sosText.textContent = msg;
+      lastSosMessage = msg;
+    });
+
+    smsBtn.addEventListener("click", () => {
+      if (!lastSosMessage) {
+        sosText.textContent = "Génère d'abord le message d'urgence avant d'ouvrir le SMS.";
+        return;
+      }
+      const num = (smsNumberInput.value || "").trim();
+      if (!num) {
+        smsInfo.textContent = "Aucun numéro pour le SMS. Enregistre un numéro d'urgence.";
+        return;
+      }
+      // Schéma SMS pour iPhone / Android
+      const body = lastSosMessage.replace(/\n/g, " ");
+      const url = "sms:" + encodeURIComponent(num) + "?&body=" + encodeURIComponent(body);
+      window.location.href = url;
     });
   </script>
 </body>
