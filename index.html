@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>PK RER A – Branche Chessy (V2)</title>
+  <title>PK RER A – Branche Chessy (V2 + Urgence)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -86,11 +86,19 @@
       color: #f5f5f5;
       box-sizing: border-box;
     }
+    .sos-box {
+      margin-top: 8px;
+      padding: 8px;
+      border-radius: 6px;
+      background: #111;
+      border: 1px dashed #555;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>PK RER A – Branche Chessy (V2)</h1>
+    <h1>PK RER A – Branche Chessy</h1>
   </header>
   <main>
     <div class="card">
@@ -137,10 +145,22 @@
     </div>
 
     <div class="card">
+      <div class="label">Bouton d’urgence</div>
+      <div class="small">
+        En cas d’incident, appuie sur ce bouton pour générer un message clair à transmettre au PC / régulation
+        avec PK, gare la plus proche et coordonnées GPS.
+      </div>
+      <button id="sosBtn" style="margin-top:8px;">Générer le message d’urgence</button>
+      <div class="sos-box small" id="sosText">
+Message d'urgence non généré. Démarre d’abord la géoloc et attends une position.
+      </div>
+    </div>
+
+    <div class="card">
       <div class="label">Infos</div>
       <div class="small">
-        V2 de démonstration limitée à la branche Chessy (Val de Fontenay → Marne-la-Vallée – Chessy).<br>
-        Les PK sont calculés à partir de la moyenne PK début/fin de quai (doc “Liste des accès LA”).<br>
+        Branche Chessy uniquement (Val de Fontenay → Marne-la-Vallée – Chessy).<br>
+        PK issus des documents techniques (PK début/fin de quais, moyenne).<br>
         À utiliser comme aide indicative, pas comme document officiel d’exploitation.
       </div>
     </div>
@@ -148,7 +168,6 @@
 
   <script>
     // --- Données : gares de la branche Chessy ---
-    // PK en mètres = moyenne des PK début/fin de quai (extraits de la "Liste des accès LA")
     const stations = [
       { name: "Val de Fontenay", lat: 48.854418359362505, lon: 2.4890884590969433, pk_m: 34538 },
       { name: "Neuilly-Plaisance", lat: 48.8534646980684, lon: 2.513839877899415, pk_m: 36733 },
@@ -163,12 +182,9 @@
       { name: "Marne-la-Vallée – Chessy", lat: 48.870723714970545, lon: 2.7826307506659154, pk_m: 59190 }
     ];
 
-    // Rayon Terre
     const R = 6371000;
-    // Latitude de référence pour la projection plane
     const lat0 = 48.85 * Math.PI / 180;
 
-    // Conversion lat/lon -> X/Y approximativement en mètres (projection simple)
     function toXY(latDeg, lonDeg) {
       const lat = latDeg * Math.PI / 180;
       const lon = lonDeg * Math.PI / 180;
@@ -177,18 +193,6 @@
       return { x, y };
     }
 
-    // Distance haversine (pas indispensable pour le PK, mais dispo)
-    function haversine(lat1, lon1, lat2, lon2) {
-      const φ1 = lat1 * Math.PI / 180;
-      const φ2 = lat2 * Math.PI / 180;
-      const dφ = (lat2 - lat1) * Math.PI / 180;
-      const dλ = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(dλ/2)**2;
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      return R * c;
-    }
-
-    // Projection d’un point P sur le segment AB (en XY)
     function projectOnSegment(p, a, b) {
       const P = toXY(p.lat, p.lon);
       const A = toXY(a.lat, a.lon);
@@ -207,7 +211,6 @@
       return { t, dist };
     }
 
-    // Format PK en "XX+YYY"
     function formatPk(pk_m) {
       if (!isFinite(pk_m)) return "PK --+---";
       const km = Math.floor(pk_m / 1000);
@@ -218,6 +221,9 @@
 
     let lastPk = null;
     let targetPk = null;
+    let lastLat = null;
+    let lastLon = null;
+    let lastNearest = null; // {station, dPk}
 
     function computePkFromGps(lat, lon) {
       let best = null;
@@ -240,7 +246,6 @@
 
       if (!best) return null;
 
-      // Gare la plus proche en PK
       let nearest = null;
       stations.forEach(st => {
         const dPk = Math.abs(st.pk_m - best.pk_m);
@@ -249,13 +254,10 @@
         }
       });
 
-      // Prochaine gare selon le sens (estimé via lastPk)
       let next = null;
       if (lastPk == null || best.pk_m >= lastPk) {
-        // PK croissant → vers Chessy
         next = stations.find(st => st.pk_m > best.pk_m);
       } else {
-        // PK décroissant → vers Paris
         const reversed = [...stations].reverse();
         next = reversed.find(st => st.pk_m < best.pk_m);
       }
@@ -268,7 +270,6 @@
       };
     }
 
-    // Parse d’une saisie utilisateur : "32400" ou "32+400"
     function parsePkInput(text) {
       if (!text) return null;
       text = text.trim();
@@ -285,7 +286,6 @@
       return val;
     }
 
-    // Récup éléments DOM
     const geoStatus = document.getElementById("geoStatus");
     const pkValue = document.getElementById("pkValue");
     const pkRaw = document.getElementById("pkRaw");
@@ -300,6 +300,9 @@
     const targetPkInput = document.getElementById("targetPkInput");
     const setTargetBtn = document.getElementById("setTargetBtn");
     const targetPkInfo = document.getElementById("targetPkInfo");
+
+    const sosBtn = document.getElementById("sosBtn");
+    const sosText = document.getElementById("sosText");
 
     let watchId = null;
 
@@ -355,7 +358,6 @@
         nextDist.textContent = "–";
       }
 
-      // Distance à un PK cible
       if (targetPk != null) {
         const diff = targetPk - pk_m;
         const sens = diff > 0 ? "vers Chessy" : "vers Paris";
@@ -366,6 +368,9 @@
       }
 
       lastPk = pk_m;
+      lastLat = lat;
+      lastLon = lon;
+      lastNearest = result.nearest;
     }
 
     function startGeolocation() {
@@ -413,6 +418,41 @@
       }
       targetPk = pk;
       targetPkInfo.textContent = "PK cible défini : " + formatPk(targetPk);
+    });
+
+    sosBtn.addEventListener("click", () => {
+      if (lastPk == null || lastLat == null || lastLon == null) {
+        sosText.textContent = "Impossible de générer un message : aucune position valide reçue. Vérifie la géolocalisation.";
+        return;
+      }
+
+      const pkTxt = formatPk(lastPk);
+      const latTxt = lastLat.toFixed(5);
+      const lonTxt = lastLon.toFixed(5);
+
+      let gareTxt = "gare inconnue";
+      let posRelTxt = "";
+      if (lastNearest && lastNearest.station) {
+        const st = lastNearest.station;
+        gareTxt = st.name;
+        const diffPk = Math.round(lastPk - st.pk_m);
+        const absDiff = Math.abs(diffPk);
+        if (absDiff < 15) {
+          posRelTxt = `au niveau de ${gareTxt}`;
+        } else {
+          const avantApres = diffPk > 0 ? "après" : "avant";
+          const sens = diffPk > 0 ? "vers Chessy" : "vers Paris";
+          posRelTxt = `${absDiff} m ${avantApres} ${gareTxt} (${sens})`;
+        }
+      }
+
+      const msg =
+`Message d'urgence à transmettre :
+RER A – branche Chessy.
+Position estimée : ${pkTxt}${posRelTxt ? ", " + posRelTxt : ""}.
+Coordonnées GPS : ${latTxt}, ${lonTxt}.`;
+
+      sosText.textContent = msg;
     });
   </script>
 </body>
