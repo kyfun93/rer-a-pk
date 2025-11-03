@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>PK RER A – Branche Chessy (V2)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      padding: 12px 16px;
+      background: #222;
+      border-bottom: 1px solid #444;
+    }
+    h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+    main {
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .card {
+      background: #1d1d1d;
+      border-radius: 8px;
+      padding: 12px 14px;
+      border: 1px solid #333;
+    }
+    .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #aaaaaa;
+      margin-bottom: 4px;
+    }
+    .value {
+      font-size: 22px;
+      font-weight: bold;
+    }
+    .small {
+      font-size: 13px;
+      color: #cccccc;
+    }
+    button {
+      background: #2d7dff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
+    .status-ok { color: #7CFC00; }
+    .status-warn { color: #ffcc00; }
+    .status-bad { color: #ff5555; }
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .row > .card {
+      flex: 1;
+      min-width: 140px;
+    }
+    input[type="text"] {
+      width: 100%;
+      margin-top: 6px;
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid #555;
+      background: #111;
+      color: #f5f5f5;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PK RER A – Branche Chessy (V2)</h1>
+  </header>
+  <main>
+    <div class="card">
+      <div class="label">Géolocalisation</div>
+      <div class="small" id="geoStatus">En attente… clique sur “Démarrer la géoloc”.</div>
+      <button id="startBtn">Démarrer la géoloc</button>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <div class="label">Position PK estimée</div>
+        <div class="value" id="pkValue">PK --+---</div>
+        <div class="small" id="pkRaw">–</div>
+      </div>
+      <div class="card">
+        <div class="label">Gare la plus proche (en PK)</div>
+        <div class="value" id="nearestStation">–</div>
+        <div class="small" id="nearestDist">–</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <div class="label">Sens / mouvement</div>
+        <div class="value" id="direction">–</div>
+        <div class="small" id="deltaPk">–</div>
+      </div>
+      <div class="card">
+        <div class="label">Prochaine gare (en PK)</div>
+        <div class="value" id="nextStation">–</div>
+        <div class="small" id="nextDist">–</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label">PK cible</div>
+      <div class="small">
+        Saisis un PK en mètres (ex : <b>32400</b>) ou au format <b>32+400</b>.<br>
+        L’appli te dira combien de mètres il reste et dans quel sens (Paris / Chessy).
+      </div>
+      <input id="targetPkInput" type="text" placeholder="ex : 32400 ou 32+400">
+      <button id="setTargetBtn" style="margin-top:8px;">Définir ce PK comme cible</button>
+      <div class="small" id="targetPkInfo" style="margin-top:6px;">Aucun PK cible pour l’instant.</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Infos</div>
+      <div class="small">
+        V2 de démonstration limitée à la branche Chessy (Val de Fontenay → Marne-la-Vallée – Chessy).<br>
+        Les PK sont calculés à partir de la moyenne PK début/fin de quai (doc “Liste des accès LA”).<br>
+        À utiliser comme aide indicative, pas comme document officiel d’exploitation.
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // --- Données : gares de la branche Chessy ---
+    // PK en mètres = moyenne des PK début/fin de quai (extraits de la "Liste des accès LA")
+    const stations = [
+      { name: "Val de Fontenay", lat: 48.854418359362505, lon: 2.4890884590969433, pk_m: 34538 },
+      { name: "Neuilly-Plaisance", lat: 48.8534646980684, lon: 2.513839877899415, pk_m: 36733 },
+      { name: "Bry-sur-Marne", lat: 48.844265746484844, lon: 2.526192452772413, pk_m: 37948 },
+      { name: "Noisy-le-Grand – Mont d'Est", lat: 48.841013514905114, lon: 2.5527359297146157, pk_m: 39874 },
+      { name: "Noisy–Champs", lat: 48.84295024164959, lon: 2.5788366796099105, pk_m: 42171 },
+      { name: "Noisiel", lat: 48.84376504256413, lon: 2.6160790153456777, pk_m: 44805 },
+      { name: "Lognes", lat: 48.83936112712248, lon: 2.6335250334635436, pk_m: 46220 },
+      { name: "Torcy", lat: 48.839027600948114, lon: 2.655058429753598, pk_m: 47872 },
+      { name: "Bussy-Saint-Georges", lat: 48.83718263876794, lon: 2.712538601000879, pk_m: 52212 },
+      { name: "Val d'Europe", lat: 48.856168414902776, lon: 2.773827467210709, pk_m: 57275 },
+      { name: "Marne-la-Vallée – Chessy", lat: 48.870723714970545, lon: 2.7826307506659154, pk_m: 59190 }
+    ];
+
+    // Rayon Terre
+    const R = 6371000;
+    // Latitude de référence pour la projection plane
+    const lat0 = 48.85 * Math.PI / 180;
+
+    // Conversion lat/lon -> X/Y approximativement en mètres (projection simple)
+    function toXY(latDeg, lonDeg) {
+      const lat = latDeg * Math.PI / 180;
+      const lon = lonDeg * Math.PI / 180;
+      const x = R * lon * Math.cos(lat0);
+      const y = R * lat;
+      return { x, y };
+    }
+
+    // Distance haversine (pas indispensable pour le PK, mais dispo)
+    function haversine(lat1, lon1, lat2, lon2) {
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const dφ = (lat2 - lat1) * Math.PI / 180;
+      const dλ = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(dλ/2)**2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    // Projection d’un point P sur le segment AB (en XY)
+    function projectOnSegment(p, a, b) {
+      const P = toXY(p.lat, p.lon);
+      const A = toXY(a.lat, a.lon);
+      const B = toXY(b.lat, b.lon);
+      const ABx = B.x - A.x;
+      const ABy = B.y - A.y;
+      const APx = P.x - A.x;
+      const APy = P.y - A.y;
+      const denom = ABx*ABx + ABy*ABy;
+      if (denom === 0) return { t: 0, dist: Infinity };
+      let t = (APx*ABx + APy*ABy) / denom;
+      if (t < 0) t = 0;
+      if (t > 1) t = 1;
+      const proj = { x: A.x + t*ABx, y: A.y + t*ABy };
+      const dist = Math.sqrt((P.x - proj.x)**2 + (P.y - proj.y)**2);
+      return { t, dist };
+    }
+
+    // Format PK en "XX+YYY"
+    function formatPk(pk_m) {
+      if (!isFinite(pk_m)) return "PK --+---";
+      const km = Math.floor(pk_m / 1000);
+      const reste = Math.round(pk_m - km * 1000);
+      const hm = reste.toString().padStart(3, "0");
+      return `PK ${km}+${hm}`;
+    }
+
+    let lastPk = null;
+    let targetPk = null;
+
+    function computePkFromGps(lat, lon) {
+      let best = null;
+
+      for (let i = 0; i < stations.length - 1; i++) {
+        const A = stations[i];
+        const B = stations[i+1];
+        const proj = projectOnSegment({lat, lon}, A, B);
+        const pk = A.pk_m + proj.t * (B.pk_m - A.pk_m);
+
+        if (!best || proj.dist < best.dist) {
+          best = {
+            segment: [A, B],
+            t: proj.t,
+            dist: proj.dist,
+            pk_m: pk
+          };
+        }
+      }
+
+      if (!best) return null;
+
+      // Gare la plus proche en PK
+      let nearest = null;
+      stations.forEach(st => {
+        const dPk = Math.abs(st.pk_m - best.pk_m);
+        if (!nearest || dPk < nearest.dPk) {
+          nearest = { station: st, dPk };
+        }
+      });
+
+      // Prochaine gare selon le sens (estimé via lastPk)
+      let next = null;
+      if (lastPk == null || best.pk_m >= lastPk) {
+        // PK croissant → vers Chessy
+        next = stations.find(st => st.pk_m > best.pk_m);
+      } else {
+        // PK décroissant → vers Paris
+        const reversed = [...stations].reverse();
+        next = reversed.find(st => st.pk_m < best.pk_m);
+      }
+
+      return {
+        pk_m: best.pk_m,
+        distToLine: best.dist,
+        nearest,
+        next
+      };
+    }
+
+    // Parse d’une saisie utilisateur : "32400" ou "32+400"
+    function parsePkInput(text) {
+      if (!text) return null;
+      text = text.trim();
+      if (text.includes("+")) {
+        const parts = text.split("+");
+        if (parts.length !== 2) return null;
+        const km = parseInt(parts[0], 10);
+        const hm = parseInt(parts[1], 10);
+        if (isNaN(km) || isNaN(hm)) return null;
+        return km * 1000 + hm;
+      }
+      const val = parseInt(text, 10);
+      if (isNaN(val)) return null;
+      return val;
+    }
+
+    // Récup éléments DOM
+    const geoStatus = document.getElementById("geoStatus");
+    const pkValue = document.getElementById("pkValue");
+    const pkRaw = document.getElementById("pkRaw");
+    const nearestStation = document.getElementById("nearestStation");
+    const nearestDist = document.getElementById("nearestDist");
+    const direction = document.getElementById("direction");
+    const deltaPk = document.getElementById("deltaPk");
+    const nextStation = document.getElementById("nextStation");
+    const nextDist = document.getElementById("nextDist");
+    const startBtn = document.getElementById("startBtn");
+
+    const targetPkInput = document.getElementById("targetPkInput");
+    const setTargetBtn = document.getElementById("setTargetBtn");
+    const targetPkInfo = document.getElementById("targetPkInfo");
+
+    let watchId = null;
+
+    function updateUI(result, lat, lon) {
+      if (!result) {
+        pkValue.textContent = "PK --+---";
+        pkRaw.textContent = "Hors zone couverte (branche Chessy)";
+        nearestStation.textContent = "–";
+        nearestDist.textContent = "–";
+        direction.textContent = "–";
+        deltaPk.textContent = "–";
+        nextStation.textContent = "–";
+        nextDist.textContent = "–";
+        return;
+      }
+
+      const pk_m = result.pk_m;
+      const formatted = formatPk(pk_m);
+      pkValue.textContent = formatted;
+      pkRaw.textContent = `~ ${Math.round(pk_m)} m (dist. à la voie : ${Math.round(result.distToLine)} m)`;
+
+      if (result.nearest) {
+        nearestStation.textContent = result.nearest.station.name;
+        nearestDist.textContent = `ΔPK ≈ ${Math.round(result.nearest.dPk)} m`;
+      } else {
+        nearestStation.textContent = "–";
+        nearestDist.textContent = "–";
+      }
+
+      if (lastPk != null) {
+        const d = pk_m - lastPk;
+        if (Math.abs(d) < 5) {
+          direction.textContent = "Quasi immobile";
+          deltaPk.textContent = `ΔPK ≈ ${d.toFixed(1)} m`;
+        } else if (d > 0) {
+          direction.textContent = "PK croissant (vers Chessy)";
+          deltaPk.textContent = `ΔPK ≈ +${d.toFixed(1)} m`;
+        } else {
+          direction.textContent = "PK décroissant (vers Paris)";
+          deltaPk.textContent = `ΔPK ≈ ${d.toFixed(1)} m`;
+        }
+      } else {
+        direction.textContent = "En attente d’un deuxième point…";
+        deltaPk.textContent = "–";
+      }
+
+      if (result.next) {
+        nextStation.textContent = result.next.name;
+        const diffNext = Math.abs(result.next.pk_m - pk_m);
+        nextDist.textContent = `≈ ${Math.round(diffNext)} m en PK`;
+      } else {
+        nextStation.textContent = "Fin de branche";
+        nextDist.textContent = "–";
+      }
+
+      // Distance à un PK cible
+      if (targetPk != null) {
+        const diff = targetPk - pk_m;
+        const sens = diff > 0 ? "vers Chessy" : "vers Paris";
+        const reste = Math.abs(diff);
+        targetPkInfo.textContent =
+          "PK cible : " + formatPk(targetPk) +
+          " → reste ≈ " + Math.round(reste) + " m " + sens;
+      }
+
+      lastPk = pk_m;
+    }
+
+    function startGeolocation() {
+      if (!("geolocation" in navigator)) {
+        geoStatus.textContent = "Géolocalisation non disponible sur cet appareil.";
+        geoStatus.className = "status-bad";
+        return;
+      }
+      geoStatus.textContent = "Demande d’autorisation en cours…";
+      geoStatus.className = "";
+
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          geoStatus.textContent = `Position reçue (lat : ${lat.toFixed(5)}, lon : ${lon.toFixed(5)})`;
+          geoStatus.className = "status-ok";
+
+          const res = computePkFromGps(lat, lon);
+          updateUI(res, lat, lon);
+        },
+        (err) => {
+          geoStatus.textContent = "Erreur géoloc : " + err.message;
+          geoStatus.className = "status-bad";
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 2000,
+          timeout: 10000
+        }
+      );
+    }
+
+    startBtn.addEventListener("click", () => {
+      startBtn.disabled = true;
+      startGeolocation();
+    });
+
+    setTargetBtn.addEventListener("click", () => {
+      const txt = targetPkInput.value;
+      const pk = parsePkInput(txt);
+      if (pk == null) {
+        targetPkInfo.textContent = "PK invalide. Exemple : 32400 ou 32+400";
+        return;
+      }
+      targetPk = pk;
+      targetPkInfo.textContent = "PK cible défini : " + formatPk(targetPk);
+    });
+  </script>
+</body>
+</html>
