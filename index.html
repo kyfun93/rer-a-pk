@@ -46,7 +46,10 @@
     padding: 0 16px 32px;
   }
 
-  /* TITRES */
+  .header {
+    margin-bottom: 14px;
+  }
+
   h1 {
     font-size: 1.6rem;
     margin: 0 0 4px;
@@ -58,19 +61,90 @@
   .subtitle {
     color: var(--muted);
     font-size: 0.9rem;
-    margin-bottom: 12px;
+    margin-bottom: 4px;
   }
 
-  /* BARRE DU HAUT */
-  .top-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 10px;
+  .note {
+    font-size: 0.78rem;
+    color: var(--muted);
   }
 
-  /* BOUTONS */
+  /* Cartes principales */
+
+  .card {
+    background: linear-gradient(145deg, #121522, #0d0f18);
+    border-radius: 20px;
+    padding: 18px 18px 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 14px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.45);
+  }
+
+  .card-soft {
+    background: var(--card-soft);
+  }
+
+  .card-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+  }
+
+  .card-title {
+    font-size: 0.9rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .big-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin: 4px 0 3px;
+    color: #fff;
+  }
+
+  .big-sub {
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+
+  .muted {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .badge {
+    font-size: 0.8rem;
+    padding: 4px 9px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: #181b2a;
+  }
+
+  .badge-good {
+    color: var(--good);
+    background: var(--good-soft);
+    border-color: rgba(75,214,122,0.4);
+  }
+
+  .badge-danger {
+    color: var(--danger);
+    background: var(--danger-soft);
+    border-color: rgba(255,75,107,0.4);
+  }
+
+  .badge-warn {
+    color: var(--warning);
+    background: rgba(255,184,77,0.12);
+    border-color: rgba(255,184,77,0.5);
+  }
+
+  /* boutons */
+
   .btn {
     display: inline-flex;
     align-items: center;
@@ -92,7 +166,7 @@
   }
 
   .btn-primary:hover {
-    filter: brightness(1.1);
+    filter: brightness(1.08);
   }
 
   .btn-secondary {
@@ -121,107 +195,6 @@
     gap:6px;
   }
 
-  /* CARTES */
-  .card {
-    background: linear-gradient(145deg, #121522, #0d0f18);
-    border-radius: 20px;
-    padding: 18px 18px 14px;
-    border: 1px solid rgba(255,255,255,0.06);
-    margin-bottom: 14px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.45);
-  }
-/* Bloc signalement d’avarie */
-.signalement-block {
-  background: linear-gradient(145deg, #221015, #170b0e);
-  border: 1px solid rgba(255, 75, 107, 0.4);
-  border-radius: 18px;
-  padding: 16px;
-  margin: 14px 0;
-  box-shadow: 0 0 20px rgba(255, 75, 107, 0.1);
-}
-.signalement-block label {
-  color: #ff97a9;
-}
-.signalement-block select,
-.signalement-block input,
-.signalement-block textarea {
-  background: #0b0809;
-  border: 1px solid rgba(255, 100, 120, 0.25);
-}
-.signalement-block .btn-danger {
-  background: linear-gradient(135deg, #ff4b6b, #ff7592);
-  box-shadow: 0 4px 10px rgba(255, 75, 107, 0.4);
-}
-.signalement-block .btn-secondary {
-  border-color: rgba(255, 100, 120, 0.3);
-  color: #ffd9de;
-}
-  .card-soft {
-    background: var(--card-soft);
-  }
-
-  .card-header {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:8px;
-  }
-
-  .card-title {
-    font-size: 0.9rem;
-    font-weight: 650;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  /* TEXTES ET INFOS */
-  .big-value {
-    font-size: 1.7rem;
-    font-weight: 700;
-    margin: 4px 0 3px;
-    color: #fff;
-  }
-
-  .big-sub {
-    font-size: 0.95rem;
-    color: var(--muted);
-  }
-
-  .muted {
-    color: var(--muted);
-    font-size: 0.9rem;
-  }
-
-  /* BADGES */
-  .badge {
-    font-size: 0.8rem;
-    padding: 4px 9px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    background: #181b2a;
-  }
-
-  .badge-good {
-    color: var(--good);
-    background: var(--good-soft);
-    border-color: rgba(75,214,122,0.4);
-  }
-
-  .badge-danger {
-    color: var(--danger);
-    background: var(--danger-soft);
-    border-color: rgba(255,75,107,0.4);
-  }
-
-  .badge-warn {
-    color: var(--warning);
-    background: rgba(255,184,77,0.12);
-    border-color: rgba(255,184,77,0.5);
-  }
-
-  /* CHAMPS ET FORMULAIRES */
   .field {
     margin-top: 8px;
     display:flex;
@@ -245,7 +218,7 @@
     outline: none;
   }
 
-  input:focus, select:focus {
+  input:focus, select:focus, textarea:focus {
     border-color: var(--accent);
     box-shadow: 0 0 6px rgba(61,123,255,0.4);
   }
@@ -254,16 +227,23 @@
     color: #55556d;
   }
 
-  .access-item { margin-bottom: 6px; }
-  .access-item:last-child { margin-bottom: 0; }
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
 
-  .settings-badge {
-    font-size: 0.8rem;
-    padding: 3px 8px;
-    border-radius: 999px;
-    background: var(--accent-soft);
-    color: var(--accent);
-    border: 1px solid rgba(61,123,255,0.5);
+  .access-item {
+    margin-bottom: 6px;
+  }
+
+  .access-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .bottom-bar {
+    margin-top: 10px;
+    display:flex;
+    justify-content:center;
   }
 
   .settings-footer {
@@ -278,7 +258,33 @@
     background: rgba(255,255,255,0.04);
   }
 
-  /* RESPONSIVE */
+  /* Bloc signalement d’avarie */
+  .signalement-block {
+    background: linear-gradient(145deg, #221015, #170b0e);
+    border: 1px solid rgba(255, 75, 107, 0.4);
+    border-radius: 18px;
+    padding: 16px;
+    margin: 14px 0 6px;
+    box-shadow: 0 0 20px rgba(255, 75, 107, 0.12);
+  }
+  .signalement-block label {
+    color: #ff97a9;
+  }
+  .signalement-block select,
+  .signalement-block input,
+  .signalement-block textarea {
+    background: #0b0809;
+    border: 1px solid rgba(255, 100, 120, 0.25);
+  }
+  .signalement-block .btn-danger {
+    background: linear-gradient(135deg, #ff4b6b, #ff7592);
+    box-shadow: 0 4px 10px rgba(255, 75, 107, 0.4);
+  }
+  .signalement-block .btn-secondary {
+    border-color: rgba(255, 100, 120, 0.3);
+    color: #ffd9de;
+  }
+
   @media (max-width: 640px) {
     .app {
       padding: 0 10px 24px;
@@ -310,12 +316,6 @@
       width: 100%;
       border-radius: 14px;
     }
-
-    .top-bar {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 4px;
-    }
   }
 
   @media (max-width: 380px) {
@@ -330,101 +330,13 @@
 </head>
 <body>
   <div class="app">
-    <div class="top-bar">
-      <div>
-        <h1>PK RER A – St-Germain ↔ Paris ↔ Chessy</h1>
-        <div class="subtitle">Estimation du PK en temps réel à partir de la géolocalisation.</div>
-      </div>
-      <button id="btnSettingsToggle" class="btn btn-secondary btn-icon" type="button">
-        <span>⚙️</span><span>Paramètres</span>
-      </button>
+    <div class="header">
+      <h1>PK RER A – St-Germain ↔ Paris ↔ Chessy</h1>
+      <div class="subtitle">Estimation du PK en temps réel à partir de la géolocalisation.</div>
+      <div class="note">Prototype perso – précision typiquement ±100–200 m, à recaler avec une borne PK.</div>
     </div>
 
-    <!-- PARAMÈTRES -->
-    <div id="settingsPanel" class="card card-soft" style="display:none;">
-      <div class="card-header">
-        <div class="card-title">Paramètres</div>
-        <span class="settings-badge">Local au téléphone</span>
-      </div>
-
-      <div class="field">
-        <label for="inputSosPhone">Numéro SOS pour le SMS d’urgence</label>
-        <input id="inputSosPhone" type="tel" placeholder="ex : 0612345678 ou +33612345678" />
-        <div class="muted">Ce numéro sera utilisé par le bouton « SMS d’urgence ».</div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="field">
-        <label for="selectSensitivity">Sensibilité au mouvement</label>
-        <select id="selectSensitivity">
-          <option value="slow">Marche lente</option>
-          <option value="normal">Normal</option>
-          <option value="train">Train</option>
-        </select>
-        <div class="muted">« Marche lente » détecte plus facilement un déplacement à pied.</div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="field">
-        <label>Recalage PK</label>
-        <div id="pkOffsetInfo" class="muted">Offset actuel : ±0 m appliqués à tous les PK.</div>
-        <button id="btnResetOffset" class="btn btn-secondary" type="button">Réinitialiser le recalage PK</button>
-      </div>
-
-      <div class="field">
-        <label>Position PK estimée (lecture seule)</label>
-        <div id="pkEstimateText" class="muted">En attente de position GPS…</div>
-      </div>
-
-      <div class="field">
-        <label for="inputPkRecal">PK exact ici (pour recaler l’appli)</label>
-        <input id="inputPkRecal" type="text" placeholder="ex : 52700 ou 52+700" />
-        <button id="btnApplyRecal" class="btn btn-primary" type="button">Recaler l’appli sur ce PK</button>
-      </div>
-
-      <div class="field">
-        <button id="btnSaveSettings" class="btn btn-primary btn-icon" type="button">
-          <span>💾</span><span>Enregistrer les paramètres</span>
-        </button>
-      </div>
-<div class="signalement-block">
-  <label for="selectIncidentType">🚨 Signalement d’avarie / incident</label>
-  <select id="selectIncidentType">
-    <option value="">-- Choisir un type d’incident --</option>
-    <option value="Cheminement endommagé">Cheminement endommagé</option>
-    <option value="Rail cassé">Rail cassé</option>
-    <option value="Animal mort">Animal mort</option>
-    <option value="Autre">Autre (saisir ci-dessous)</option>
-  </select>
-
-  <div class="field" id="incidentOtherField" style="display:none;">
-    <label for="inputIncidentOther">Précisez l’incident :</label>
-    <input id="inputIncidentOther" type="text" placeholder="ex : câble arraché, signal détérioré..." />
-  </div>
-
-  <div class="field">
-    <button id="btnGenerateIncident" class="btn btn-danger btn-icon" type="button">
-      <span>📣</span><span>Générer le message de signalement</span>
-    </button>
-  </div>
-
-  <div class="field" id="incidentResultField" style="display:none;">
-    <label>Message généré :</label>
-    <textarea id="incidentResultText" rows="4" readonly></textarea>
-    <button id="btnCopyIncident" class="btn btn-secondary btn-icon" type="button">
-      <span>📋</span><span>Copier le texte</span>
-    </button>
-  </div>
-</div>
-      <div class="settings-footer">
-        Ces réglages restent stockés dans ton navigateur (localStorage).  
-        Ils ne sont pas effacés quand on met à jour l’application.
-      </div>
-    </div>
-
-    <!-- GÉOLOC -->
+    <!-- GÉOLOCALISATION -->
     <div class="card">
       <div class="card-header">
         <div class="card-title">Géolocalisation</div>
@@ -481,10 +393,10 @@
       </div>
     </div>
 
-    <!-- ACCÈS / GAres les plus proches -->
+    <!-- ACCÈS / GARes LES PLUS PROCHES -->
     <div class="card">
       <div class="card-header">
-        <div class="card-title">Accès les plus proches (en PK)</div>
+        <div class="card-title">Accès / gares les plus proches (en PK)</div>
       </div>
       <div class="big-sub">Top 3 en PK</div>
       <div id="accessList" class="muted" style="margin-top:8px;">
@@ -505,9 +417,113 @@
           <span>✉️</span><span>SMS d’urgence</span>
         </button>
       </div>
+    </div>
+
+    <!-- BOUTON PARAMÈTRES EN BAS -->
+    <div class="bottom-bar">
+      <button id="btnSettingsToggle" class="btn btn-secondary btn-icon" type="button">
+        <span>⚙️</span><span>Paramètres</span>
+      </button>
+    </div>
+
+    <!-- PARAMÈTRES -->
+    <div id="settingsPanel" class="card card-soft" style="display:none; margin-top:10px;">
+      <div class="card-header">
+        <div class="card-title">Paramètres</div>
+        <span class="badge">Local au téléphone</span>
+      </div>
+
+      <!-- Numéro SOS -->
+      <div class="field">
+        <label for="inputSosPhone">Numéro SOS pour le SMS d’urgence</label>
+        <input id="inputSosPhone" type="tel" placeholder="ex : 0612345678 ou +33612345678" />
+        <div class="muted">Ce numéro sera utilisé par le bouton « SMS d’urgence ».</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Sensibilité mouvement -->
+      <div class="field">
+        <label for="selectSensitivity">Sensibilité au mouvement</label>
+        <select id="selectSensitivity">
+          <option value="slow">Marche lente</option>
+          <option value="normal">Normal</option>
+          <option value="train">Train</option>
+        </select>
+        <div class="muted">« Marche lente » détecte plus facilement un déplacement à pied.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Recalage PK -->
+      <div class="field">
+        <label>Recalage PK</label>
+        <div id="pkOffsetInfo" class="muted">Offset actuel : ±0 m appliqués à tous les PK.</div>
+      </div>
+
+      <div class="field">
+        <label>Position PK estimée (lecture seule)</label>
+        <div id="pkEstimateText" class="muted">En attente de position GPS…</div>
+      </div>
+
+      <div class="field">
+        <label for="inputPkRecal">PK exact ici (pour recaler l’appli)</label>
+        <input id="inputPkRecal" type="text" placeholder="ex : 52700 ou 52+700" />
+        <button id="btnApplyRecal" class="btn btn-primary" type="button">Recaler l’appli sur ce PK</button>
+      </div>
+
+      <div class="field">
+        <button id="btnResetOffset" class="btn btn-secondary" type="button">
+          Réinitialiser le recalage PK
+        </button>
+      </div>
+
+      <!-- Signalement d’avarie -->
+      <div class="signalement-block">
+        <label for="selectIncidentType">🚨 Signalement d’avarie / incident</label>
+        <select id="selectIncidentType">
+          <option value="">-- Choisir un type d’incident --</option>
+          <option value="Cheminement endommagé">Cheminement endommagé</option>
+          <option value="Rail cassé">Rail cassé</option>
+          <option value="Animal mort">Animal mort</option>
+          <option value="Autre">Autre (saisir ci-dessous)</option>
+        </select>
+
+        <div class="field" id="incidentOtherField" style="display:none;">
+          <label for="inputIncidentOther">Précisez l’incident :</label>
+          <input id="inputIncidentOther" type="text" placeholder="ex : câble arraché, signal détérioré..." />
+        </div>
+
+        <div class="field">
+          <label for="incidentPhoto">Photo (optionnel)</label>
+          <input id="incidentPhoto" type="file" accept="image/*" />
+          <div class="muted">Tu peux prendre ou choisir une photo. Son nom sera ajouté au message.</div>
+        </div>
+
+        <div class="field">
+          <button id="btnGenerateIncident" class="btn btn-danger btn-icon" type="button">
+            <span>📣</span><span>Générer le message de signalement</span>
+          </button>
+        </div>
+
+        <div class="field" id="incidentResultField" style="display:none;">
+          <label>Message généré :</label>
+          <textarea id="incidentResultText" rows="4" readonly></textarea>
+          <button id="btnCopyIncident" class="btn btn-secondary btn-icon" type="button">
+            <span>📋</span><span>Copier le texte</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="field">
+        <button id="btnSaveSettings" class="btn btn-primary btn-icon" type="button">
+          <span>💾</span><span>Enregistrer les paramètres</span>
+        </button>
+      </div>
+
       <div class="settings-footer">
-        Prototype perso – précision typiquement ±100–200 m selon le GPS.  
-        Utilise le recalage PK quand tu passes devant une borne.
+        Ces réglages restent stockés dans ton navigateur (localStorage).  
+        Ils ne sont pas effacés quand on met à jour l’application.
       </div>
     </div>
   </div>
@@ -516,36 +532,36 @@
   // === DONNÉES DE LIGNE =====================================================
 
   const stations = [
-    { name: "St-Germain-en-Laye",      lat: 48.8984745677, lon: 2.0946251970, pk:    0 },
-    { name: "Le Vésinet – Le Pecq",    lat: 48.8984530458, lon: 2.1222846835, pk:  2000 },
-    { name: "Le Vésinet – Centre",     lat: 48.8901555110, lon: 2.1347027835, pk:  4000 },
-    { name: "Chatou – Croissy",        lat: 48.8854638305, lon: 2.1564040970, pk:  6000 },
-    { name: "Rueil-Malmaison",         lat: 48.8877403423, lon: 2.1725468932, pk:  7000 },
-    { name: "Nanterre-Ville",          lat: 48.8952086355, lon: 2.1957210472, pk:  8000 },
-    { name: "Nanterre-Université",     lat: 48.9009541230, lon: 2.2128683712, pk: 11000 },
-    { name: "Nanterre-Préfecture",     lat: 48.8958449352, lon: 2.2230702306, pk: 12000 },
-    { name: "La Défense – Grande Arche", lat: 48.8919045058, lon: 2.2385616258, pk: 13000 },
-    { name: "Charles de Gaulle – Étoile", lat: 48.8742900059, lon: 2.2948848393, pk: 18000 },
-    { name: "Auber",                   lat: 48.8725358497, lon: 2.3298119681, pk: 20000 },
-    { name: "Châtelet – Les Halles",   lat: 48.8619752528, lon: 2.3469363528, pk: 22000 },
-    { name: "Gare de Lyon",            lat: 48.8444873499, lon: 2.3743558393, pk: 25000 },
-    { name: "Nation",                  lat: 48.8488218026, lon: 2.3970239229, pk: 27000 },
-    { name: "Vincennes",               lat: 48.8475419027, lon: 2.4332766909, pk: 30000 },
-    { name: "Fontenay-sous-Bois",      lat: 48.8457834716, lon: 2.4641534958, pk: 31500 },
-    { name: "Val de Fontenay",         lat: 48.8544183594, lon: 2.4890884591, pk: 34000 },
-    { name: "Neuilly-Plaisance",       lat: 48.8534646981, lon: 2.5138398779, pk: 36000 },
-    { name: "Bry-sur-Marne",           lat: 48.8442657465, lon: 2.5261924528, pk: 38000 },
+    { name: "St-Germain-en-Laye",          lat: 48.8984745677, lon: 2.0946251970, pk:    0 },
+    { name: "Le Vésinet – Le Pecq",        lat: 48.8984530458, lon: 2.1222846835, pk:  2000 },
+    { name: "Le Vésinet – Centre",         lat: 48.8901555110, lon: 2.1347027835, pk:  4000 },
+    { name: "Chatou – Croissy",            lat: 48.8854638305, lon: 2.1564040970, pk:  6000 },
+    { name: "Rueil-Malmaison",             lat: 48.8877403423, lon: 2.1725468932, pk:  7000 },
+    { name: "Nanterre-Ville",              lat: 48.8952086355, lon: 2.1957210472, pk:  8000 },
+    { name: "Nanterre-Université",         lat: 48.9009541230, lon: 2.2128683712, pk: 11000 },
+    { name: "Nanterre-Préfecture",         lat: 48.8958449352, lon: 2.2230702306, pk: 12000 },
+    { name: "La Défense – Grande Arche",   lat: 48.8919045058, lon: 2.2385616258, pk: 13000 },
+    { name: "Charles de Gaulle – Étoile",  lat: 48.8742900059, lon: 2.2948848393, pk: 18000 },
+    { name: "Auber",                       lat: 48.8725358497, lon: 2.3298119681, pk: 20000 },
+    { name: "Châtelet – Les Halles",       lat: 48.8619752528, lon: 2.3469363528, pk: 22000 },
+    { name: "Gare de Lyon",                lat: 48.8444873499, lon: 2.3743558393, pk: 25000 },
+    { name: "Nation",                      lat: 48.8488218026, lon: 2.3970239229, pk: 27000 },
+    { name: "Vincennes",                   lat: 48.8475419027, lon: 2.4332766909, pk: 30000 },
+    { name: "Fontenay-sous-Bois",          lat: 48.8457834716, lon: 2.4641534958, pk: 31500 },
+    { name: "Val de Fontenay",             lat: 48.8544183594, lon: 2.4890884591, pk: 34000 },
+    { name: "Neuilly-Plaisance",           lat: 48.8534646981, lon: 2.5138398779, pk: 36000 },
+    { name: "Bry-sur-Marne",               lat: 48.8442657465, lon: 2.5261924528, pk: 38000 },
     { name: "Noisy-le-Grand – Mont d’Est", lat: 48.8410135149, lon: 2.5527359297, pk: 40000 },
-    { name: "Noisy – Champs",          lat: 48.8429502416, lon: 2.5788366796, pk: 42000 },
-    { name: "Noisiel",                 lat: 48.8437650426, lon: 2.6160790153, pk: 44000 },
-    { name: "Lognes",                  lat: 48.8393611271, lon: 2.6335250335, pk: 46000 },
-    { name: "Torcy",                   lat: 48.8390276009, lon: 2.6550584298, pk: 48000 },
-    { name: "Bussy-Saint-Georges",     lat: 48.8371826388, lon: 2.7125386010, pk: 52000 },
-    { name: "Val d’Europe",            lat: 48.8561684149, lon: 2.7738274672, pk: 57000 },
-    { name: "Marne-la-Vallée – Chessy",lat: 48.8707237150, lon: 2.7826307507, pk: 59000 }
+    { name: "Noisy – Champs",              lat: 48.8429502416, lon: 2.5788366796, pk: 42000 },
+    { name: "Noisiel",                     lat: 48.8437650426, lon: 2.6160790153, pk: 44000 },
+    { name: "Lognes",                      lat: 48.8393611271, lon: 2.6335250335, pk: 46000 },
+    { name: "Torcy",                       lat: 48.8390276009, lon: 2.6550584298, pk: 48000 },
+    { name: "Bussy-Saint-Georges",         lat: 48.8371826388, lon: 2.7125386010, pk: 52000 },
+    { name: "Val d’Europe",                lat: 48.8561684149, lon: 2.7738274672, pk: 57000 },
+    { name: "Marne-la-Vallée – Chessy",    lat: 48.8707237150, lon: 2.7826307507, pk: 59000 }
   ];
 
-  const linePoints = stations; // on utilise les gares comme points de la polyligne
+  const linePoints = stations;
 
   const sensitivityProfiles = {
     slow:   { idle: 0.15, walk: 1.5 },
@@ -563,7 +579,7 @@
     lastLat: null,
     lastLon: null,
     lastDist: null,
-    direction: null,  // "est" (vers Chessy) ou "ouest"
+    direction: null,
     nearestStation: null
   };
 
@@ -681,9 +697,6 @@
 
   // === DOM ==================================================================
 
-  const btnSettingsToggle = document.getElementById("btnSettingsToggle");
-  const settingsPanel = document.getElementById("settingsPanel");
-
   const gpsStatusBadge = document.getElementById("gpsStatusBadge");
   const geolocText = document.getElementById("geolocText");
   const btnToggleGeoloc = document.getElementById("btnToggleGeoloc");
@@ -707,17 +720,30 @@
   const smsPreview = document.getElementById("smsPreview");
   const btnSms = document.getElementById("btnSms");
 
+  const btnSettingsToggle = document.getElementById("btnSettingsToggle");
+  const settingsPanel = document.getElementById("settingsPanel");
+
   // paramètres
   const inputSosPhone = document.getElementById("inputSosPhone");
   const selectSensitivity = document.getElementById("selectSensitivity");
   const pkOffsetInfo = document.getElementById("pkOffsetInfo");
-  const btnResetOffset = document.getElementById("btnResetOffset");
   const pkEstimateText = document.getElementById("pkEstimateText");
   const inputPkRecal = document.getElementById("inputPkRecal");
   const btnApplyRecal = document.getElementById("btnApplyRecal");
+  const btnResetOffset = document.getElementById("btnResetOffset");
   const btnSaveSettings = document.getElementById("btnSaveSettings");
 
-  // === GESTION PARAMÈTRES ===================================================
+  // incident
+  const selectIncidentType = document.getElementById("selectIncidentType");
+  const incidentOtherField = document.getElementById("incidentOtherField");
+  const inputIncidentOther = document.getElementById("inputIncidentOther");
+  const incidentPhotoInput = document.getElementById("incidentPhoto");
+  const btnGenerateIncident = document.getElementById("btnGenerateIncident");
+  const incidentResultField = document.getElementById("incidentResultField");
+  const incidentResultText = document.getElementById("incidentResultText");
+  const btnCopyIncident = document.getElementById("btnCopyIncident");
+
+  // === PARAMÈTRES ===========================================================
 
   function loadSettings() {
     const storedOffset = parseFloat(localStorage.getItem("pkOffset"));
@@ -755,12 +781,12 @@
     const pkText = "PK " + formatPk(corrected) +
       " (~" + Math.round(corrected) + " m depuis l’origine de la ligne)";
     const distText = state.lastDist != null
-      ? " ~ " + Math.round(state.lastDist) + " m de la voie (projection)."
+      ? " · ~ " + Math.round(state.lastDist) + " m de la voie (projection)."
       : "";
     pkEstimateText.textContent = pkText + distText;
   }
 
-  // === GÉOLOCALISATION ======================================================
+  // === GÉOLOC ===============================================================
 
   let geolocActive = false;
 
@@ -847,7 +873,6 @@
     state.lastLon = lon;
     state.lastDist = proj.dist;
 
-    // gares & accès
     const nearest = findNearestStation(correctedPk);
     state.nearestStation = nearest;
     updateNearestStation(correctedPk, nearest);
@@ -860,7 +885,7 @@
 
   function updateMovement(dPk, dt) {
     const profile = sensitivityProfiles[motionSensitivity] || sensitivityProfiles.normal;
-    const speed = Math.abs(dPk) / dt; // m/s
+    const speed = Math.abs(dPk) / dt;
 
     if (dPk > 0) state.direction = "est";
     else if (dPk < 0) state.direction = "ouest";
@@ -997,16 +1022,93 @@
     window.location.href = url;
   }
 
-  // === LISTENERS ============================================================
+  // === SIGNALER UN INCIDENT =================================================
 
-  btnSettingsToggle.addEventListener("click", () => {
-    const isVisible = settingsPanel.style.display !== "none";
-    settingsPanel.style.display = isVisible ? "none" : "block";
+  selectIncidentType.addEventListener("change", () => {
+    if (selectIncidentType.value === "Autre") {
+      incidentOtherField.style.display = "block";
+    } else {
+      incidentOtherField.style.display = "none";
+    }
   });
+
+  btnGenerateIncident.addEventListener("click", () => {
+    if (state.lastPk == null || state.lastLat == null) {
+      alert("Position GPS non disponible. Lance la géoloc avant de signaler.");
+      return;
+    }
+    let type = selectIncidentType.value;
+    if (!type) {
+      alert("Choisis un type d’incident avant de générer le message.");
+      return;
+    }
+    if (type === "Autre") {
+      const desc = inputIncidentOther.value.trim();
+      if (!desc) {
+        alert("Précise la nature de l’incident.");
+        return;
+      }
+      type = desc;
+    }
+
+    const pkTxt = "PK " + formatPk(state.lastPk);
+    const station = state.nearestStation ? state.nearestStation.name : "inconnue";
+    const lat = state.lastLat.toFixed(5);
+    const lon = state.lastLon.toFixed(5);
+    const now = new Date();
+    const dateTxt = now.toLocaleDateString("fr-FR");
+    const timeTxt = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+
+    let message =
+      "🚨 Signalement d’avarie / incident\n" +
+      "Type : " + type + "\n" +
+      "PK : " + pkTxt + "\n" +
+      "Gare la plus proche : " + station + "\n" +
+      "Coordonnées : " + lat + ", " + lon + "\n" +
+      "Date/heure : " + dateTxt + " – " + timeTxt;
+
+    if (incidentPhotoInput && incidentPhotoInput.files && incidentPhotoInput.files.length > 0) {
+      const file = incidentPhotoInput.files[0];
+      if (file && file.name) {
+        message += "\nPhoto jointe : " + file.name;
+      }
+    }
+
+    incidentResultText.value = message;
+    incidentResultField.style.display = "block";
+  });
+
+  btnCopyIncident.addEventListener("click", () => {
+    const text = incidentResultText.value;
+    if (!text) {
+      alert("Aucun message à copier.");
+      return;
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Message copié dans le presse-papiers ✅");
+      }).catch(() => {
+        incidentResultText.select();
+        document.execCommand("copy");
+        alert("Message copié dans le presse-papiers ✅");
+      });
+    } else {
+      incidentResultText.select();
+      document.execCommand("copy");
+      alert("Message copié dans le presse-papiers ✅");
+    }
+  });
+
+  // === LISTENERS ============================================================
 
   btnToggleGeoloc.addEventListener("click", () => {
     if (geolocActive) stopGeoloc();
     else startGeoloc();
+  });
+
+  btnSettingsToggle.addEventListener("click", () => {
+    const isVisible = settingsPanel.style.display !== "none";
+    settingsPanel.style.display = isVisible ? "none" : "block";
   });
 
   btnSetPkTarget.addEventListener("click", () => {
@@ -1025,15 +1127,16 @@
     pkOffset = 0;
     localStorage.setItem("pkOffset", pkOffset);
     updateOffsetInfo();
-    updatePkEstimateInSettings();
-    if (state.lastPk != null) {
-      // recalculer avec nouvel offset
+    if (state.lastRawPk != null) {
       state.lastPk = state.lastRawPk;
       updateNearestStation(state.lastPk, findNearestStation(state.lastPk));
       updateNextStation(state.lastPk);
       updatePkTargetView();
       updateAccessList(state.lastPk);
       updateSmsPreview();
+      updatePkEstimateInSettings();
+    } else {
+      updatePkEstimateInSettings();
     }
   });
 
@@ -1056,6 +1159,7 @@
   btnSaveSettings.addEventListener("click", () => {
     saveSettings();
     updateSmsPreview();
+    alert("Paramètres enregistrés ✅");
   });
 
   selectSensitivity.addEventListener("change", () => {
