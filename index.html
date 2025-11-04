@@ -306,6 +306,23 @@
       </div>
 
       <div class="mt-10">
+        <label>Position PK estimée (lecture seule)</label>
+        <div class="card-sub">
+          <strong id="pkMainSettings">–</strong><br>
+          <span id="pkDetailsSettings">En attente de la première position GPS…</span>
+        </div>
+      </div>
+
+      <div class="mt-10">
+        <label for="pkCalInput">PK exact ici (pour recaler l’appli)</label>
+        <input id="pkCalInput" type="text" placeholder="ex : 52700 ou 52+700" />
+        <button id="pkCalBtn" class="btn btn-secondary btn-sm mt-6">
+          Recaler l’appli sur ce PK
+        </button>
+        <div id="pkCalInfo" class="card-sub mt-6"></div>
+      </div>
+
+      <div class="mt-10">
         <button id="saveSettingsBtn" class="btn btn-primary">
           💾 Enregistrer les paramètres
         </button>
@@ -328,28 +345,8 @@
       </div>
     </div>
 
-    <!-- Cartes principales -->
+    <!-- Cartes principales (sans la Position PK, déplacée dans Paramètres) -->
     <div class="cards-grid mt-10">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Position PK estimée</div>
-        </div>
-        <div id="pkMain" class="card-main">–</div>
-        <div id="pkDetails" class="card-sub">
-          En attente de la première position GPS…
-        </div>
-
-        <!-- Recalage PK -->
-        <div class="mt-10">
-          <label for="pkCalInput">PK exact ici (pour recaler l’appli)</label>
-          <input id="pkCalInput" type="text" placeholder="ex : 52700 ou 52+700" />
-          <button id="pkCalBtn" class="btn btn-secondary btn-sm mt-6">
-            Recaler l’appli sur ce PK
-          </button>
-          <div id="pkCalInfo" class="card-sub mt-6"></div>
-        </div>
-      </div>
-
       <div class="card">
         <div class="card-header">
           <div class="card-title">Gare la plus proche (en PK)</div>
@@ -438,8 +435,6 @@
     // Données de la ligne RER A
     // ---------------------------
 
-    // Points de référence (du PK le plus faible au plus élevé)
-    // PK en mètres, approximés à partir des schémas (Km0, Km2, …, Km59)
     const referencePoints = [
       { name: "St-Germain-en-Laye", lat: 48.89847456774899, lon: 2.0946251969575758, pk: 0.5 * 1000 },
       { name: "Le Vésinet – Le Pecq", lat: 48.898453045773756, lon: 2.1222846834668463, pk: 2.5 * 1000 },
@@ -475,11 +470,7 @@
       label: `Gare ${p.name}`
     }));
 
-    // ---------------------------
-    // Utilitaires math / géo
-    // ---------------------------
-
-    const R_EARTH = 6371000; // m
+    const R_EARTH = 6371000;
 
     function deg2rad(d) {
       return d * Math.PI / 180;
@@ -496,7 +487,6 @@
       return R_EARTH * c;
     }
 
-    // Projection d'un point sur un segment (en approximant lat/lon comme un plan local)
     function projectPointOnSegment(lat, lon, p1, p2) {
       const x = lon, y = lat;
       const x1 = p1.lon, y1 = p1.lat;
@@ -518,7 +508,6 @@
       return { t, projLat, projLon, dist };
     }
 
-    // Trouve le PK le plus proche sur la polyligne de la ligne A
     function estimatePkFromLatLon(lat, lon) {
       let bestDist = Infinity;
       let bestPk = null;
@@ -597,7 +586,6 @@
 
     function findNextStation(currentPk) {
       if (currentPk == null) return null;
-      // prochaine gare vers Chessy (pk plus grand)
       let next = null;
       for (const p of referencePoints) {
         const delta = p.pk - currentPk;
@@ -632,18 +620,16 @@
     let lastLat = null;
     let lastLon = null;
     let lastPkTime = null;
-    let pkOffset = 0; // recalage global
+    let pkOffset = 0;
     let targetPk = null;
 
-    // Pour le mouvement : on garde un historique des derniers points
-    const pkHistory = []; // { pk, time }
+    const pkHistory = [];
 
     const config = {
       sosPhone: "",
       sensitivity: "normal"
     };
 
-    // Chargement config + offset depuis le localStorage
     function loadConfig() {
       try {
         const rawConfig = localStorage.getItem("rerAConfig");
@@ -672,15 +658,10 @@
       localStorage.setItem("rerAPkOffset", String(pkOffset));
     }
 
-    // ---------------------------
-    // DOM helpers
-    // ---------------------------
+    // DOM
     const geolocStatusEl = document.getElementById("geolocStatus");
     const geolocTextEl = document.getElementById("geolocText");
     const toggleGeolocBtn = document.getElementById("toggleGeolocBtn");
-
-    const pkMainEl = document.getElementById("pkMain");
-    const pkDetailsEl = document.getElementById("pkDetails");
 
     const nearestStationNameEl = document.getElementById("nearestStationName");
     const nearestStationDetailsEl = document.getElementById("nearestStationDetails");
@@ -715,6 +696,9 @@
     const targetPkInput = document.getElementById("targetPkInput");
     const setTargetPkBtn = document.getElementById("setTargetPkBtn");
 
+    const pkMainSettingsEl = document.getElementById("pkMainSettings");
+    const pkDetailsSettingsEl = document.getElementById("pkDetailsSettings");
+
     function updateOffsetInfo() {
       const off = Math.round(pkOffset);
       const sign = off > 0 ? "+" : off < 0 ? "–" : "±";
@@ -726,10 +710,6 @@
       sensitivitySelect.value = config.sensitivity || "normal";
       updateOffsetInfo();
     }
-
-    // ---------------------------
-    // Gestion de la géoloc
-    // ---------------------------
 
     function setGeolocStatus(text, cls) {
       geolocStatusEl.textContent = text;
@@ -750,8 +730,8 @@
 
       const proj = estimatePkFromLatLon(lat, lon);
       if (proj.pk == null) {
-        pkMainEl.textContent = "–";
-        pkDetailsEl.textContent = "Impossible d’estimer le PK à partir de cette position.";
+        pkMainSettingsEl.textContent = "–";
+        pkDetailsSettingsEl.textContent = "Impossible d’estimer le PK à partir de cette position.";
         return;
       }
 
@@ -760,14 +740,12 @@
       lastPk = pk;
       lastPkTime = Date.now();
 
-      // Historique pour le mouvement
       pkHistory.push({ pk, time: lastPkTime });
-      const windowMs = 15000; // 15 s de fenêtre
+      const windowMs = 15000;
       while (pkHistory.length > 2 && pkHistory[0].time < lastPkTime - windowMs) {
         pkHistory.shift();
       }
 
-      // Mise à jour des cartes
       updatePkCard(pk, proj.distanceToTrack);
       updateStationCards(pk);
       updateMovementCard();
@@ -820,14 +798,10 @@
       toggleGeolocBtn.textContent = "Démarrer la géoloc";
     }
 
-    // ---------------------------
-    // Mise à jour des différentes cartes
-    // ---------------------------
-
     function updatePkCard(pk, distToTrack) {
-      pkMainEl.textContent = formatPk(pk);
+      pkMainSettingsEl.textContent = formatPk(pk);
       const dist = distToTrack != null ? formatMeters(distToTrack) : "–";
-      pkDetailsEl.innerHTML =
+      pkDetailsSettingsEl.innerHTML =
         `≈ ${Math.round(pk)} m depuis l’origine de la ligne<br>` +
         `~ ${dist} de la voie (projection perpendiculaire).`;
     }
@@ -866,7 +840,7 @@
 
       const first = pkHistory[0];
       const last = pkHistory[pkHistory.length - 1];
-      const dt = (last.time - first.time) / 1000; // s
+      const dt = (last.time - first.time) / 1000;
       const delta = last.pk - first.pk;
       const absDelta = Math.abs(delta);
 
@@ -877,14 +851,13 @@
         return;
       }
 
-      const speed = absDelta / dt; // m/s
+      const speed = absDelta / dt;
       const dir = directionLabel(delta);
 
       let main, details;
 
-      // seuils plus sensibles en mode "marche lente"
-      const baseImmobile = config.sensitivity === "lente" ? 1 : 2; // m
-      const marcheSeuil = config.sensitivity === "lente" ? 0.7 : 0.9; // m/s
+      const baseImmobile = config.sensitivity === "lente" ? 1 : 2;
+      const marcheSeuil = config.sensitivity === "lente" ? 0.7 : 0.9;
 
       if (absDelta < baseImmobile) {
         main = "Quasi immobile";
@@ -966,10 +939,7 @@
         }.</small>`;
     }
 
-    // ---------------------------
-    // Événements UI
-    // ---------------------------
-
+    // UI events
     toggleGeolocBtn.addEventListener("click", () => {
       if (watchId == null) startGeoloc();
       else stopGeoloc();
@@ -1019,10 +989,9 @@
       saveConfig();
       updateOffsetInfo();
 
-      // Appliquer immédiatement
       lastPk = lastRawPk + pkOffset;
       if (pkHistory.length) {
-        pkHistory.length = 0; // on repart propre
+        pkHistory.length = 0;
         pkHistory.push({ pk: lastPk, time: Date.now() });
       }
 
@@ -1070,15 +1039,11 @@
         coordText +
         `.`;
 
-      // Lien SMS (iOS / Android ouvriront l’app SMS)
       const url = `sms:${encodeURIComponent(config.sosPhone)}?&body=${encodeURIComponent(body)}`;
       window.location.href = url;
     });
 
-    // ---------------------------
-    // Initialisation
-    // ---------------------------
-
+    // Init
     loadConfig();
     refreshSettingsUI();
     updateSosInfo();
