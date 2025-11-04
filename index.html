@@ -2,15 +2,15 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>PK RER A – St-Germain ↔ Paris ↔ Chessy</title>
+  <title>PK Assistant – RER A</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
   :root {
     color-scheme: dark;
-    --bg: #0c0e16;
-    --bg-gradient: radial-gradient(circle at top, #171b2c 0%, #0c0e16 60%, #05060b 100%);
+    --bg: #050510;
+    --bg-gradient: radial-gradient(circle at top, #251c4a 0%, #050510 60%, #010106 100%);
     --card: #121522;
     --card-soft: #16182a;
     --border: #262a3a;
@@ -31,13 +31,30 @@
     margin: 0;
     padding: 0;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-    background: var(--bg-gradient);
-    color: var(--text);
     -webkit-font-smoothing: antialiased;
   }
 
   body {
+    position: relative;
     padding: 16px 0 40px;
+    background: var(--bg-gradient);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* petit effet étoiles */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background-image:
+      radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,0.16), transparent 60%),
+      radial-gradient(2px 2px at 80% 30%, rgba(255,255,255,0.10), transparent 60%),
+      radial-gradient(1.5px 1.5px at 20% 80%, rgba(255,255,255,0.12), transparent 60%),
+      radial-gradient(1.5px 1.5px at 70% 70%, rgba(255,255,255,0.08), transparent 60%);
+    opacity: 0.35;
   }
 
   .app {
@@ -50,18 +67,36 @@
     margin-bottom: 14px;
   }
 
-  h1 {
-    font-size: 1.6rem;
-    margin: 0 0 4px;
-    letter-spacing: 0.02em;
+  .title-pill {
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 0% 0%, #ff9f7b 0%, #ff4b6b 24%, #3d7bff 70%, #1a1b3a 100%);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+
+  .title-main {
+    font-size: 1.3rem;
     font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
     color: #fff;
+    text-align: center;
+  }
+
+  .title-sub {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 2px;
+    color: #f3f2ff;
+    text-align: center;
   }
 
   .subtitle {
     color: var(--muted);
-    font-size: 0.9rem;
-    margin-bottom: 4px;
+    font-size: 0.85rem;
+    margin: 6px 0 2px;
   }
 
   .note {
@@ -290,12 +325,12 @@
       padding: 0 10px 24px;
     }
 
-    h1 {
-      font-size: 1.3rem;
+    .title-main {
+      font-size: 1.15rem;
     }
 
-    .subtitle {
-      font-size: 0.85rem;
+    .title-sub {
+      font-size: 0.82rem;
     }
 
     .card {
@@ -319,9 +354,6 @@
   }
 
   @media (max-width: 380px) {
-    h1 {
-      font-size: 1.2rem;
-    }
     .card {
       padding: 10px 10px 8px;
     }
@@ -331,7 +363,10 @@
 <body>
   <div class="app">
     <div class="header">
-      <h1>PK RER A – St-Germain ↔ Paris ↔ Chessy</h1>
+      <div class="title-pill">
+        <div class="title-main">PK ASSISTANT</div>
+        <div class="title-sub">RER A – St-Germain ↔ Paris ↔ Chessy</div>
+      </div>
       <div class="subtitle">Estimation du PK en temps réel à partir de la géolocalisation.</div>
       <div class="note">Prototype perso – précision typiquement ±100–200 m, à recaler avec une borne PK.</div>
     </div>
@@ -478,6 +513,24 @@
         </button>
       </div>
 
+      <div class="divider"></div>
+
+      <!-- Recherche par PK -> accès le plus proche -->
+      <div class="field">
+        <label for="inputPkLookup">Recherche par PK (accès le plus proche)</label>
+        <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" />
+        <button id="btnPkLookup" class="btn btn-secondary btn-icon" type="button">
+          <span>🔎</span><span>Rechercher l’accès</span>
+        </button>
+      </div>
+
+      <div class="field" id="pkLookupResultField" style="display:none;">
+        <div id="pkLookupResult" class="muted"></div>
+        <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
+          <span>📍</span><span>Ouvrir dans le GPS</span>
+        </button>
+      </div>
+
       <!-- Signalement d’avarie -->
       <div class="signalement-block">
         <label for="selectIncidentType">🚨 Signalement d’avarie / incident</label>
@@ -561,6 +614,15 @@
     { name: "Marne-la-Vallée – Chessy",    lat: 48.8707237150, lon: 2.7826307507, pk: 59000 }
   ];
 
+  // Points d'accès (pour l'instant : 1 par gare, adresse générique à affiner)
+  const accessPoints = stations.map(st => ({
+    name: "Accès gare " + st.name,
+    pk: st.pk,
+    lat: st.lat,
+    lon: st.lon,
+    address: "Gare de " + st.name + " – adresse à compléter"
+  }));
+
   const linePoints = stations;
 
   const sensitivityProfiles = {
@@ -580,13 +642,16 @@
     lastLon: null,
     lastDist: null,
     direction: null,
-    nearestStation: null
+    nearestStation: null,
+    nearestAccess: null
   };
 
   let pkOffset = 0;
   let sosPhone = "";
   let motionSensitivity = "normal";
   let pkTarget = null;
+
+  let lastPkLookupAccess = null;
 
   // === UTILITAIRES PK / GPS ================================================
 
@@ -680,6 +745,20 @@
     return best;
   }
 
+  function findNearestAccess(pk) {
+    if (pk == null) return null;
+    let best = null;
+    let bestDiff = Infinity;
+    for (const acc of accessPoints) {
+      const d = Math.abs(acc.pk - pk);
+      if (d < bestDiff) {
+        bestDiff = d;
+        best = acc;
+      }
+    }
+    return best;
+  }
+
   function findNextStation(pk, direction) {
     if (pk == null) return null;
     let candidates;
@@ -732,6 +811,13 @@
   const btnApplyRecal = document.getElementById("btnApplyRecal");
   const btnResetOffset = document.getElementById("btnResetOffset");
   const btnSaveSettings = document.getElementById("btnSaveSettings");
+
+  // recherche par PK
+  const inputPkLookup = document.getElementById("inputPkLookup");
+  const btnPkLookup = document.getElementById("btnPkLookup");
+  const pkLookupResultField = document.getElementById("pkLookupResultField");
+  const pkLookupResult = document.getElementById("pkLookupResult");
+  const btnPkLookupOpenMaps = document.getElementById("btnPkLookupOpenMaps");
 
   // incident
   const selectIncidentType = document.getElementById("selectIncidentType");
@@ -874,7 +960,11 @@
     state.lastDist = proj.dist;
 
     const nearest = findNearestStation(correctedPk);
+    const nearestAccess = findNearestAccess(correctedPk);
+
     state.nearestStation = nearest;
+    state.nearestAccess = nearestAccess;
+
     updateNearestStation(correctedPk, nearest);
     updateNextStation(correctedPk);
     updatePkTargetView();
@@ -963,7 +1053,7 @@
       accessList.textContent = "En attente de position GPS…";
       return;
     }
-    const sorted = stations.slice().sort(
+    const sorted = accessPoints.slice().sort(
       (a,b) => Math.abs(a.pk - pk) - Math.abs(b.pk - pk)
     );
     const top3 = sorted.slice(0,3);
@@ -971,12 +1061,12 @@
       accessList.textContent = "Aucun point disponible.";
       return;
     }
-    const lines = top3.map(st => {
-      const delta = Math.round(Math.abs(st.pk - pk));
-      const dir = st.pk >= pk ? "vers Chessy" : "vers St-Germain / Paris";
+    const lines = top3.map(acc => {
+      const delta = Math.round(Math.abs(acc.pk - pk));
+      const dir = acc.pk >= pk ? "vers Chessy" : "vers St-Germain / Paris";
       return (
         '<div class="access-item">' +
-        '<div><strong>PK ' + formatPk(st.pk) + "</strong> – " + st.name + "</div>" +
+        '<div><strong>PK ' + formatPk(acc.pk) + "</strong> – " + acc.name + "</div>" +
         '<div class="muted">ΔPK ≈ ' + delta + " m " + dir + "</div>" +
         "</div>"
       );
@@ -985,33 +1075,46 @@
   }
 
   function updateSmsPreview() {
-    if (state.lastPk == null || !state.nearestStation || state.lastLat == null) {
+    if (state.lastPk == null || state.lastLat == null) {
       smsPreview.textContent =
         "En attente de position GPS pour préparer le SMS.";
       return;
     }
     const pkText = "PK " + formatPk(state.lastPk);
-    const nearestName = state.nearestStation.name;
+    const nearestName = state.nearestStation ? state.nearestStation.name : "inconnue";
     const base =
       pkText + ", gare la plus proche : " + nearestName +
       ", lat " + state.lastLat.toFixed(5) +
       ", lon " + state.lastLon.toFixed(5) + ".";
+
+    let accessPart = "";
+    if (state.nearestAccess) {
+      accessPart =
+        " Accès le plus proche : " + state.nearestAccess.name +
+        " (" + state.nearestAccess.address + ").";
+    }
+
     const numPart = " Numéro utilisé : " +
       (sosPhone ? sosPhone : "aucun (à définir dans Paramètres).");
-    smsPreview.textContent = base + numPart;
+    smsPreview.textContent = base + accessPart + numPart;
   }
 
   function sendSms() {
-    if (state.lastPk == null || state.lastLat == null || !state.nearestStation) {
+    if (state.lastPk == null || state.lastLat == null) {
       alert("Position GPS insuffisante pour préparer le SMS.");
       return;
     }
     const pkText = "PK " + formatPk(state.lastPk);
-    const nearestName = state.nearestStation.name;
-    const message =
+    const nearestName = state.nearestStation ? state.nearestStation.name : "inconnue";
+    let message =
       pkText + ", gare la plus proche : " + nearestName +
       ", lat " + state.lastLat.toFixed(5) +
       ", lon " + state.lastLon.toFixed(5);
+
+    if (state.nearestAccess) {
+      message += ", accès : " + state.nearestAccess.name +
+        " (" + state.nearestAccess.address + ")";
+    }
 
     const body = encodeURIComponent(message);
     const numberPart = sosPhone ? encodeURIComponent(sosPhone) : "";
@@ -1020,6 +1123,42 @@
       : "sms:?&body=" + body;
 
     window.location.href = url;
+  }
+
+  // === RECHERCHE PAR PK -> ACCÈS ===========================================
+
+  function handlePkLookup() {
+    const val = parsePkInput(inputPkLookup.value);
+    if (val == null) {
+      alert("PK invalide. Utilise 32400 ou 32+400.");
+      return;
+    }
+    const acc = findNearestAccess(val);
+    if (!acc) {
+      pkLookupResultField.style.display = "none";
+      alert("Aucun accès disponible pour ce PK.");
+      return;
+    }
+    lastPkLookupAccess = acc;
+    const delta = Math.round(Math.abs(acc.pk - val));
+    const dir = acc.pk >= val ? "vers Chessy" : "vers St-Germain / Paris";
+
+    pkLookupResult.innerHTML =
+      "<strong>Accès le plus proche :</strong> " + acc.name + "<br>" +
+      "PK " + formatPk(acc.pk) + " (ΔPK ≈ " + delta + " m " + dir + ")<br>" +
+      "<span class='muted'>" + acc.address + "</span>";
+
+    pkLookupResultField.style.display = "block";
+  }
+
+  function openPkLookupInMaps() {
+    if (!lastPkLookupAccess) {
+      alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
+      return;
+    }
+    const url = "https://maps.google.com/?q=" +
+      lastPkLookupAccess.lat + "," + lastPkLookupAccess.lon;
+    window.open(url, "_blank");
   }
 
   // === SIGNALER UN INCIDENT =================================================
@@ -1063,7 +1202,15 @@
       "🚨 Signalement d’avarie / incident\n" +
       "Type : " + type + "\n" +
       "PK : " + pkTxt + "\n" +
-      "Gare la plus proche : " + station + "\n" +
+      "Gare la plus proche : " + station + "\n";
+
+    if (state.nearestAccess) {
+      message +=
+        "Accès le plus proche : " + state.nearestAccess.name +
+        " (" + state.nearestAccess.address + ")\n";
+    }
+
+    message +=
       "Coordonnées : " + lat + ", " + lon + "\n" +
       "Date/heure : " + dateTxt + " – " + timeTxt;
 
@@ -1129,7 +1276,9 @@
     updateOffsetInfo();
     if (state.lastRawPk != null) {
       state.lastPk = state.lastRawPk;
-      updateNearestStation(state.lastPk, findNearestStation(state.lastPk));
+      state.nearestStation = findNearestStation(state.lastPk);
+      state.nearestAccess = findNearestAccess(state.lastPk);
+      updateNearestStation(state.lastPk, state.nearestStation);
       updateNextStation(state.lastPk);
       updatePkTargetView();
       updateAccessList(state.lastPk);
@@ -1166,6 +1315,9 @@
     motionSensitivity = selectSensitivity.value;
     localStorage.setItem("motionSensitivity", motionSensitivity);
   });
+
+  btnPkLookup.addEventListener("click", handlePkLookup);
+  btnPkLookupOpenMaps.addEventListener("click", openPkLookupInMaps);
 
   // === INIT =================================================================
 
