@@ -130,7 +130,32 @@
     margin-bottom: 14px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.45);
   }
-
+/* Bloc signalement d’avarie */
+.signalement-block {
+  background: linear-gradient(145deg, #221015, #170b0e);
+  border: 1px solid rgba(255, 75, 107, 0.4);
+  border-radius: 18px;
+  padding: 16px;
+  margin: 14px 0;
+  box-shadow: 0 0 20px rgba(255, 75, 107, 0.1);
+}
+.signalement-block label {
+  color: #ff97a9;
+}
+.signalement-block select,
+.signalement-block input,
+.signalement-block textarea {
+  background: #0b0809;
+  border: 1px solid rgba(255, 100, 120, 0.25);
+}
+.signalement-block .btn-danger {
+  background: linear-gradient(135deg, #ff4b6b, #ff7592);
+  box-shadow: 0 4px 10px rgba(255, 75, 107, 0.4);
+}
+.signalement-block .btn-secondary {
+  border-color: rgba(255, 100, 120, 0.3);
+  color: #ffd9de;
+}
   .card-soft {
     background: var(--card-soft);
   }
@@ -364,7 +389,35 @@
           <span>💾</span><span>Enregistrer les paramètres</span>
         </button>
       </div>
+<div class="signalement-block">
+  <label for="selectIncidentType">🚨 Signalement d’avarie / incident</label>
+  <select id="selectIncidentType">
+    <option value="">-- Choisir un type d’incident --</option>
+    <option value="Cheminement endommagé">Cheminement endommagé</option>
+    <option value="Rail cassé">Rail cassé</option>
+    <option value="Animal mort">Animal mort</option>
+    <option value="Autre">Autre (saisir ci-dessous)</option>
+  </select>
 
+  <div class="field" id="incidentOtherField" style="display:none;">
+    <label for="inputIncidentOther">Précisez l’incident :</label>
+    <input id="inputIncidentOther" type="text" placeholder="ex : câble arraché, signal détérioré..." />
+  </div>
+
+  <div class="field">
+    <button id="btnGenerateIncident" class="btn btn-danger btn-icon" type="button">
+      <span>📣</span><span>Générer le message de signalement</span>
+    </button>
+  </div>
+
+  <div class="field" id="incidentResultField" style="display:none;">
+    <label>Message généré :</label>
+    <textarea id="incidentResultText" rows="4" readonly></textarea>
+    <button id="btnCopyIncident" class="btn btn-secondary btn-icon" type="button">
+      <span>📋</span><span>Copier le texte</span>
+    </button>
+  </div>
+</div>
       <div class="settings-footer">
         Ces réglages restent stockés dans ton navigateur (localStorage).  
         Ils ne sont pas effacés quand on met à jour l’application.
