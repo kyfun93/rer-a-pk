@@ -1,361 +1,1301 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PK Assistant – RER A</title>
-<style>
-  body {
-    background-color: #0b0014;
-    color: #f2f2f2;
-    font-family: Arial, sans-serif;
-    text-align: center;
+  <meta charset="UTF-8" />
+  <title>PK Assistant – RER A</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+  :root {
+    color-scheme: dark;
+    --bg: #050510;
+    --bg-gradient: radial-gradient(circle at top, #251c4a 0%, #050510 60%, #010106 100%);
+    --card: #121522;
+    --card-soft: #16182a;
+    --border: #262a3a;
+    --text: #f0f2ff;
+    --muted: #a8abcc;
+    --accent: #3d7bff;
+    --danger: #ff4b6b;
+    --danger-soft: rgba(255, 75, 107, 0.18);
+    --good: #4bd67a;
+    --good-soft: rgba(75, 214, 122, 0.12);
+    --warning: #ffc75e;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
     margin: 0;
     padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  h1 {
-    margin-top: 15px;
-    font-size: 1.8em;
-    background: radial-gradient(circle at center, #c246ff 0%, #5e0acc 80%);
-    color: white;
-    display: inline-block;
-    padding: 10px 25px;
-    border-radius: 50px;
-    box-shadow: 0 0 12px #6c1bff;
-  }
-  button {
-    margin: 6px;
-    padding: 10px 14px;
-    border-radius: 8px;
-    background-color: #361b75;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-  }
-  button:hover {
-    background-color: #5123b4;
-  }
-  .section {
-    background-color: rgba(255,255,255,0.05);
-    border-radius: 12px;
-    margin: 12px auto;
-    padding: 10px;
-    max-width: 400px;
-    box-shadow: 0 0 6px rgba(255,255,255,0.08);
-  }
-  .warning {
-    color: #ffa64d;
-  }
-</style>
-</head>
 
-<body>
-<h1>PK Assistant – RER A</h1>
-
-<div class="section">
-  <p><b>GÉOLOCALISATION</b></p>
-  <p id="status">📍 GPS inactif</p>
-  <button onclick="startGeoloc()">Démarrer la géoloc</button>
-</div>
-
-<div class="section">
-  <p><b>PK estimé</b> : <span id="pkDisplay">—</span></p>
-  <p id="precision" class="warning">Précision typique : ±100–200 m</p>
-  <p><b>Gare la plus proche :</b> <span id="nearestStation">Aucune</span></p>
-  <p><b>Branche :</b> <span id="branchName">—</span></p>
-</div>
-
-<div class="section">
-  <p><b>Paramètres</b></p>
-  <button onclick="recalibratePK()">Recaler le PK actuel</button>
-  <button onclick="sendEmergency()">📩 Urgence / Avarie</button>
-</div>
-
-<script>
-// =============== Données ligne RER A =======================
-const troncCommun = [
-  { name: "St-Germain-en-Laye", lat: 48.89847, lon: 2.09463, pk: 0 },
-  { name: "Le Vésinet – Le Pecq", lat: 48.89845, lon: 2.12228, pk: 2000 },
-  { name: "Le Vésinet – Centre", lat: 48.89016, lon: 2.13470, pk: 4000 },
-  { name: "Chatou – Croissy", lat: 48.88546, lon: 2.15640, pk: 6000 },
-  { name: "Rueil-Malmaison", lat: 48.88774, lon: 2.17255, pk: 7000 },
-  { name: "Nanterre-Ville", lat: 48.89521, lon: 2.19572, pk: 8000 },
-  { name: "Nanterre-Université", lat: 48.90095, lon: 2.21287, pk: 11000 },
-  { name: "Nanterre-Préfecture", lat: 48.89584, lon: 2.22307, pk: 12000 },
-  { name: "La Défense – Grande Arche", lat: 48.89190, lon: 2.23856, pk: 13000 },
-  { name: "Charles de Gaulle – Étoile", lat: 48.87429, lon: 2.29488, pk: 18000 },
-  { name: "Auber", lat: 48.87254, lon: 2.32981, pk: 20000 },
-  { name: "Châtelet – Les Halles", lat: 48.86198, lon: 2.34694, pk: 22000 },
-  { name: "Gare de Lyon", lat: 48.84449, lon: 2.37436, pk: 25000 },
-  { name: "Nation", lat: 48.84882, lon: 2.39702, pk: 27000 },
-  { name: "Vincennes", lat: 48.84754, lon: 2.43328, pk: 30000 },
-  { name: "Fontenay-sous-Bois", lat: 48.84578, lon: 2.46415, pk: 31500 },
-  { name: "Val de Fontenay", lat: 48.85442, lon: 2.48909, pk: 34000 }
-];
-const brancheBoissy = [
-  { name: "Nogent-sur-Marne", lat: 48.83540, lon: 2.47166, pk: 35500 },
-  { name: "Joinville-le-Pont", lat: 48.82118, lon: 2.46414, pk: 37000 },
-  { name: "Saint-Maur – Créteil", lat: 48.80882, lon: 2.47080, pk: 38500 },
-  { name: "La Varenne – Chennevières", lat: 48.79420, lon: 2.51351, pk: 40000 },
-  { name: "Sucy – Bonneuil", lat: 48.77099, lon: 2.50838, pk: 41500 },
-  { name: "Boissy-Saint-Léger", lat: 48.75399, lon: 2.50598, pk: 43000 }
-];
-const brancheChessy = [
-  { name: "Neuilly-Plaisance", lat: 48.85346, lon: 2.51384, pk: 35500 },
-  { name: "Bry-sur-Marne", lat: 48.84427, lon: 2.52619, pk: 37000 },
-  { name: "Noisy-le-Grand – Mont d’Est", lat: 48.84101, lon: 2.55274, pk: 39000 },
-  { name: "Noisy – Champs", lat: 48.84295, lon: 2.57884, pk: 41000 },
-  { name: "Noisiel", lat: 48.84377, lon: 2.61608, pk: 43000 },
-  { name: "Lognes", lat: 48.83936, lon: 2.63353, pk: 45000 },
-  { name: "Torcy", lat: 48.83903, lon: 2.65506, pk: 47000 },
-  { name: "Bussy-Saint-Georges", lat: 48.83718, lon: 2.71254, pk: 52000 },
-  { name: "Val d’Europe", lat: 48.85617, lon: 2.77383, pk: 57000 },
-  { name: "Marne-la-Vallée – Chessy", lat: 48.87072, lon: 2.78263, pk: 59000 }
-];
-
-// =============== Fonctions de base =========================
-function distanceMeters(lat1, lon1, lat2, lon2) {
-  const R = 6371000;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-function detectBranch(lat, lon) {
-  const dBoissy = distanceMeters(lat, lon, brancheBoissy[0].lat, brancheBoissy[0].lon);
-  const dChessy = distanceMeters(lat, lon, brancheChessy[0].lat, brancheChessy[0].lon);
-  return dBoissy < dChessy ? "Boissy" : "Chessy";
-}
-function nearestStation(lat, lon, arr) {
-  let minD = Infinity, near = arr[0];
-  for (const s of arr) {
-    const d = distanceMeters(lat, lon, s.lat, s.lon);
-    if (d < minD) { minD = d; near = s; }
-  }
-  return { station: near, dist: minD };
-}
-function interpolatePK(lat, lon, line) {
-  const n = nearestStation(lat, lon, line);
-  return n.station.pk;
-}
-
-// =============== Géolocalisation ===========================
-let currentPK = null;
-let currentBranch = "—";
-function startGeoloc() {
-  document.getElementById("status").textContent = "📡 Recherche GPS...";
-  navigator.geolocation.watchPosition(handlePosition, handleError, { enableHighAccuracy: true, maximumAge: 1000 });
-}
-function handlePosition(pos) {
-  const lat = pos.coords.latitude;
-  const lon = pos.coords.longitude;
-  currentBranch = detectBranch(lat, lon);
-  const line = troncCommun.concat(currentBranch === "Boissy" ? brancheBoissy : brancheChessy);
-  const pk = interpolatePK(lat, lon, line);
-  const nearest = nearestStation(lat, lon, line);
-  currentPK = pk;
-  document.getElementById("status").textContent = `✅ GPS actif (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
-  document.getElementById("pkDisplay").textContent = pk.toFixed(0) + " m";
-  document.getElementById("nearestStation").textContent = nearest.station.name;
-  document.getElementById("branchName").textContent = currentBranch;
-}
-function handleError(err) {
-  document.getElementById("status").textContent = "⚠️ Erreur GPS : " + err.message;
-}
-
-// =============== Fonctions diverses =======================
-function recalibratePK() {
-  const val = prompt("Entre le PK exact (en mètres, ex: 32400) :");
-  if (val) {
-    currentPK = parseInt(val);
-    alert("PK recalé à " + currentPK + " m");
-    document.getElementById("pkDisplay").textContent = currentPK + " m";
-  }
-}
-function sendEmergency() {
-  const msg = `⚠️ URGENCE RER A\nPosition estimée : PK ${currentPK ?? "—"}\nBranche : ${currentBranch}\nGare la plus proche : ${document.getElementById("nearestStation").textContent}\nLien Google Maps : https://maps.google.com/?q=${navigator.geolocation?.coords?.latitude || ""},${navigator.geolocation?.coords?.longitude || ""}`;
-  prompt("Copie ce message d'urgence :", msg);
-}
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PK Assistant – RER A</title>
-<style>
   body {
-    background-color: #0b0014;
-    color: #f2f2f2;
-    font-family: Arial, sans-serif;
+    position: relative;
+    padding: 16px 0 40px;
+    background: var(--bg-gradient);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background-image:
+      radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,0.16), transparent 60%),
+      radial-gradient(2px 2px at 80% 30%, rgba(255,255,255,0.10), transparent 60%),
+      radial-gradient(1.5px 1.5px at 20% 80%, rgba(255,255,255,0.12), transparent 60%),
+      radial-gradient(1.5px 1.5px at 70% 70%, rgba(255,255,255,0.08), transparent 60%);
+    opacity: 0.35;
+  }
+
+  .app {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 0 16px 32px;
+  }
+
+  .header {
+    margin-bottom: 14px;
     text-align: center;
-    margin: 0;
-    padding: 0;
   }
-  h1 {
-    margin-top: 15px;
-    font-size: 1.8em;
-    background: radial-gradient(circle at center, #c246ff 0%, #5e0acc 80%);
-    color: white;
+
+  .title-pill {
     display: inline-block;
-    padding: 10px 25px;
-    border-radius: 50px;
-    box-shadow: 0 0 12px #6c1bff;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 0% 0%, #ff9f7b 0%, #ff4b6b 24%, #3d7bff 70%, #1a1b3a 100%);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.18);
+    margin: 0 auto;
   }
-  button {
-    margin: 6px;
-    padding: 10px 14px;
-    border-radius: 8px;
-    background-color: #361b75;
+
+  .title-main {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
     color: #fff;
-    border: none;
-    cursor: pointer;
+    text-align: center;
   }
-  button:hover {
-    background-color: #5123b4;
+
+  .title-sub {
+    font-size: 1.05rem; /* RER A un peu plus gros */
+    font-weight: 600;
+    margin-top: 2px;
+    color: #f3f2ff;
+    text-align: center;
   }
-  .section {
-    background-color: rgba(255,255,255,0.05);
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 6px 0 2px;
+  }
+
+  .note {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  .card {
+    background: linear-gradient(145deg, #121522, #0d0f18);
+    border-radius: 20px;
+    padding: 18px 18px 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 14px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.45);
+  }
+
+  .card-soft {
+    background: var(--card-soft);
+  }
+
+  .card-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+  }
+
+  .card-title {
+    font-size: 0.9rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .big-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin: 4px 0 3px;
+    color: #fff;
+  }
+
+  .big-sub {
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+
+  .muted {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .badge {
+    font-size: 0.8rem;
+    padding: 4px 9px;
     border-radius: 12px;
-    margin: 12px auto;
-    padding: 10px;
-    max-width: 400px;
-    box-shadow: 0 0 6px rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: #181b2a;
   }
-  .warning {
-    color: #ffa64d;
+
+  .badge-good {
+    color: var(--good);
+    background: var(--good-soft);
   }
-</style>
+
+  .badge-danger {
+    color: var(--danger);
+    background: var(--danger-soft);
+  }
+
+  .badge-warn {
+    color: var(--warning);
+    background: rgba(255,184,77,0.12);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 18px;
+    border-radius: 16px;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #3d7bff, #6fa3ff);
+    color: white;
+  }
+
+  .btn-secondary {
+    background: #1a1d2b;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-danger {
+    background: linear-gradient(135deg, #ff4b6b, #ff7592);
+    color: white;
+  }
+
+  .btn-icon {
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+
+  .field {
+    margin-top: 8px;
+    display:flex;
+    flex-direction:column;
+    gap: 6px;
+  }
+
+  .field label {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid #303047;
+    background: #0a0c12;
+    color: var(--text);
+    font-size: 0.95rem;
+    outline: none;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 6px rgba(61,123,255,0.4);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .access-item {
+    margin-bottom: 6px;
+  }
+
+  .bottom-bar {
+    margin-top: 10px;
+    display:flex;
+    justify-content:center;
+  }
+
+  .settings-footer {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .divider {
+    margin: 10px 0;
+    height: 1px;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .signalement-block {
+    background: linear-gradient(145deg, #221015, #170b0e);
+    border: 1px solid rgba(255, 75, 107, 0.4);
+    border-radius: 18px;
+    padding: 16px;
+    margin: 14px 0 6px;
+    box-shadow: 0 0 20px rgba(255, 75, 107, 0.12);
+  }
+
+  @media (max-width: 640px) {
+    .app {
+      padding: 0 10px 24px;
+    }
+    .card {
+      padding: 14px 14px 12px;
+      border-radius: 18px;
+    }
+    .big-value {
+      font-size: 1.5rem;
+    }
+    .btn {
+      width: 100%;
+      border-radius: 14px;
+    }
+  }
+  </style>
 </head>
-
 <body>
-<h1>PK Assistant – RER A</h1>
+  <div class="app">
+    <div class="header">
+      <div class="title-pill">
+        <div class="title-main">PK ASSISTANT</div>
+        <div class="title-sub">RER A</div>
+      </div>
+      <div class="subtitle">Estimation du PK en temps réel à partir de la géolocalisation.</div>
+      <div class="note">
+        Écart typique entre PK estimé et borne réelle : ~100–200 m. Toujours vérifier une borne quand c’est critique.
+      </div>
+    </div>
 
-<div class="section">
-  <p><b>GÉOLOCALISATION</b></p>
-  <p id="status">📍 GPS inactif</p>
-  <button onclick="startGeoloc()">Démarrer la géoloc</button>
-</div>
+    <!-- GÉOLOCALISATION -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Géolocalisation</div>
+        <span id="gpsStatusBadge" class="badge badge-danger">GPS inactif</span>
+      </div>
+      <div id="geolocText" class="muted">Position non encore reçue.</div>
+      <div class="field">
+        <button id="btnToggleGeoloc" class="btn btn-primary btn-icon" type="button">
+          <span>📍</span><span>Démarrer la géoloc</span>
+        </button>
+      </div>
+    </div>
 
-<div class="section">
-  <p><b>PK estimé</b> : <span id="pkDisplay">—</span></p>
-  <p id="precision" class="warning">Précision typique : ±100–200 m</p>
-  <p><b>Gare la plus proche :</b> <span id="nearestStation">Aucune</span></p>
-  <p><b>Branche :</b> <span id="branchName">—</span></p>
-</div>
+    <!-- GARE LA PLUS PROCHE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Gare la plus proche (en PK)</div>
+      </div>
+      <div id="nearestStationName" class="big-value">Aucune</div>
+      <div id="nearestStationInfo" class="big-sub">En attente de position GPS…</div>
+    </div>
 
-<div class="section">
-  <p><b>Paramètres</b></p>
-  <button onclick="recalibratePK()">Recaler le PK actuel</button>
-  <button onclick="sendEmergency()">📩 Urgence / Avarie</button>
-</div>
+    <!-- SENS / MOUVEMENT -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Sens / mouvement</div>
+      </div>
+      <div id="movementTitle" class="big-value">En attente d’un deuxième point…</div>
+      <div id="movementDetails" class="big-sub">—</div>
+    </div>
 
-<script>
-// =============== Données ligne RER A =======================
-const troncCommun = [
-  { name: "St-Germain-en-Laye", lat: 48.89847, lon: 2.09463, pk: 0 },
-  { name: "Le Vésinet – Le Pecq", lat: 48.89845, lon: 2.12228, pk: 2000 },
-  { name: "Le Vésinet – Centre", lat: 48.89016, lon: 2.13470, pk: 4000 },
-  { name: "Chatou – Croissy", lat: 48.88546, lon: 2.15640, pk: 6000 },
-  { name: "Rueil-Malmaison", lat: 48.88774, lon: 2.17255, pk: 7000 },
-  { name: "Nanterre-Ville", lat: 48.89521, lon: 2.19572, pk: 8000 },
-  { name: "Nanterre-Université", lat: 48.90095, lon: 2.21287, pk: 11000 },
-  { name: "Nanterre-Préfecture", lat: 48.89584, lon: 2.22307, pk: 12000 },
-  { name: "La Défense – Grande Arche", lat: 48.89190, lon: 2.23856, pk: 13000 },
-  { name: "Charles de Gaulle – Étoile", lat: 48.87429, lon: 2.29488, pk: 18000 },
-  { name: "Auber", lat: 48.87254, lon: 2.32981, pk: 20000 },
-  { name: "Châtelet – Les Halles", lat: 48.86198, lon: 2.34694, pk: 22000 },
-  { name: "Gare de Lyon", lat: 48.84449, lon: 2.37436, pk: 25000 },
-  { name: "Nation", lat: 48.84882, lon: 2.39702, pk: 27000 },
-  { name: "Vincennes", lat: 48.84754, lon: 2.43328, pk: 30000 },
-  { name: "Fontenay-sous-Bois", lat: 48.84578, lon: 2.46415, pk: 31500 },
-  { name: "Val de Fontenay", lat: 48.85442, lon: 2.48909, pk: 34000 }
-];
-const brancheBoissy = [
-  { name: "Nogent-sur-Marne", lat: 48.83540, lon: 2.47166, pk: 35500 },
-  { name: "Joinville-le-Pont", lat: 48.82118, lon: 2.46414, pk: 37000 },
-  { name: "Saint-Maur – Créteil", lat: 48.80882, lon: 2.47080, pk: 38500 },
-  { name: "La Varenne – Chennevières", lat: 48.79420, lon: 2.51351, pk: 40000 },
-  { name: "Sucy – Bonneuil", lat: 48.77099, lon: 2.50838, pk: 41500 },
-  { name: "Boissy-Saint-Léger", lat: 48.75399, lon: 2.50598, pk: 43000 }
-];
-const brancheChessy = [
-  { name: "Neuilly-Plaisance", lat: 48.85346, lon: 2.51384, pk: 35500 },
-  { name: "Bry-sur-Marne", lat: 48.84427, lon: 2.52619, pk: 37000 },
-  { name: "Noisy-le-Grand – Mont d’Est", lat: 48.84101, lon: 2.55274, pk: 39000 },
-  { name: "Noisy – Champs", lat: 48.84295, lon: 2.57884, pk: 41000 },
-  { name: "Noisiel", lat: 48.84377, lon: 2.61608, pk: 43000 },
-  { name: "Lognes", lat: 48.83936, lon: 2.63353, pk: 45000 },
-  { name: "Torcy", lat: 48.83903, lon: 2.65506, pk: 47000 },
-  { name: "Bussy-Saint-Georges", lat: 48.83718, lon: 2.71254, pk: 52000 },
-  { name: "Val d’Europe", lat: 48.85617, lon: 2.77383, pk: 57000 },
-  { name: "Marne-la-Vallée – Chessy", lat: 48.87072, lon: 2.78263, pk: 59000 }
-];
+    <!-- PROCHAINE GARE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Prochaine gare (en PK)</div>
+      </div>
+      <div id="nextStationName" class="big-value">Aucune</div>
+      <div id="nextStationInfo" class="big-sub">En attente de position GPS…</div>
+    </div>
 
-// =============== Fonctions de base =========================
-function distanceMeters(lat1, lon1, lat2, lon2) {
-  const R = 6371000;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-function detectBranch(lat, lon) {
-  const dBoissy = distanceMeters(lat, lon, brancheBoissy[0].lat, brancheBoissy[0].lon);
-  const dChessy = distanceMeters(lat, lon, brancheChessy[0].lat, brancheChessy[0].lon);
-  return dBoissy < dChessy ? "Boissy" : "Chessy";
-}
-function nearestStation(lat, lon, arr) {
-  let minD = Infinity, near = arr[0];
-  for (const s of arr) {
-    const d = distanceMeters(lat, lon, s.lat, s.lon);
-    if (d < minD) { minD = d; near = s; }
+    <!-- PK CIBLE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">PK cible</div>
+      </div>
+      <div id="pkTargetLabel" class="big-value">Aucun</div>
+      <div id="pkTargetInfo" class="big-sub">
+        Saisis un PK puis clique sur « Définir ce PK comme cible ».
+      </div>
+      <div class="field">
+        <label for="inputPkTarget">Saisis un PK en mètres (ex : 32400) ou au format 32+400.</label>
+        <input id="inputPkTarget" type="text" placeholder="ex : 32400 ou 32+400" />
+        <button id="btnSetPkTarget" class="btn btn-primary" type="button">Définir ce PK comme cible</button>
+      </div>
+    </div>
+
+    <!-- ACCÈS / GARes LES PLUS PROCHES -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Accès / gares les plus proches (en PK)</div>
+      </div>
+      <div class="big-sub">Top 3 en PK</div>
+      <div id="accessList" class="muted" style="margin-top:8px;">
+        En attente de position GPS…
+      </div>
+    </div>
+
+    <!-- URGENCE / SMS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Urgence / partage position</div>
+      </div>
+      <div id="smsPreview" class="muted">
+        En attente de position GPS pour préparer le SMS.
+      </div>
+      <div class="field">
+        <button id="btnSms" class="btn btn-danger btn-icon" type="button">
+          <span>✉️</span><span>SMS d’urgence</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- BOUTON PARAMÈTRES EN BAS -->
+    <div class="bottom-bar">
+      <button id="btnSettingsToggle" class="btn btn-secondary btn-icon" type="button">
+        <span>⚙️</span><span>Paramètres</span>
+      </button>
+    </div>
+
+    <!-- PARAMÈTRES -->
+    <div id="settingsPanel" class="card card-soft" style="display:none; margin-top:10px;">
+      <div class="card-header">
+        <div class="card-title">Paramètres</div>
+        <span class="badge">Local au téléphone</span>
+      </div>
+
+      <!-- Numéro SOS -->
+      <div class="field">
+        <label for="inputSosPhone">Numéro SOS pour le SMS d’urgence</label>
+        <input id="inputSosPhone" type="tel" placeholder="ex : 0612345678 ou +33612345678" />
+        <div class="muted">Ce numéro sera utilisé par le bouton « SMS d’urgence ».</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Sensibilité mouvement -->
+      <div class="field">
+        <label for="selectSensitivity">Sensibilité au mouvement</label>
+        <select id="selectSensitivity">
+          <option value="slow">Marche lente</option>
+          <option value="normal">Normal</option>
+          <option value="train">Train</option>
+        </select>
+        <div class="muted">« Marche lente » détecte plus facilement un déplacement à pied.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Recalage PK -->
+      <div class="field">
+        <label>Recalage PK</label>
+        <div id="pkOffsetInfo" class="muted">Offset actuel : ±0 m appliqués à tous les PK.</div>
+      </div>
+
+      <div class="field">
+        <label>Position PK estimée (lecture seule)</label>
+        <div id="pkEstimateText" class="muted">En attente de position GPS…</div>
+      </div>
+
+      <div class="field">
+        <label for="inputPkRecal">PK exact ici (pour recaler l’appli)</label>
+        <input id="inputPkRecal" type="text" placeholder="ex : 52700 ou 52+700" />
+        <button id="btnApplyRecal" class="btn btn-primary" type="button">Recaler l’appli sur ce PK</button>
+      </div>
+
+      <div class="field">
+        <button id="btnResetOffset" class="btn btn-secondary" type="button">
+          Réinitialiser le recalage PK
+        </button>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Recherche par PK -> accès -->
+      <div class="field">
+        <label for="inputPkLookup">Recherche par PK (accès le plus proche)</label>
+        <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" />
+        <button id="btnPkLookup" class="btn btn-secondary btn-icon" type="button">
+          <span>🔎</span><span>Rechercher l’accès</span>
+        </button>
+      </div>
+
+      <div class="field" id="pkLookupResultField" style="display:none;">
+        <div id="pkLookupResult" class="muted"></div>
+        <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
+          <span>📍</span><span>Ouvrir dans le GPS</span>
+        </button>
+      </div>
+
+      <!-- Signalement d’avarie -->
+      <div class="signalement-block">
+        <label for="selectIncidentType">🚨 Signalement d’avarie / incident</label>
+        <select id="selectIncidentType">
+          <option value="">-- Choisir un type d’incident --</option>
+          <option value="Cheminement endommagé">Cheminement endommagé</option>
+          <option value="Rail cassé">Rail cassé</option>
+          <option value="Animal mort">Animal mort</option>
+          <option value="Autre">Autre (saisir ci-dessous)</option>
+        </select>
+
+        <div class="field" id="incidentOtherField" style="display:none;">
+          <label for="inputIncidentOther">Précisez l’incident :</label>
+          <input id="inputIncidentOther" type="text" placeholder="ex : câble arraché, signal détérioré..." />
+        </div>
+
+        <div class="field">
+          <label for="incidentPhoto">Photo (optionnel)</label>
+          <input id="incidentPhoto" type="file" accept="image/*" />
+          <div class="muted">Tu peux prendre ou choisir une photo. Son nom sera ajouté au message.</div>
+        </div>
+
+        <div class="field">
+          <button id="btnGenerateIncident" class="btn btn-danger btn-icon" type="button">
+            <span>📣</span><span>Générer le message de signalement</span>
+          </button>
+        </div>
+
+        <div class="field" id="incidentResultField" style="display:none;">
+          <label>Message généré :</label>
+          <textarea id="incidentResultText" rows="4" readonly></textarea>
+          <button id="btnCopyIncident" class="btn btn-secondary btn-icon" type="button">
+            <span>📋</span><span>Copier le texte</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="field">
+        <button id="btnSaveSettings" class="btn btn-primary btn-icon" type="button">
+          <span>💾</span><span>Enregistrer les paramètres</span>
+        </button>
+      </div>
+
+      <div class="settings-footer">
+        Ces réglages restent stockés dans ton navigateur (localStorage).  
+        Ils ne sont pas effacés quand on met à jour l’application.
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // === DONNÉES DE LIGNE AVEC BIFURCATION ================================
+
+  const troncCommun = [
+    { name: "St-Germain-en-Laye",          lat: 48.8984745677, lon: 2.0946251970, pk:    0 },
+    { name: "Le Vésinet – Le Pecq",        lat: 48.8984530458, lon: 2.1222846835, pk:  2000 },
+    { name: "Le Vésinet – Centre",         lat: 48.8901555110, lon: 2.1347027835, pk:  4000 },
+    { name: "Chatou – Croissy",            lat: 48.8854638305, lon: 2.1564040970, pk:  6000 },
+    { name: "Rueil-Malmaison",             lat: 48.8877403423, lon: 2.1725468932, pk:  7000 },
+    { name: "Nanterre-Ville",              lat: 48.8952086355, lon: 2.1957210472, pk:  8000 },
+    { name: "Nanterre-Université",         lat: 48.9009541230, lon: 2.2128683712, pk: 11000 },
+    { name: "Nanterre-Préfecture",         lat: 48.8958449352, lon: 2.2230702306, pk: 12000 },
+    { name: "La Défense – Grande Arche",   lat: 48.8919045058, lon: 2.2385616258, pk: 13000 },
+    { name: "Charles de Gaulle – Étoile",  lat: 48.8742900059, lon: 2.2948848393, pk: 18000 },
+    { name: "Auber",                       lat: 48.8725358497, lon: 2.3298119681, pk: 20000 },
+    { name: "Châtelet – Les Halles",       lat: 48.8619752528, lon: 2.3469363528, pk: 22000 },
+    { name: "Gare de Lyon",                lat: 48.8444873499, lon: 2.3743558393, pk: 25000 },
+    { name: "Nation",                      lat: 48.8488218026, lon: 2.3970239229, pk: 27000 },
+    { name: "Vincennes",                   lat: 48.8475419027, lon: 2.4332766909, pk: 30000 },
+    { name: "Fontenay-sous-Bois",          lat: 48.8457834716, lon: 2.4641534958, pk: 31500 },
+    { name: "Val de Fontenay",             lat: 48.8544183594, lon: 2.4890884591, pk: 34000 }
+  ];
+
+  const brancheBoissy = [
+    { name: "Nogent-sur-Marne",            lat: 48.8353972244, lon: 2.4716593319, pk: 35500 },
+    { name: "Joinville-le-Pont",           lat: 48.8211820545, lon: 2.4641431755, pk: 37000 },
+    { name: "Saint-Maur – Créteil",        lat: 48.8088207060, lon: 2.4708026167, pk: 38500 },
+    { name: "La Varenne – Chennevières",   lat: 48.7941968899, lon: 2.5135124577, pk: 40000 },
+    { name: "Sucy – Bonneuil",             lat: 48.7709911746, lon: 2.5083777258, pk: 41500 },
+    { name: "Boissy-Saint-Léger",          lat: 48.7539872386, lon: 2.5059802969, pk: 43000 }
+  ];
+
+  const brancheChessy = [
+    { name: "Neuilly-Plaisance",           lat: 48.8534646981, lon: 2.5138398779, pk: 35500 },
+    { name: "Bry-sur-Marne",               lat: 48.8442657465, lon: 2.5261924528, pk: 37000 },
+    { name: "Noisy-le-Grand – Mont d’Est", lat: 48.8410135149, lon: 2.5527359297, pk: 39000 },
+    { name: "Noisy – Champs",              lat: 48.8429502416, lon: 2.5788366796, pk: 41000 },
+    { name: "Noisiel",                     lat: 48.8437650426, lon: 2.6160790153, pk: 43000 },
+    { name: "Lognes",                      lat: 48.8393611271, lon: 2.6335250335, pk: 45000 },
+    { name: "Torcy",                       lat: 48.8390276009, lon: 2.6550584298, pk: 47000 },
+    { name: "Bussy-Saint-Georges",         lat: 48.8371826388, lon: 2.7125386010, pk: 52000 },
+    { name: "Val d’Europe",                lat: 48.8561684149, lon: 2.7738274672, pk: 57000 },
+    { name: "Marne-la-Vallée – Chessy",    lat: 48.8707237150, lon: 2.7826307507, pk: 59000 }
+  ];
+
+  // Tous les points de gare (pour recherche la plus proche, tri, etc.)
+  const stations = troncCommun.concat(brancheBoissy, brancheChessy);
+
+  // Pour les accès : un accès par gare pour l’instant
+  const accessPoints = stations.map(st => ({
+    name: "Accès gare " + st.name,
+    pk: st.pk,
+    lat: st.lat,
+    lon: st.lon,
+    address: "Gare de " + st.name + " – adresse à affiner"
+  }));
+
+  // Ligne courante utilisée pour la projection (tronc + branche selon où tu es)
+  let currentBranch = "chessy";
+  let linePoints = troncCommun.concat(brancheChessy);
+
+  const sensitivityProfiles = {
+    slow:   { idle: 0.15, walk: 1.5 },
+    normal: { idle: 0.30, walk: 2.5 },
+    train:  { idle: 1.00, walk: 6.0 }
+  };
+
+  const state = {
+    watchId: null,
+    lastRawPk: null,
+    lastPk: null,
+    lastPkTime: null,
+    lastLat: null,
+    lastLon: null,
+    lastDist: null,
+    direction: null,
+    nearestStation: null,
+    nearestAccess: null
+  };
+
+  let pkOffset = 0;
+  let sosPhone = "";
+  let motionSensitivity = "normal";
+  let pkTarget = null;
+  let lastPkLookupAccess = null;
+
+  const gpsStatusBadge = document.getElementById("gpsStatusBadge");
+  const geolocText = document.getElementById("geolocText");
+  const btnToggleGeoloc = document.getElementById("btnToggleGeoloc");
+
+  const nearestStationName = document.getElementById("nearestStationName");
+  const nearestStationInfo = document.getElementById("nearestStationInfo");
+
+  const movementTitle = document.getElementById("movementTitle");
+  const movementDetails = document.getElementById("movementDetails");
+
+  const nextStationName = document.getElementById("nextStationName");
+  const nextStationInfo = document.getElementById("nextStationInfo");
+
+  const pkTargetLabel = document.getElementById("pkTargetLabel");
+  const pkTargetInfo = document.getElementById("pkTargetInfo");
+  const inputPkTarget = document.getElementById("inputPkTarget");
+  const btnSetPkTarget = document.getElementById("btnSetPkTarget");
+
+  const accessList = document.getElementById("accessList");
+
+  const smsPreview = document.getElementById("smsPreview");
+  const btnSms = document.getElementById("btnSms");
+
+  const btnSettingsToggle = document.getElementById("btnSettingsToggle");
+  const settingsPanel = document.getElementById("settingsPanel");
+
+  const inputSosPhone = document.getElementById("inputSosPhone");
+  const selectSensitivity = document.getElementById("selectSensitivity");
+  const pkOffsetInfo = document.getElementById("pkOffsetInfo");
+  const pkEstimateText = document.getElementById("pkEstimateText");
+  const inputPkRecal = document.getElementById("inputPkRecal");
+  const btnApplyRecal = document.getElementById("btnApplyRecal");
+  const btnResetOffset = document.getElementById("btnResetOffset");
+  const btnSaveSettings = document.getElementById("btnSaveSettings");
+
+  const inputPkLookup = document.getElementById("inputPkLookup");
+  const btnPkLookup = document.getElementById("btnPkLookup");
+  const pkLookupResultField = document.getElementById("pkLookupResultField");
+  const pkLookupResult = document.getElementById("pkLookupResult");
+  const btnPkLookupOpenMaps = document.getElementById("btnPkLookupOpenMaps");
+
+  const selectIncidentType = document.getElementById("selectIncidentType");
+  const incidentOtherField = document.getElementById("incidentOtherField");
+  const inputIncidentOther = document.getElementById("inputIncidentOther");
+  const incidentPhotoInput = document.getElementById("incidentPhoto");
+  const btnGenerateIncident = document.getElementById("btnGenerateIncident");
+  const incidentResultField = document.getElementById("incidentResultField");
+  const incidentResultText = document.getElementById("incidentResultText");
+  const btnCopyIncident = document.getElementById("btnCopyIncident");
+
+  function formatPk(pkMeters) {
+    if (pkMeters == null || isNaN(pkMeters)) return "—";
+    const m = Math.round(pkMeters);
+    const km = Math.floor(m / 1000);
+    const rest = m % 1000;
+    return km + "+" + rest.toString().padStart(3, "0");
   }
-  return { station: near, dist: minD };
-}
-function interpolatePK(lat, lon, line) {
-  const n = nearestStation(lat, lon, line);
-  return n.station.pk;
-}
 
-// =============== Géolocalisation ===========================
-let currentPK = null;
-let currentBranch = "—";
-function startGeoloc() {
-  document.getElementById("status").textContent = "📡 Recherche GPS...";
-  navigator.geolocation.watchPosition(handlePosition, handleError, { enableHighAccuracy: true, maximumAge: 1000 });
-}
-function handlePosition(pos) {
-  const lat = pos.coords.latitude;
-  const lon = pos.coords.longitude;
-  currentBranch = detectBranch(lat, lon);
-  const line = troncCommun.concat(currentBranch === "Boissy" ? brancheBoissy : brancheChessy);
-  const pk = interpolatePK(lat, lon, line);
-  const nearest = nearestStation(lat, lon, line);
-  currentPK = pk;
-  document.getElementById("status").textContent = `✅ GPS actif (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
-  document.getElementById("pkDisplay").textContent = pk.toFixed(0) + " m";
-  document.getElementById("nearestStation").textContent = nearest.station.name;
-  document.getElementById("branchName").textContent = currentBranch;
-}
-function handleError(err) {
-  document.getElementById("status").textContent = "⚠️ Erreur GPS : " + err.message;
-}
-
-// =============== Fonctions diverses =======================
-function recalibratePK() {
-  const val = prompt("Entre le PK exact (en mètres, ex: 32400) :");
-  if (val) {
-    currentPK = parseInt(val);
-    alert("PK recalé à " + currentPK + " m");
-    document.getElementById("pkDisplay").textContent = currentPK + " m";
+  function parsePkInput(str) {
+    if (!str) return null;
+    str = String(str).trim().replace(/\s+/g, "");
+    if (/^\d+\+\d+$/.test(str)) {
+      const [km, r] = str.split("+");
+      return parseInt(km, 10) * 1000 + parseInt(r, 10);
+    }
+    if (/^\d+$/.test(str)) {
+      return parseInt(str, 10);
+    }
+    return null;
   }
-}
-function sendEmergency() {
-  const msg = `⚠️ URGENCE RER A\nPosition estimée : PK ${currentPK ?? "—"}\nBranche : ${currentBranch}\nGare la plus proche : ${document.getElementById("nearestStation").textContent}\nLien Google Maps : https://maps.google.com/?q=${navigator.geolocation?.coords?.latitude || ""},${navigator.geolocation?.coords?.longitude || ""}`;
-  prompt("Copie ce message d'urgence :", msg);
-}
-</script>
+
+  function distanceMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const toRad = x => x * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2)**2 +
+              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+              Math.sin(dLon/2)**2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  function projectToSegment(lat, lon, a, b) {
+    const meanLat = (a.lat + b.lat) / 2 * Math.PI/180;
+    const cosLat = Math.cos(meanLat);
+
+    const ax = a.lon * cosLat;
+    const ay = a.lat;
+    const bx = b.lon * cosLat;
+    const by = b.lat;
+    const px = lon * cosLat;
+    const py = lat;
+
+    const vx = bx - ax;
+    const vy = by - ay;
+    const wx = px - ax;
+    const wy = py - ay;
+
+    const c1 = vx * wx + vy * wy;
+    const c2 = vx * vx + vy * vy;
+    let t = c2 > 0 ? c1 / c2 : 0;
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+
+    const latProj = a.lat + (b.lat - a.lat) * t;
+    const lonProj = a.lon + (b.lon - a.lon) * t;
+    const pkProj = a.pk + (b.pk - a.pk) * t;
+    const dist = distanceMeters(lat, lon, latProj, lonProj);
+
+    return { latProj, lonProj, pkProj, dist };
+  }
+
+  function projectToLine(lat, lon) {
+    let best = { dist: Infinity, pkProj: null, latProj: null, lonProj: null };
+    for (let i = 0; i < linePoints.length - 1; i++) {
+      const a = linePoints[i];
+      const b = linePoints[i+1];
+      const res = projectToSegment(lat, lon, a, b);
+      if (res.dist < best.dist) {
+        best = { dist: res.dist, pkProj: res.pkProj, latProj: res.latProj, lonProj: res.lonProj };
+      }
+    }
+    return best;
+  }
+
+  function findNearestStation(pk, branch) {
+    if (pk == null) return null;
+    let list;
+    if (branch === "boissy") {
+      list = troncCommun.concat(brancheBoissy);
+    } else if (branch === "chessy") {
+      list = troncCommun.concat(brancheChessy);
+    } else {
+      list = stations;
+    }
+    let best = null;
+    let bestDiff = Infinity;
+    for (const st of list) {
+      const d = Math.abs(st.pk - pk);
+      if (d < bestDiff) {
+        bestDiff = d;
+        best = st;
+      }
+    }
+    return best;
+  }
+
+  function findNearestAccess(pk) {
+    if (pk == null) return null;
+    let best = null;
+    let bestDiff = Infinity;
+    for (const acc of accessPoints) {
+      const d = Math.abs(acc.pk - pk);
+      if (d < bestDiff) {
+        bestDiff = d;
+        best = acc;
+      }
+    }
+    return best;
+  }
+
+  function findNextStation(pk, direction, branch) {
+    if (pk == null) return null;
+    let arr;
+    if (branch === "boissy") {
+      arr = troncCommun.concat(brancheBoissy);
+    } else if (branch === "chessy") {
+      arr = troncCommun.concat(brancheChessy);
+    } else {
+      arr = stations;
+    }
+
+    let candidates;
+    if (direction === "est") {
+      candidates = arr.filter(s => s.pk > pk).sort((a,b) => a.pk - b.pk);
+    } else if (direction === "ouest") {
+      candidates = arr.filter(s => s.pk < pk).sort((a,b) => b.pk - a.pk);
+    } else {
+      return findNearestStation(pk, branch);
+    }
+    return candidates[0] || findNearestStation(pk, branch);
+  }
+
+  function detectBranch(lat, lon) {
+    const boissyRef = brancheBoissy[0];
+    const chessyRef = brancheChessy[0];
+    const dBoissy = distanceMeters(lat, lon, boissyRef.lat, boissyRef.lon);
+    const dChessy = distanceMeters(lat, lon, chessyRef.lat, chessyRef.lon);
+    return dBoissy < dChessy ? "boissy" : "chessy";
+  }
+
+  function loadSettings() {
+    const storedOffset = parseFloat(localStorage.getItem("pkOffset"));
+    pkOffset = isNaN(storedOffset) ? 0 : storedOffset;
+
+    sosPhone = localStorage.getItem("sosPhone") || "";
+    motionSensitivity = localStorage.getItem("motionSensitivity") || "normal";
+
+    inputSosPhone.value = sosPhone;
+    selectSensitivity.value = motionSensitivity;
+    updateOffsetInfo();
+  }
+
+  function updateOffsetInfo() {
+    const val = Math.round(pkOffset);
+    const sign = val === 0 ? "0" : (val > 0 ? "+"+val : ""+val);
+    pkOffsetInfo.textContent = "Offset actuel : " + sign + " m appliqués à tous les PK.";
+  }
+
+  function saveSettings() {
+    sosPhone = inputSosPhone.value.trim();
+    motionSensitivity = selectSensitivity.value;
+    localStorage.setItem("sosPhone", sosPhone);
+    localStorage.setItem("motionSensitivity", motionSensitivity);
+    localStorage.setItem("pkOffset", pkOffset);
+    updateOffsetInfo();
+  }
+
+  function updatePkEstimateInSettings() {
+    if (state.lastRawPk == null) {
+      pkEstimateText.textContent = "En attente de position GPS…";
+      return;
+    }
+    const corrected = state.lastRawPk + pkOffset;
+    const pkText = "PK " + formatPk(corrected) +
+      " (~" + Math.round(corrected) + " m depuis l’origine de la ligne)";
+    const distText = state.lastDist != null
+      ? " · ~ " + Math.round(state.lastDist) + " m de la voie (projection)."
+      : "";
+    pkEstimateText.textContent = pkText + distText;
+  }
+
+  let geolocActive = false;
+
+  function setGpsStatus(status, message) {
+    if (status === "off") {
+      gpsStatusBadge.className = "badge badge-danger";
+      gpsStatusBadge.textContent = "GPS inactif";
+      geolocText.textContent = message || "Position non encore reçue.";
+    } else if (status === "on") {
+      gpsStatusBadge.className = "badge badge-good";
+      gpsStatusBadge.textContent = "GPS actif";
+      if (message) geolocText.textContent = message;
+    } else if (status === "error") {
+      gpsStatusBadge.className = "badge badge-danger";
+      gpsStatusBadge.textContent = "Erreur GPS";
+      geolocText.textContent = message ||
+        "Impossible d’obtenir la position. Vérifie que la géolocalisation est autorisée pour ce site.";
+    }
+  }
+
+  function startGeoloc() {
+    if (!navigator.geolocation) {
+      setGpsStatus("error", "Ce navigateur ne supporte pas la géolocalisation.");
+      return;
+    }
+    if (geolocActive) return;
+
+    geolocActive = true;
+    btnToggleGeoloc.innerHTML = "Arrêter la géoloc";
+    setGpsStatus("on", "En attente d’un premier point…");
+
+    state.watchId = navigator.geolocation.watchPosition(
+      handlePosition,
+      handleGeolocError,
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
+    );
+  }
+
+  function stopGeoloc() {
+    if (state.watchId != null) {
+      navigator.geolocation.clearWatch(state.watchId);
+      state.watchId = null;
+    }
+    geolocActive = false;
+    btnToggleGeoloc.innerHTML = "Démarrer la géoloc";
+    setGpsStatus("off");
+  }
+
+  function handleGeolocError(err) {
+    setGpsStatus("error");
+    console.error(err);
+  }
+
+  function updateMovement(dPk, dt) {
+    const profile = sensitivityProfiles[motionSensitivity] || sensitivityProfiles.normal;
+    const speed = Math.abs(dPk) / dt;
+
+    if (dPk > 0) state.direction = "est";
+    else if (dPk < 0) state.direction = "ouest";
+
+    const dirLabel = state.direction === "est" ? "vers Chessy / Boissy"
+                    : state.direction === "ouest" ? "vers St-Germain / Paris"
+                    : "";
+
+    const distText = "ΔPK ≈ " + Math.round(Math.abs(dPk)) +
+      " m sur ~" + Math.round(dt) + " s.";
+
+    if (speed < profile.idle) {
+      movementTitle.textContent = "Quasi immobile";
+      movementDetails.textContent = distText;
+    } else if (speed < profile.walk) {
+      movementTitle.textContent = "À pied " + dirLabel;
+      movementDetails.textContent = distText + " (≈ " + speed.toFixed(1) + " m/s)";
+    } else {
+      movementTitle.textContent = "Train " + dirLabel;
+      movementDetails.textContent = distText + " (≈ " + speed.toFixed(1) + " m/s)";
+    }
+  }
+
+  function updateNearestStation(pk, nearest) {
+    if (!nearest || pk == null) {
+      nearestStationName.textContent = "Aucune";
+      nearestStationInfo.textContent = "En attente de position GPS…";
+      return;
+    }
+    nearestStationName.textContent = nearest.name;
+    const delta = Math.round(Math.abs(nearest.pk - pk));
+    nearestStationInfo.textContent =
+      "PK " + formatPk(nearest.pk) + " · ΔPK ≈ " + delta + " m";
+  }
+
+  function updateNextStation(pk) {
+    if (pk == null) {
+      nextStationName.textContent = "Aucune";
+      nextStationInfo.textContent = "En attente de position GPS…";
+      return;
+    }
+    const next = findNextStation(pk, state.direction, currentBranch);
+    if (!next) {
+      nextStationName.textContent = "Aucune";
+      nextStationInfo.textContent = "—";
+      return;
+    }
+    nextStationName.textContent = next.name;
+    const delta = Math.round(Math.abs(next.pk - pk));
+    const dir = next.pk >= pk ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
+    nextStationInfo.textContent =
+      "PK " + formatPk(next.pk) + " · ≈ " + delta + " m " + dir;
+  }
+
+  function updatePkTargetView() {
+    if (!pkTarget) {
+      pkTargetLabel.textContent = "Aucun";
+      pkTargetInfo.textContent =
+        "Saisis un PK puis clique sur « Définir ce PK comme cible ».";
+      return;
+    }
+    pkTargetLabel.textContent = "PK " + formatPk(pkTarget);
+    if (state.lastPk == null) {
+      pkTargetInfo.textContent = "En attente de position GPS…";
+      return;
+    }
+    const delta = pkTarget - state.lastPk;
+    const dist = Math.round(Math.abs(delta));
+    const dir = delta >= 0 ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
+    pkTargetInfo.textContent = "≈ " + dist + " m " + dir;
+  }
+
+  function updateAccessList(pk) {
+    if (pk == null) {
+      accessList.textContent = "En attente de position GPS…";
+      return;
+    }
+    const sorted = accessPoints.slice().sort(
+      (a,b) => Math.abs(a.pk - pk) - Math.abs(b.pk - pk)
+    );
+    const top3 = sorted.slice(0,3);
+    if (!top3.length) {
+      accessList.textContent = "Aucun point disponible.";
+      return;
+    }
+    const lines = top3.map(acc => {
+      const delta = Math.round(Math.abs(acc.pk - pk));
+      const dir = acc.pk >= pk ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
+      return (
+        '<div class="access-item">' +
+        '<div><strong>PK ' + formatPk(acc.pk) + "</strong> – " + acc.name + "</div>" +
+        '<div class="muted">ΔPK ≈ ' + delta + " m " + dir + "</div>" +
+        "</div>"
+      );
+    });
+    accessList.innerHTML = lines.join("");
+  }
+
+  function updateSmsPreview() {
+    if (state.lastPk == null || state.lastLat == null) {
+      smsPreview.textContent =
+        "En attente de position GPS pour préparer le SMS.";
+      return;
+    }
+    const pkText = "PK " + formatPk(state.lastPk);
+    const nearestName = state.nearestStation ? state.nearestStation.name : "inconnue";
+    const branchLabel = currentBranch === "boissy" ? "branche Boissy-Saint-Léger"
+                     : currentBranch === "chessy" ? "branche Marne-la-Vallée – Chessy"
+                     : "branche inconnue";
+    let base =
+      pkText + " (" + branchLabel + "), gare la plus proche : " + nearestName +
+      ", lat " + state.lastLat.toFixed(5) +
+      ", lon " + state.lastLon.toFixed(5) + ".";
+
+    if (state.nearestAccess) {
+      base += " Accès le plus proche : " + state.nearestAccess.name +
+        " (" + state.nearestAccess.address + ").";
+    }
+
+    const numPart = " Numéro utilisé : " +
+      (sosPhone ? sosPhone : "aucun (à définir dans Paramètres).");
+    smsPreview.textContent = base + numPart;
+  }
+
+  function sendSms() {
+    if (state.lastPk == null || state.lastLat == null) {
+      alert("Position GPS insuffisante pour préparer le SMS.");
+      return;
+    }
+    const pkText = "PK " + formatPk(state.lastPk);
+    const nearestName = state.nearestStation ? state.nearestStation.name : "inconnue";
+    const branchLabel = currentBranch === "boissy" ? "branche Boissy-Saint-Léger"
+                     : currentBranch === "chessy" ? "branche Marne-la-Vallée – Chessy"
+                     : "branche inconnue";
+    let message =
+      "PK : " + pkText + " (" + branchLabel + ")\n" +
+      "Gare la plus proche : " + nearestName + "\n";
+
+    if (state.nearestAccess) {
+      message +=
+        "Accès le plus proche : " + state.nearestAccess.name +
+        " (" + state.nearestAccess.address + ")\n";
+    }
+
+    message +=
+      "Coordonnées : " + state.lastLat.toFixed(5) + ", " + state.lastLon.toFixed(5) + "\n";
+
+    const body = encodeURIComponent(message);
+    const numberPart = sosPhone ? encodeURIComponent(sosPhone) : "";
+    const url = numberPart
+      ? "sms:" + numberPart + "?&body=" + body
+      : "sms:?&body=" + body;
+
+    window.location.href = url;
+  }
+
+  function handlePkLookup() {
+    const val = parsePkInput(inputPkLookup.value);
+    if (val == null) {
+      alert("PK invalide. Utilise 32400 ou 32+400.");
+      return;
+    }
+    const acc = findNearestAccess(val);
+    if (!acc) {
+      pkLookupResultField.style.display = "none";
+      alert("Aucun accès disponible pour ce PK.");
+      return;
+    }
+    lastPkLookupAccess = acc;
+    const delta = Math.round(Math.abs(acc.pk - val));
+    const dir = acc.pk >= val ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
+
+    pkLookupResult.innerHTML =
+      "<strong>Accès le plus proche :</strong> " + acc.name + "<br>" +
+      "PK " + formatPk(acc.pk) + " (ΔPK ≈ " + delta + " m " + dir + ")<br>" +
+      "<span class='muted'>" + acc.address + "</span>";
+
+    pkLookupResultField.style.display = "block";
+  }
+
+  function openPkLookupInMaps() {
+    if (!lastPkLookupAccess) {
+      alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
+      return;
+    }
+    const url = "https://maps.google.com/?q=" +
+      lastPkLookupAccess.lat + "," + lastPkLookupAccess.lon;
+    window.open(url, "_blank");
+  }
+
+  selectIncidentType.addEventListener("change", () => {
+    if (selectIncidentType.value === "Autre") {
+      incidentOtherField.style.display = "block";
+    } else {
+      incidentOtherField.style.display = "none";
+    }
+  });
+
+  btnGenerateIncident.addEventListener("click", () => {
+    if (state.lastPk == null || state.lastLat == null) {
+      alert("Position GPS non disponible. Lance la géoloc avant de signaler.");
+      return;
+    }
+    let type = selectIncidentType.value;
+    if (!type) {
+      alert("Choisis un type d’incident avant de générer le message.");
+      return;
+    }
+    if (type === "Autre") {
+      const desc = inputIncidentOther.value.trim();
+      if (!desc) {
+        alert("Précise la nature de l’incident.");
+        return;
+      }
+      type = desc;
+    }
+
+    const pkTxt = "PK " + formatPk(state.lastPk);
+    const station = state.nearestStation ? state.nearestStation.name : "inconnue";
+    const lat = state.lastLat.toFixed(5);
+    const lon = state.lastLon.toFixed(5);
+    const now = new Date();
+    const dateTxt = now.toLocaleDateString("fr-FR");
+    const timeTxt = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+
+    let message =
+      "🚨 Signalement d’avarie / incident\n" +
+      "Type : " + type + "\n" +
+      "PK : " + pkTxt + "\n" +
+      "Branche : " + (currentBranch === "boissy"
+                      ? "Boissy-Saint-Léger"
+                      : currentBranch === "chessy"
+                        ? "Marne-la-Vallée – Chessy"
+                        : "inconnue") + "\n" +
+      "Gare la plus proche : " + station + "\n";
+
+    if (state.nearestAccess) {
+      message +=
+        "Accès le plus proche : " + state.nearestAccess.name +
+        " (" + state.nearestAccess.address + ")\n";
+    }
+
+    message +=
+      "Coordonnées : " + lat + ", " + lon + "\n" +
+      "Date/heure : " + dateTxt + " – " + timeTxt;
+
+    if (incidentPhotoInput && incidentPhotoInput.files && incidentPhotoInput.files.length > 0) {
+      const file = incidentPhotoInput.files[0];
+      if (file && file.name) {
+        message += "\nPhoto jointe : " + file.name;
+      }
+    }
+
+    incidentResultText.value = message;
+    incidentResultField.style.display = "block";
+  });
+
+  btnCopyIncident.addEventListener("click", () => {
+    const text = incidentResultText.value;
+    if (!text) {
+      alert("Aucun message à copier.");
+      return;
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Message copié dans le presse-papiers ✅");
+      }).catch(() => {
+        incidentResultText.select();
+        document.execCommand("copy");
+        alert("Message copié dans le presse-papiers ✅");
+      });
+    } else {
+      incidentResultText.select();
+      document.execCommand("copy");
+      alert("Message copié dans le presse-papiers ✅");
+    }
+  });
+
+  btnToggleGeoloc.addEventListener("click", () => {
+    if (geolocActive) stopGeoloc();
+    else startGeoloc();
+  });
+
+  btnSettingsToggle.addEventListener("click", () => {
+    const isVisible = settingsPanel.style.display !== "none";
+    settingsPanel.style.display = isVisible ? "none" : "block";
+  });
+
+  btnSetPkTarget.addEventListener("click", () => {
+    const val = parsePkInput(inputPkTarget.value);
+    if (val == null) {
+      alert("PK cible invalide. Utilise 32400 ou 32+400.");
+      return;
+    }
+    pkTarget = val;
+    updatePkTargetView();
+  });
+
+  btnSms.addEventListener("click", sendSms);
+
+  btnResetOffset.addEventListener("click", () => {
+    pkOffset = 0;
+    localStorage.setItem("pkOffset", pkOffset);
+    updateOffsetInfo();
+    if (state.lastRawPk != null) {
+      state.lastPk = state.lastRawPk;
+      state.nearestStation = findNearestStation(state.lastPk, currentBranch);
+      state.nearestAccess = findNearestAccess(state.lastPk);
+      updateNearestStation(state.lastPk, state.nearestStation);
+      updateNextStation(state.lastPk);
+      updatePkTargetView();
+      updateAccessList(state.lastPk);
+      updateSmsPreview();
+      updatePkEstimateInSettings();
+    } else {
+      updatePkEstimateInSettings();
+    }
+  });
+
+  btnApplyRecal.addEventListener("click", () => {
+    const exactPk = parsePkInput(inputPkRecal.value);
+    if (exactPk == null) {
+      alert("PK invalide. Utilise 52700 ou 52+700.");
+      return;
+    }
+    if (state.lastRawPk == null) {
+      alert("Pas de position GPS pour recaler. Lance la géoloc d’abord.");
+      return;
+    }
+    pkOffset = exactPk - state.lastRawPk;
+    localStorage.setItem("pkOffset", pkOffset);
+    updateOffsetInfo();
+    updatePkEstimateInSettings();
+  });
+
+  btnSaveSettings.addEventListener("click", () => {
+    saveSettings();
+    updateSmsPreview();
+    alert("Paramètres enregistrés ✅");
+  });
+
+  selectSensitivity.addEventListener("change", () => {
+    motionSensitivity = selectSensitivity.value;
+    localStorage.setItem("motionSensitivity", motionSensitivity);
+  });
+
+  btnPkLookup.addEventListener("click", handlePkLookup);
+  btnPkLookupOpenMaps.addEventListener("click", openPkLookupInMaps);
+
+  selectIncidentType.dispatchEvent(new Event("change"));
+
+  loadSettings();
+  updateSmsPreview();
+  setGpsStatus("off");
+
+  function handlePosition(pos) {
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+
+    setGpsStatus("on", "Position reçue (lat : " +
+      lat.toFixed(5) + ", lon : " + lon.toFixed(5) + ")");
+
+    currentBranch = detectBranch(lat, lon);
+    if (currentBranch === "boissy") {
+      linePoints = troncCommun.concat(brancheBoissy);
+    } else {
+      linePoints = troncCommun.concat(brancheChessy);
+    }
+
+    const proj = projectToLine(lat, lon);
+    if (proj.pkProj == null) return;
+
+    const rawPk = proj.pkProj;
+    const correctedPk = rawPk + pkOffset;
+    const now = Date.now() / 1000;
+
+    if (state.lastPk != null && state.lastPkTime != null) {
+      const dPk = correctedPk - state.lastPk;
+      const dt = now - state.lastPkTime;
+      if (dt > 1) {
+        updateMovement(dPk, dt);
+      }
+    } else {
+      movementTitle.textContent = "En attente d’un deuxième point…";
+      movementDetails.textContent = "—";
+    }
+
+    state.lastRawPk = rawPk;
+    state.lastPk = correctedPk;
+    state.lastPkTime = now;
+    state.lastLat = lat;
+    state.lastLon = lon;
+    state.lastDist = proj.dist;
+
+    const nearest = findNearestStation(correctedPk, currentBranch);
+    const nearestAccess = findNearestAccess(correctedPk);
+
+    state.nearestStation = nearest;
+    state.nearestAccess = nearestAccess;
+
+    updateNearestStation(correctedPk, nearest);
+    updateNextStation(correctedPk);
+    updatePkTargetView();
+    updateAccessList(correctedPk);
+    updateSmsPreview();
+    updatePkEstimateInSettings();
+  }
+
+  </script>
 </body>
 </html>
