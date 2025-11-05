@@ -466,12 +466,19 @@
         </button>
       </div>
 
-      <div class="field" id="pkLookupResultField" style="display:none;">
-        <div id="pkLookupResult" class="muted"></div>
-        <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
-          <span>📍</span><span>Ouvrir dans le GPS</span>
-        </button>
-      </div>
+      <<div class="field" id="pkLookupResultField" style="display:none;">
+  <div id="pkLookupResult" class="muted"></div>
+
+  <div class="field">
+    <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
+      <span>📍</span><span>Google Maps</span>
+    </button>
+    <button id="btnPkLookupOpenWaze" class="btn btn-secondary btn-icon" type="button">
+      <span>🚗</span><span>Waze</span>
+    </button>
+  </div>
+</div>
+
 
       <!-- Signalement d’avarie -->
       <div class="signalement-block">
@@ -887,6 +894,8 @@
   const pkLookupResultField = document.getElementById("pkLookupResultField");
   const pkLookupResult = document.getElementById("pkLookupResult");
   const btnPkLookupOpenMaps = document.getElementById("btnPkLookupOpenMaps");
+  const btnPkLookupOpenWaze = document.getElementById("btnPkLookupOpenWaze");
+
 
   const selectIncidentType = document.getElementById("selectIncidentType");
   const incidentOtherField = document.getElementById("incidentOtherField");
@@ -995,19 +1004,52 @@
     return best;
   }
 
-  function findNearestAccess(pk) {
-    if (pk == null) return null;
-    let best = null;
-    let bestDiff = Infinity;
-    for (const acc of accessPoints) {
-      const d = Math.abs(acc.pk - pk);
-      if (d < bestDiff) {
-        bestDiff = d;
-        best = acc;
-      }
+// Nearest access uniquement par PK (utilisé pour la recherche manuelle)
+function findNearestAccess(pk) {
+  if (pk == null) return null;
+  let best = null;
+  let bestDiff = Infinity;
+  for (const acc of accessPoints) {
+    if (acc.pk == null) continue;
+    const d = Math.abs(acc.pk - pk);
+    if (d < bestDiff) {
+      bestDiff = d;
+      best = acc;
     }
-    return best;
   }
+  return best;
+}
+
+// Nearest access par distance GPS (pour "autour de moi")
+function findNearestAccessGeo(lat, lon) {
+  if (lat == null || lon == null) return null;
+  let best = null;
+  let bestDist = Infinity;
+  for (const acc of accessPoints) {
+    if (acc.lat == null || acc.lon == null) continue;
+    const d = distanceMeters(lat, lon, acc.lat, acc.lon);
+    if (d < bestDist) {
+      bestDist = d;
+      best = acc;
+    }
+  }
+  return best;
+}
+
+// Top N accès par distance GPS (utilisé pour "Top 2 en PK")
+function getNearestAccessesGeo(lat, lon, pk, maxCount = 2) {
+  if (lat == null || lon == null) return [];
+  const list = [];
+  for (const acc of accessPoints) {
+    if (acc.lat == null || acc.lon == null) continue;
+    const dGeo = distanceMeters(lat, lon, acc.lat, acc.lon);
+    const dPk  = (pk != null && acc.pk != null) ? Math.abs(acc.pk - pk) : null;
+    list.push({ acc, dGeo, dPk });
+  }
+  list.sort((a, b) => a.dGeo - b.dGeo);
+  return list.slice(0, maxCount);
+}
+
 
   function findNextStation(pk, direction, branch) {
     if (pk == null) return null;
@@ -1216,31 +1258,47 @@ function updatePkEstimateInSettings() {
     pkTargetInfo.textContent = "≈ " + dist + " m " + dir;
   }
 
-  function updateAccessList(pk) {
-    if (pk == null) {
-      accessList.textContent = "En attente de position GPS…";
-      return;
-    }
-    const sorted = accessPoints.slice().sort(
-      (a,b) => Math.abs(a.pk - pk) - Math.abs(b.pk - pk)
-    );
-    const top3 = sorted.slice(0,3);
-    if (!top3.length) {
-      accessList.textContent = "Aucun point disponible.";
-      return;
-    }
-    const lines = top3.map(acc => {
-      const delta = Math.round(Math.abs(acc.pk - pk));
-      const dir = acc.pk >= pk ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
-      return (
-        '<div class="access-item">' +
-        '<div><strong>PK ' + formatPk(acc.pk) + "</strong> – " + acc.name + "</div>" +
-        '<div class="muted">ΔPK ≈ ' + delta + " m " + dir + "</div>" +
-        "</div>"
-      );
-    });
-    accessList.innerHTML = lines.join("");
+function updateAccessList(pk) {
+  // Pas de PK ou pas encore de GPS → on attend
+  if (pk == null || state.lastLat == null || state.lastLon == null) {
+    accessList.textContent = "En attente de position GPS…";
+    return;
   }
+
+  // Top 2 accès les plus proches en distance GPS
+  const nearestList = getNearestAccessesGeo(state.lastLat, state.lastLon, pk, 2);
+
+  if (!nearestList.length) {
+    accessList.textContent = "Aucun accès disponible.";
+    return;
+  }
+
+  const lines = nearestList.map(item => {
+    const acc = item.acc;
+    const dGeo = Math.round(item.dGeo); // m "à vol d’oiseau"
+    const dPk  = (item.dPk != null) ? Math.round(item.dPk) : null;
+    const dir  = (acc.pk != null && pk != null && acc.pk >= pk)
+      ? "vers Chessy / Boissy"
+      : "vers St-Germain / Paris";
+
+    let pkLine = "PK " + formatPk(acc.pk) + " – " + acc.name;
+    let sub = "≈ " + dGeo + " m en distance GPS";
+
+    if (dPk != null) {
+      sub = "ΔPK ≈ " + dPk + " m " + dir + " · " + sub;
+    }
+
+    return (
+      '<div class="access-item">' +
+        '<div><strong>' + pkLine + "</strong></div>" +
+        '<div class="muted">' + sub + "</div>" +
+      "</div>"
+    );
+  });
+
+  accessList.innerHTML = lines.join("");
+}
+
 
   function updateSmsPreview() {
     if (state.lastPk == null || state.lastLat == null) {
@@ -1329,6 +1387,22 @@ function updatePkEstimateInSettings() {
     alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
     return;
   }
+
+    function openPkLookupInWaze() {
+  if (!lastPkLookupAccess) {
+    alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
+    return;
+  }
+  const lat = lastPkLookupAccess.lat;
+  const lon = lastPkLookupAccess.lon;
+  if (lat == null || lon == null) {
+    alert("Pas de coordonnées GPS pour cet accès.");
+    return;
+  }
+  // Lien universel Waze
+  const url = "https://waze.com/ul?ll=" + lat + "," + lon + "&navigate=yes";
+  window.open(url, "_blank");
+}
 
   let url;
   // Si on a des coordonnées GPS précises → on ouvre directement à cet endroit
@@ -1507,6 +1581,8 @@ function updatePkEstimateInSettings() {
 
   btnPkLookup.addEventListener("click", handlePkLookup);
   btnPkLookupOpenMaps.addEventListener("click", openPkLookupInMaps);
+  btnPkLookupOpenWaze.addEventListener("click", openPkLookupInWaze);
+
 
   selectIncidentType.dispatchEvent(new Event("change"));
 
@@ -1553,18 +1629,19 @@ function updatePkEstimateInSettings() {
     state.lastLon = lon;
     state.lastDist = proj.dist;
 
-    const nearest = findNearestStation(correctedPk, currentBranch);
-    const nearestAccess = findNearestAccess(correctedPk);
+   const nearest = findNearestStation(correctedPk, currentBranch);
+// nearest access en GPS
+const nearestAccess = findNearestAccessGeo(lat, lon);
 
-    state.nearestStation = nearest;
-    state.nearestAccess = nearestAccess;
+state.nearestStation = nearest;
+state.nearestAccess = nearestAccess;
 
-    updateNearestStation(correctedPk, nearest);
-    updateNextStation(correctedPk);
-    updatePkTargetView();
-    updateAccessList(correctedPk);
-    updateSmsPreview();
-    updatePkEstimateInSettings();
+updateNearestStation(correctedPk, nearest);
+updateNextStation(correctedPk);
+updatePkTargetView();
+updateAccessList(correctedPk);  // utilisera state.lastLat / state.lastLon
+updateSmsPreview();
+updatePkEstimateInSettings();
   }
 
   </script>
