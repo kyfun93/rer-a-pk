@@ -832,37 +832,27 @@
     updateOffsetInfo();
   }
 
-  function updatePkEstimateInSettings() {
-    if (state.lastRawPk == null) {
-      pkEstimateText.textContent = "En attente de position GPS…";
-      if (pkCurrentValue) pkCurrentValue.textContent = "—";
-      if (pkCurrentDetails) pkCurrentDetails.textContent = "En attente de position GPS…";
-      return;
-    }
-
-    const corrected = state.lastRawPk + pkOffset;
-    const pkMeters = Math.round(corrected);
-    const pkTextMain = "PK " + formatPk(corrected);
-    const distText = state.lastDist != null
-      ? " · ~ " + Math.round(state.lastDist) + " m de la voie (projection)."
-      : "";
-
-    // Texte dans les paramètres
-    pkEstimateText.textContent =
-      pkTextMain + " (~" + pkMeters + " m depuis l’origine de la ligne)" + distText;
-
-    // Carte "PK actuel" sur l’écran principal
-    if (pkCurrentValue) {
-      pkCurrentValue.textContent = pkTextMain;
-    }
-    if (pkCurrentDetails) {
-      let details = "≈ " + pkMeters + " m depuis l’origine de la ligne";
-      if (state.lastDist != null) {
-        details += " · ~" + Math.round(state.lastDist) + " m de la voie";
-      }
-      pkCurrentDetails.textContent = details;
-    }
+function updatePkEstimateInSettings() {
+  if (state.lastRawPk == null) {
+    pkEstimateText.textContent = "En attente de position GPS…";
+    if (pkCurrentValue) pkCurrentValue.textContent = "—";
+    if (pkCurrentDetails) pkCurrentDetails.textContent = "En attente de position GPS…";
+    return;
   }
+
+  const corrected = state.lastRawPk + pkOffset;
+  const pkText = "PK " + formatPk(corrected);
+  const distText = state.lastDist != null
+    ? "· ~" + Math.round(state.lastDist) + " m de la voie"
+    : "";
+
+  // Mise à jour du texte dans les paramètres
+  pkEstimateText.textContent = pkText + " " + distText;
+
+  // Affichage sur la carte "PK actuel"
+  if (pkCurrentValue) pkCurrentValue.textContent = pkText;
+  if (pkCurrentDetails) pkCurrentDetails.textContent = distText || "";
+}
 
 
   let geolocActive = false;
