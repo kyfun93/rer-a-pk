@@ -819,6 +819,19 @@
   }
 ];
 
+  // On ajoute automatiquement chaque gare comme un "accès" supplémentaire
+for (const st of stations) {
+  accessPoints.push({
+    name: "Gare de " + st.name,
+    // Si tu veux mettre une adresse plus précise, tu pourras les affiner à partir de ta liste PDF
+    address: "Gare RER A " + st.name,
+    pk: st.pk,
+    lat: st.lat,
+    lon: st.lon,
+    nearestStation: st.name
+  });
+}
+
     // Attribue une branche à chaque accès : "boissy", "chessy" ou "both" (tronc commun)
 for (const acc of accessPoints) {
   if (acc.pk <= 34000) {
