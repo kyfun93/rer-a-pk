@@ -466,8 +466,8 @@
         </button>
       </div>
 
-      <<div class="field" id="pkLookupResultField" style="display:none;">
-  <div id="pkLookupResult" class="muted"></div>
+      <div class="field" id="pkLookupResultField" style="display:none;">
+        <div id="pkLookupResult" class="muted"></div>
 
   <div class="field">
     <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
@@ -1079,22 +1079,6 @@ function getNearestAccessesGeo(lat, lon, pk, maxCount = 2) {
     currentLine.some(st => Math.abs(st.pk - acc.pk) < 3000) // marge de 3 km
   );
 
-  // Calcule la distance GPS pour ceux de la même branche
-  const list = [];
-  for (const acc of filteredAccess) {
-    if (acc.lat == null || acc.lon == null) continue;
-    const dGeo = distanceMeters(lat, lon, acc.lat, acc.lon);
-    const dPk = (pk != null && acc.pk != null) ? Math.abs(acc.pk - pk) : null;
-    list.push({ acc, dGeo, dPk });
-  }
-
-  // Trie par distance GPS réelle
-  list.sort((a, b) => a.dGeo - b.dGeo);
-
-  // Renvoie les 2 premiers (les plus proches physiquement)
-  return list.slice(0, maxCount);
-}
-
   function findNextStation(pk, direction, branch) {
     if (pk == null) return null;
     let arr;
@@ -1426,13 +1410,30 @@ function updateAccessList(pk) {
     pkLookupResultField.style.display = "block";
   }
 
-  function openPkLookupInMaps() {
+function openPkLookupInMaps() {
   if (!lastPkLookupAccess) {
     alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
     return;
   }
 
-    function openPkLookupInWaze() {
+  let url;
+  // Si on a des coordonnées GPS précises → on ouvre directement à cet endroit
+  if (
+    lastPkLookupAccess.lat != null &&
+    lastPkLookupAccess.lon != null
+  ) {
+    url = "https://maps.google.com/?q=" +
+      lastPkLookupAccess.lat + "," + lastPkLookupAccess.lon;
+  } else {
+    // Sinon on ouvre une recherche sur l’adresse / le nom
+    const query = lastPkLookupAccess.address || lastPkLookupAccess.name;
+    url = "https://www.google.com/maps/search/?api=1&query=" +
+      encodeURIComponent(query);
+  }
+
+  window.open(url, "_blank");
+}
+function openPkLookupInWaze() {
   if (!lastPkLookupAccess) {
     alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
     return;
@@ -1443,6 +1444,10 @@ function updateAccessList(pk) {
     alert("Pas de coordonnées GPS pour cet accès.");
     return;
   }
+  const url = "https://waze.com/ul?ll=" + lat + "," + lon + "&navigate=yes";
+  window.open(url, "_blank");
+}
+
   // Lien universel Waze
   const url = "https://waze.com/ul?ll=" + lat + "," + lon + "&navigate=yes";
   window.open(url, "_blank");
