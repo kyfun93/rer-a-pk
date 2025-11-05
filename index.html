@@ -466,19 +466,18 @@
         </button>
       </div>
 
-      <div class="field" id="pkLookupResultField" style="display:none;">
+            <div class="field" id="pkLookupResultField" style="display:none;">
         <div id="pkLookupResult" class="muted"></div>
 
-  <div class="field">
-    <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
-      <span>📍</span><span>Google Maps</span>
-    </button>
-    <button id="btnPkLookupOpenWaze" class="btn btn-secondary btn-icon" type="button">
-      <span>🚗</span><span>Waze</span>
-    </button>
-  </div>
-</div>
-
+        <div class="field">
+          <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
+            <span>📍</span><span>Google Maps</span>
+          </button>
+          <button id="btnPkLookupOpenWaze" class="btn btn-secondary btn-icon" type="button">
+            <span>🚗</span><span>Waze</span>
+          </button>
+        </div>
+      </div>
 
       <!-- Signalement d’avarie -->
       <div class="signalement-block">
@@ -1074,11 +1073,6 @@ function getNearestAccessesGeo(lat, lon, pk, maxCount = 2) {
   return list.slice(0, maxCount);
 }
 
-  // Filtre les accès appartenant à la même branche uniquement
-  const filteredAccess = accessPoints.filter(acc =>
-    currentLine.some(st => Math.abs(st.pk - acc.pk) < 3000) // marge de 3 km
-  );
-
   function findNextStation(pk, direction, branch) {
     if (pk == null) return null;
     let arr;
@@ -1415,6 +1409,36 @@ function openPkLookupInMaps() {
     alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
     return;
   }
+
+  let url;
+  if (
+    lastPkLookupAccess.lat != null &&
+    lastPkLookupAccess.lon != null
+  ) {
+    url = "https://maps.google.com/?q=" +
+      lastPkLookupAccess.lat + "," + lastPkLookupAccess.lon;
+  } else {
+    const query = lastPkLookupAccess.address || lastPkLookupAccess.name;
+    url = "https://www.google.com/maps/search/?api=1&query=" +
+      encodeURIComponent(query);
+  }
+
+  window.open(url, "_blank");
+}
+function openPkLookupInWaze() {
+  if (!lastPkLookupAccess) {
+    alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
+    return;
+  }
+  const lat = lastPkLookupAccess.lat;
+  const lon = lastPkLookupAccess.lon;
+  if (lat == null || lon == null) {
+    alert("Pas de coordonnées GPS pour cet accès.");
+    return;
+  }
+  const url = "https://waze.com/ul?ll=" + lat + "," + lon + "&navigate=yes";
+  window.open(url, "_blank");
+}
 
   let url;
   // Si on a des coordonnées GPS précises → on ouvre directement à cet endroit
