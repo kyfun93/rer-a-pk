@@ -1103,17 +1103,37 @@ function getNearestAccessesGeo(lat, lon, pk, maxCount = 2) {
     return dBoissy < dChessy ? "boissy" : "chessy";
   }
 
+    function safeGetItem(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (e) {
+    console.warn("localStorage getItem bloqué pour", key, e);
+    return null;
+  }
+}
+
+function safeSetItem(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {
+    console.warn("localStorage setItem bloqué pour", key, e);
+  }
+}
+
   function loadSettings() {
-    const storedOffset = parseFloat(localStorage.getItem("pkOffset"));
+    let storedOffset = parseFloat(safeGetItem("pkOffset"));
     pkOffset = isNaN(storedOffset) ? 0 : storedOffset;
 
-    sosPhone = localStorage.getItem("sosPhone") || "";
-    motionSensitivity = localStorage.getItem("motionSensitivity") || "normal";
+    const sos = safeGetItem("sosPhone");
+    const ms  = safeGetItem("motionSensitivity");
+
+    sosPhone = sos || "";
+    motionSensitivity = ms || "normal";
 
     inputSosPhone.value = sosPhone;
     selectSensitivity.value = motionSensitivity;
     updateOffsetInfo();
-  }
+}
 
   function updateOffsetInfo() {
     const val = Math.round(pkOffset);
@@ -1122,13 +1142,15 @@ function getNearestAccessesGeo(lat, lon, pk, maxCount = 2) {
   }
 
   function saveSettings() {
-    sosPhone = inputSosPhone.value.trim();
-    motionSensitivity = selectSensitivity.value;
-    localStorage.setItem("sosPhone", sosPhone);
-    localStorage.setItem("motionSensitivity", motionSensitivity);
-    localStorage.setItem("pkOffset", pkOffset);
-    updateOffsetInfo();
-  }
+  sosPhone = inputSosPhone.value.trim();
+  motionSensitivity = selectSensitivity.value;
+
+  safeSetItem("sosPhone", sosPhone);
+  safeSetItem("motionSensitivity", motionSensitivity);
+  safeSetItem("pkOffset", pkOffset);
+
+  updateOffsetInfo();
+}
 
 function updatePkEstimateInSettings() {
   if (state.lastRawPk == null) {
@@ -1411,36 +1433,6 @@ function openPkLookupInMaps() {
   }
 
   let url;
-  if (
-    lastPkLookupAccess.lat != null &&
-    lastPkLookupAccess.lon != null
-  ) {
-    url = "https://maps.google.com/?q=" +
-      lastPkLookupAccess.lat + "," + lastPkLookupAccess.lon;
-  } else {
-    const query = lastPkLookupAccess.address || lastPkLookupAccess.name;
-    url = "https://www.google.com/maps/search/?api=1&query=" +
-      encodeURIComponent(query);
-  }
-
-  window.open(url, "_blank");
-}
-function openPkLookupInWaze() {
-  if (!lastPkLookupAccess) {
-    alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
-    return;
-  }
-  const lat = lastPkLookupAccess.lat;
-  const lon = lastPkLookupAccess.lon;
-  if (lat == null || lon == null) {
-    alert("Pas de coordonnées GPS pour cet accès.");
-    return;
-  }
-  const url = "https://waze.com/ul?ll=" + lat + "," + lon + "&navigate=yes";
-  window.open(url, "_blank");
-}
-
-  let url;
   // Si on a des coordonnées GPS précises → on ouvre directement à cet endroit
   if (
     lastPkLookupAccess.lat != null &&
@@ -1457,6 +1449,7 @@ function openPkLookupInWaze() {
 
   window.open(url, "_blank");
 }
+
 function openPkLookupInWaze() {
   if (!lastPkLookupAccess) {
     alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
@@ -1468,33 +1461,10 @@ function openPkLookupInWaze() {
     alert("Pas de coordonnées GPS pour cet accès.");
     return;
   }
-  const url = "https://waze.com/ul?ll=" + lat + "," + lon + "&navigate=yes";
-  window.open(url, "_blank");
-}
-
   // Lien universel Waze
   const url = "https://waze.com/ul?ll=" + lat + "," + lon + "&navigate=yes";
   window.open(url, "_blank");
 }
-
-  let url;
-  // Si on a des coordonnées GPS précises → on ouvre directement à cet endroit
-  if (
-    lastPkLookupAccess.lat != null &&
-    lastPkLookupAccess.lon != null
-  ) {
-    url = "https://maps.google.com/?q=" +
-      lastPkLookupAccess.lat + "," + lastPkLookupAccess.lon;
-  } else {
-    // Sinon on ouvre une recherche sur l’adresse / le nom
-    const query = lastPkLookupAccess.address || lastPkLookupAccess.name;
-    url = "https://www.google.com/maps/search/?api=1&query=" +
-      encodeURIComponent(query);
-  }
-
-  window.open(url, "_blank");
-}
-
 
   selectIncidentType.addEventListener("change", () => {
     if (selectIncidentType.value === "Autre") {
@@ -1608,7 +1578,7 @@ function openPkLookupInWaze() {
 
   btnResetOffset.addEventListener("click", () => {
     pkOffset = 0;
-    localStorage.setItem("pkOffset", pkOffset);
+      safeSetItem("pkOffset", pkOffset);
     updateOffsetInfo();
     if (state.lastRawPk != null) {
       state.lastPk = state.lastRawPk;
@@ -1636,9 +1606,10 @@ function openPkLookupInWaze() {
       return;
     }
     pkOffset = exactPk - state.lastRawPk;
-    localStorage.setItem("pkOffset", pkOffset);
-    updateOffsetInfo();
-    updatePkEstimateInSettings();
+  safeSetItem("pkOffset", pkOffset);
+  updateOffsetInfo();
+  updatePkEstimateInSettings();
+
   });
 
   btnSaveSettings.addEventListener("click", () => {
@@ -1648,8 +1619,8 @@ function openPkLookupInWaze() {
   });
 
   selectSensitivity.addEventListener("change", () => {
-    motionSensitivity = selectSensitivity.value;
-    localStorage.setItem("motionSensitivity", motionSensitivity);
+  motionSensitivity = selectSensitivity.value;
+  safeSetItem("motionSensitivity", motionSensitivity);
   });
 
   btnPkLookup.addEventListener("click", handlePkLookup);
@@ -1716,7 +1687,7 @@ updateAccessList(correctedPk);  // utilisera state.lastLat / state.lastLon
 updateSmsPreview();
 updatePkEstimateInSettings();
   }
-
+console.log("PK Assistant RER A – script chargé sans erreur ✅");
   </script>
 </body>
 </html>
