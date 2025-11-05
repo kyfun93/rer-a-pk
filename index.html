@@ -572,13 +572,247 @@
   const stations = troncCommun.concat(brancheBoissy, brancheChessy);
 
   // Pour les accès : un accès par gare pour l’instant
-  const accessPoints = stations.map(st => ({
-    name: "Accès gare " + st.name,
-    pk: st.pk,
-    lat: st.lat,
-    lon: st.lon,
-    address: "Gare de " + st.name + " – adresse à affiner"
-  }));
+ const accessPoints = [
+  {
+    name: "Parking Leclerc Rue Michelet",
+    address: "Parking Leclerc, Rue Michelet, 94120 Fontenay-sous-Bois",
+    pk: 31500,
+    lat: 48.84958333, lon: 2.47111111,
+    nearestStation: "Fontenay-sous-Bois"
+  },
+  {
+    name: "Rampe de Fontenay / sortie du parking (Rue Michelet)",
+    address: "Rampe vers le RER depuis le parking, Rue Michelet, 94120 Fontenay-sous-Bois",
+    pk: 31500,
+    lat: 48.848, lon: 2.47222222,
+    nearestStation: "Fontenay-sous-Bois"
+  },
+  {
+    name: "Sortie côté Rue de Fontenay",
+    address: "Sortie piétonne côté Rue de Fontenay, 94120 Fontenay-sous-Bois",
+    pk: 31500,
+    lat: 48.84794444, lon: 2.47055556,
+    nearestStation: "Fontenay-sous-Bois"
+  },
+  {
+    name: "Accès côté Avenue de Neuilly",
+    address: "Avenue de Neuilly, 94120 Fontenay-sous-Bois",
+    pk: 31500,
+    lat: 48.84688889, lon: 2.47238889,
+    nearestStation: "Fontenay-sous-Bois"
+  },
+  {
+    name: "Accès piéton au niveau de l’Avenue du Maréchal de Lattre de Tassigny",
+    address: "Avenue du Maréchal de Lattre de Tassigny, Fontenay-sous-Bois",
+    pk: 31500,
+    lat: 48.84880556, lon: 2.46844444,
+    nearestStation: "Fontenay-sous-Bois"
+  },
+  {
+    name: "Parking Place Moreau David",
+    address: "Parking Place Moreau David, 94300 Vincennes",
+    pk: 30000,
+    lat: 48.84827778, lon: 2.43558333,
+    nearestStation: "Vincennes"
+  },
+  {
+    name: "Parking Rue Defrance",
+    address: "Parking Rue Defrance, 94300 Vincennes",
+    pk: 30000,
+    lat: 48.84680556, lon: 2.44075,
+    nearestStation: "Vincennes"
+  },
+  {
+    name: "Accès par le 28 Boulevard de la Libération",
+    address: "28 Boulevard de la Libération, 94300 Vincennes",
+    pk: 30000,
+    lat: 48.84751861, lon: 2.43810056,
+    nearestStation: "Vincennes"
+  },
+  {
+    name: "Accès Avenue de Paris (Vincennes)",
+    address: "Avenue de Paris, 94300 Vincennes",
+    pk: 30000,
+    lat: 48.84825, lon: 2.43327778,
+    nearestStation: "Vincennes"
+  },
+  {
+    name: "Parking Indigo Rue de la Jarry",
+    address: "Parking Indigo, Rue de la Jarry, 94300 Vincennes",
+    pk: 30000,
+    lat: 48.84580556, lon: 2.43711111,
+    nearestStation: "Vincennes"
+  },
+  {
+    name: "Accès côté Avenue de Paris (Joinville)",
+    address: "Avenue de Paris, 94340 Joinville-le-Pont",
+    pk: 37000,
+    lat: 48.82255556, lon: 2.46527778,
+    nearestStation: "Joinville-le-Pont"
+  },
+  {
+    name: "Accès côté Quai Gabriel Péri",
+    address: "Quai Gabriel Péri, 94340 Joinville-le-Pont",
+    pk: 37000,
+    lat: 48.82022222, lon: 2.4635,
+    nearestStation: "Joinville-le-Pont"
+  },
+  {
+    name: "Accès Rue de la Station (Joinville)",
+    address: "Rue de la Station, 94340 Joinville-le-Pont",
+    pk: 37000,
+    lat: 48.82125, lon: 2.46247222,
+    nearestStation: "Joinville-le-Pont"
+  },
+  {
+    name: "Accès Quai du Barrage",
+    address: "Quai du Barrage, 94340 Joinville-le-Pont",
+    pk: 37000,
+    lat: 48.81955556, lon: 2.46630556,
+    nearestStation: "Joinville-le-Pont"
+  },
+  {
+    name: "Accès Rue de Paris (Nogent)",
+    address: "Rue de Paris, 94130 Nogent-sur-Marne",
+    pk: 35500,
+    lat: 48.83405556, lon: 2.47230556,
+    nearestStation: "Nogent-sur-Marne"
+  },
+  {
+    name: "Accès Quai de la Marne (Nogent)",
+    address: "Quai de la Marne, 94130 Nogent-sur-Marne",
+    pk: 35500,
+    lat: 48.83641667, lon: 2.47438889,
+    nearestStation: "Nogent-sur-Marne"
+  },
+  {
+    name: "Accès Rue du Port",
+    address: "Rue du Port, 94130 Nogent-sur-Marne",
+    pk: 35500,
+    lat: 48.83530556, lon: 2.46988889,
+    nearestStation: "Nogent-sur-Marne"
+  },
+  {
+    name: "Accès Rue Hoche",
+    address: "Rue Hoche, 94130 Nogent-sur-Marne",
+    pk: 35500,
+    lat: 48.83366667, lon: 2.47333333,
+    nearestStation: "Nogent-sur-Marne"
+  },
+  {
+    name: "Accès Pont de Nogent (quai de la Marne)",
+    address: "Pont de Nogent, quai de la Marne",
+    pk: 35500,
+    lat: 48.83722222, lon: 2.47433333,
+    nearestStation: "Nogent-sur-Marne"
+  },
+  {
+    name: "Accès Avenue du Général Leclerc (Saint-Maur – Créteil)",
+    address: "Avenue du Général Leclerc, 94100 Saint-Maur-des-Fossés",
+    pk: 38500,
+    lat: 48.80872222, lon: 2.47177778,
+    nearestStation: "Saint-Maur – Créteil"
+  },
+  {
+    name: "Accès Avenue de Rigny",
+    address: "Avenue de Rigny, 94100 Saint-Maur-des-Fossés",
+    pk: 38500,
+    lat: 48.80766667, lon: 2.46894444,
+    nearestStation: "Saint-Maur – Créteil"
+  },
+  {
+    name: "Accès Pont de Créteil",
+    address: "Pont de Créteil, Saint-Maur-des-Fossés",
+    pk: 38500,
+    lat: 48.80963889, lon: 2.47269444,
+    nearestStation: "Saint-Maur – Créteil"
+  },
+  {
+    name: "Accès Rue du Pont de Créteil",
+    address: "Rue du Pont de Créteil, Saint-Maur-des-Fossés",
+    pk: 38500,
+    lat: 48.81022222, lon: 2.46922222,
+    nearestStation: "Saint-Maur – Créteil"
+  },
+  {
+    name: "Accès Avenue Pierre Semard (La Varenne)",
+    address: "Avenue Pierre Semard, 94210 Saint-Maur-des-Fossés",
+    pk: 40000,
+    lat: 48.79469444, lon: 2.51325,
+    nearestStation: "La Varenne – Chennevières"
+  },
+  {
+    name: "Accès Quai de la Pie",
+    address: "Quai de la Pie, 94100 Saint-Maur-des-Fossés",
+    pk: 40000,
+    lat: 48.79641667, lon: 2.51172222,
+    nearestStation: "La Varenne – Chennevières"
+  },
+  {
+    name: "Accès Avenue du Bac",
+    address: "Avenue du Bac, 94210 Saint-Maur-des-Fossés",
+    pk: 40000,
+    lat: 48.79344444, lon: 2.5145,
+    nearestStation: "La Varenne – Chennevières"
+  },
+  {
+    name: "Accès Avenue de Boissy (Sucy)",
+    address: "Avenue de Boissy, 94370 Sucy-en-Brie",
+    pk: 41500,
+    lat: 48.77144444, lon: 2.50833333,
+    nearestStation: "Sucy – Bonneuil"
+  },
+  {
+    name: "Accès par le Parking Parc de Sucy",
+    address: "Parking du Parc de Sucy, 94370 Sucy-en-Brie",
+    pk: 41500,
+    lat: 48.7705, lon: 2.50683333,
+    nearestStation: "Sucy – Bonneuil"
+  },
+  {
+    name: "Accès Avenue Georges Pompidou",
+    address: "Avenue Georges Pompidou, 94370 Sucy-en-Brie",
+    pk: 41500,
+    lat: 48.77002778, lon: 2.50911111,
+    nearestStation: "Sucy – Bonneuil"
+  },
+  {
+    name: "Accès Avenue du Général Leclerc (Boissy)",
+    address: "Avenue du Général Leclerc, 94470 Boissy-Saint-Léger",
+    pk: 43000,
+    lat: 48.75311111, lon: 2.51133333,
+    nearestStation: "Boissy-Saint-Léger"
+  },
+  {
+    name: "Accès Rue du Temple",
+    address: "Rue du Temple, 94470 Boissy-Saint-Léger",
+    pk: 43000,
+    lat: 48.75405556, lon: 2.50375,
+    nearestStation: "Boissy-Saint-Léger"
+  },
+  {
+    name: "Accès Avenue Charles de Gaulle",
+    address: "Avenue Charles de Gaulle, 94470 Boissy-Saint-Léger",
+    pk: 43000,
+    lat: 48.7555, lon: 2.50680556,
+    nearestStation: "Boissy-Saint-Léger"
+  },
+  {
+    name: "Accès Avenue de Grosbois",
+    address: "Avenue de Grosbois, 94470 Boissy-Saint-Léger",
+    pk: 43000,
+    lat: 48.75194444, lon: 2.50091667,
+    nearestStation: "Boissy-Saint-Léger"
+  },
+  {
+    name: "A proximité du 1 Rue de Bellevue, Boissy-Saint-Léger",
+    address: "A proximité du 1 Rue de Bellevue, 94470 Boissy-Saint-Léger",
+    pk: 43000,
+    lat: 48.749, lon: 2.50166667,
+    nearestStation: "Boissy-Saint-Léger"
+  }
+];
+
 
   // Ligne courante utilisée pour la projection (tronc + branche selon où tu es)
   let currentBranch = "chessy";
@@ -1091,14 +1325,29 @@ function updatePkEstimateInSettings() {
   }
 
   function openPkLookupInMaps() {
-    if (!lastPkLookupAccess) {
-      alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
-      return;
-    }
-    const url = "https://maps.google.com/?q=" +
-      lastPkLookupAccess.lat + "," + lastPkLookupAccess.lon;
-    window.open(url, "_blank");
+  if (!lastPkLookupAccess) {
+    alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
+    return;
   }
+
+  let url;
+  // Si on a des coordonnées GPS précises → on ouvre directement à cet endroit
+  if (
+    lastPkLookupAccess.lat != null &&
+    lastPkLookupAccess.lon != null
+  ) {
+    url = "https://maps.google.com/?q=" +
+      lastPkLookupAccess.lat + "," + lastPkLookupAccess.lon;
+  } else {
+    // Sinon on ouvre une recherche sur l’adresse / le nom
+    const query = lastPkLookupAccess.address || lastPkLookupAccess.name;
+    url = "https://www.google.com/maps/search/?api=1&query=" +
+      encodeURIComponent(query);
+  }
+
+  window.open(url, "_blank");
+}
+
 
   selectIncidentType.addEventListener("change", () => {
     if (selectIncidentType.value === "Autre") {
