@@ -11,7 +11,6 @@
     --border-soft: rgba(255,255,255,0.12);
     --accent: #b84cff;
     --accent-dark: #4500a8;
-    --accent-soft: #5c2bba;
     --text-main: #f5f5f7;
     --text-soft: #d0cfe6;
     --warn: #ffb84d;
@@ -45,7 +44,7 @@
   }
 
   .title-main {
-    font-size: 1.9rem;
+    font-size: 2rem;
     font-weight: 700;
     letter-spacing: 0.06em;
   }
@@ -57,7 +56,7 @@
   }
 
   .subtitle {
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     color: var(--text-soft);
     margin-top: 4px;
   }
@@ -65,7 +64,7 @@
   .note {
     font-size: 0.8rem;
     color: var(--warn);
-    margin-top: 4px;
+    margin-top: 3px;
   }
 
   main {
@@ -194,15 +193,6 @@
     color: var(--warn);
   }
 
-  .danger-text {
-    color: var(--danger);
-  }
-
-  .settings-toggle {
-    margin-top: 6px;
-    text-align: center;
-  }
-
   .settings-panel {
     background-color: rgba(10,0,30,0.98);
     border-radius: 16px;
@@ -248,7 +238,7 @@
       <div class="title-sub">RER A</div>
     </div>
     <div class="subtitle">Estimation du PK en temps réel à partir de la géolocalisation.</div>
-    <div class="note">Prototype perso – précision typique ±100–200 m, à recaler avec une borne PK réelle.</div>
+    <div class="note">Différence typique : de l’ordre de 100 à 200 m, à recaler avec une borne PK.</div>
   </div>
 
   <main>
@@ -261,7 +251,6 @@
       <p id="gpsStatus" class="small">Position non encore reçue.</p>
       <div class="row">
         <button id="btnToggleGps">Démarrer la géoloc</button>
-        <button class="secondary" id="btnSettingsToggle">⚙️ Paramètres</button>
       </div>
     </div>
 
@@ -316,7 +305,7 @@
       </p>
     </div>
 
-    <!-- ACCÈS LES PLUS PROCHES (BASÉ SUR PK) -->
+    <!-- ACCÈS LES PLUS PROCHES -->
     <div class="card">
       <h2>Accès / gares les plus proches (en PK)</h2>
       <p class="small">Top 3 calculé à partir de ton PK estimé.</p>
@@ -331,6 +320,11 @@
       <p class="small">Prépare un message avec PK, gare la plus proche et lien Maps, prêt à coller dans SMS / WhatsApp.</p>
       <button id="btnEmergency" class="danger">✉️ Préparer le message d’urgence</button>
       <p id="emergencyPreview" class="small" style="margin-top:6px;"></p>
+    </div>
+
+    <!-- BOUTON PARAMÈTRES -->
+    <div class="card" style="text-align:center;">
+      <button id="btnSettingsToggle" class="secondary">⚙️ Paramètres</button>
     </div>
 
     <!-- PANEL PARAMÈTRES -->
@@ -459,7 +453,6 @@ const brancheChessy = [
   { name: "Marne-la-Vallée – Chessy",     lat: 48.87072, lon: 2.78263, pk: 59000 }
 ];
 
-// "Accès" : pour l’instant, on se base sur les gares elles-mêmes (PK)
 const accessPoints = [
   ...troncCommun,
   ...brancheBoissy,
@@ -468,6 +461,7 @@ const accessPoints = [
 
 // ========================= OUTILS GÉO / PK ===========================
 const R_EARTH = 6371000;
+
 function distanceMeters(lat1, lon1, lat2, lon2) {
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -477,7 +471,6 @@ function distanceMeters(lat1, lon1, lat2, lon2) {
   return R_EARTH * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// approx XY en mètres pour projeter sur la ligne
 function toXY(lat, lon, lat0) {
   const rad = Math.PI / 180;
   const mPerDegLat = 111320;
@@ -488,14 +481,12 @@ function toXY(lat, lon, lat0) {
   };
 }
 
-// détection branche
 function detectBranch(lat, lon) {
   const dBoissy = distanceMeters(lat, lon, brancheBoissy[0].lat, brancheBoissy[0].lon);
   const dChessy = distanceMeters(lat, lon, brancheChessy[0].lat, brancheChessy[0].lon);
   return dBoissy < dChessy ? "Boissy" : "Chessy";
 }
 
-// projection sur la polyligne pour PK continu
 function projectToLine(lat, lon, line) {
   if (line.length < 2) return { pk: line[0].pk, dist: 0 };
   const lat0 = line[0].lat;
@@ -552,7 +543,7 @@ let lastTime = null;
 let movementSensitivity = "normal";
 let pkTarget = null;
 
-// ========================= GÉOLOCALISATION ===========================
+// ========================= RÉFÉRENCES DOM ===========================
 const gpsBadgeEl = document.getElementById("gpsBadge");
 const gpsStatusEl = document.getElementById("gpsStatus");
 const pkDisplayEl = document.getElementById("pkDisplay");
@@ -564,7 +555,10 @@ const movementInfoEl = document.getElementById("movementInfo");
 const accessListEl = document.getElementById("accessList");
 const emergencyPreviewEl = document.getElementById("emergencyPreview");
 const btnToggleGps = document.getElementById("btnToggleGps");
+const settingsPanelEl = document.getElementById("settingsPanel");
+const btnSettingsToggle = document.getElementById("btnSettingsToggle");
 
+// ========================= GÉOLOCALISATION ===========================
 function updateGpsBadge(active) {
   if (active) {
     gpsBadgeEl.textContent = "GPS actif";
@@ -607,11 +601,10 @@ btnToggleGps.addEventListener("click", () => {
   else stopGeolocWatch();
 });
 
-// seuils de vitesse (m/s) pour mouvement
 function getSpeedThreshold() {
   switch (movementSensitivity) {
-    case "low": return 0.2;     // très sensible
-    case "high": return 1.0;    // mouvement franc
+    case "low": return 0.2;
+    case "high": return 1.0;
     case "normal":
     default: return 0.5;
   }
@@ -625,7 +618,6 @@ function handlePosition(pos) {
 
   gpsStatusEl.textContent = `✅ GPS actif (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
 
-  // branche
   currentBranch = detectBranch(lat, lon);
   branchNameEl.textContent = currentBranch;
 
@@ -633,29 +625,19 @@ function handlePosition(pos) {
     currentBranch === "Boissy" ? brancheBoissy : brancheChessy
   );
 
-  // projection pour PK continu
   const proj = projectToLine(lat, lon, line);
   currentRawPk = proj.pk;
   const adjPk = currentRawPk + pkOffset;
 
-  // PK affiché + phrase
   pkDisplayEl.textContent = `${Math.round(adjPk)} m`;
   pkPhraseEl.textContent = `PK ${Math.round(adjPk)} m`;
 
-  // gare la plus proche
   const nearest = nearestStationForLine(lat, lon, line);
   nearestStationEl.textContent = nearest.station.name;
 
-  // prochaine gare selon sens
-  updateMovementAndNextStation(adjPk, line, nearest.station);
-
-  // accès les plus proches
+  updateMovementAndNextStation(adjPk, line);
   updateAccessList(adjPk);
-
-  // PK cible
   updatePkTargetDelta(adjPk);
-
-  // mettre à jour panneau de recalage si ouvert
   updateRecalPanel();
 }
 
@@ -665,7 +647,7 @@ function handleError(err) {
 }
 
 // ========================= MOUVEMENT / SENS ===========================
-function updateMovementAndNextStation(adjPk, line, nearestStation) {
+function updateMovementAndNextStation(adjPk, line) {
   const now = Date.now();
   if (lastAdjPk === null || lastTime === null) {
     movementInfoEl.textContent = "En attente d’un deuxième point…";
@@ -676,7 +658,7 @@ function updateMovementAndNextStation(adjPk, line, nearestStation) {
     const threshold = getSpeedThreshold();
 
     if (dt > 2 && speed > threshold) {
-      const directionForward = dPk > 0; // PK augmente
+      const directionForward = dPk > 0;
       const kmh = speed * 3.6;
       const sensTexte =
         (currentBranch === "Boissy"
@@ -697,10 +679,8 @@ function updateMovementAndNextStation(adjPk, line, nearestStation) {
 }
 
 function updateNextStation(adjPk, line, directionForward) {
-  // trouver station suivante selon PK
   let next = null;
   if (directionForward === null) {
-    // sans direction : choisir la station après le PK moyen
     for (let i = 0; i < line.length; i++) {
       if (line[i].pk >= adjPk) { next = line[i]; break; }
     }
@@ -784,9 +764,8 @@ function updatePkTargetDelta(adjPk) {
   pkTargetDeltaEl.textContent = `${sign}${Math.abs(Math.round(diff))} m`;
 }
 
-// ========================= PANEL PARAMÈTRES ===========================
-const settingsPanelEl = document.getElementById("settingsPanel");
-document.getElementById("btnSettingsToggle").addEventListener("click", () => {
+// ========================= PARAMÈTRES ===========================
+btnSettingsToggle.addEventListener("click", () => {
   settingsPanelEl.classList.toggle("hidden");
 });
 
@@ -808,7 +787,6 @@ const btnResetOffsetEl = document.getElementById("btnResetOffset");
 const inputPkLookupEl = document.getElementById("inputPkLookup");
 const btnPkLookupEl = document.getElementById("btnPkLookup");
 const pkLookupResultEl = document.getElementById("pkLookupResult");
-const pkLookupResultFieldEl = document.getElementById("pkLookupResultField");
 const selectIncidentTypeEl = document.getElementById("selectIncidentType");
 const incidentOtherFieldEl = document.getElementById("incidentOtherField");
 const inputIncidentOtherEl = document.getElementById("inputIncidentOther");
@@ -911,7 +889,7 @@ btnPkLookupEl.addEventListener("click", () => {
   } else {
     const sign = best.pk >= val ? "+" : "–";
     pkLookupResultEl.textContent =
-      `${best.name} (PK ${best.pk} m, ${sign}${Math.round(Math.abs(best.pk - val))} m de l’accès)`;
+      `${best.name} (PK ${best.pk} m, ${sign}${Math.round(Math.abs(best.pk - val))} m)`;
   }
 });
 
