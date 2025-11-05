@@ -318,6 +318,15 @@
       </div>
     </div>
 
+        <!-- PK ACTUEL -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">PK actuel</div>
+      </div>
+      <div id="pkCurrentValue" class="big-value">—</div>
+      <div id="pkCurrentDetails" class="big-sub">En attente de position GPS…</div>
+    </div>
+
     <!-- GARE LA PLUS PROCHE -->
     <div class="card">
       <div class="card-header">
@@ -623,6 +632,10 @@
   const smsPreview = document.getElementById("smsPreview");
   const btnSms = document.getElementById("btnSms");
 
+  const pkCurrentValue = document.getElementById("pkCurrentValue");
+  const pkCurrentDetails = document.getElementById("pkCurrentDetails");
+
+
   const btnSettingsToggle = document.getElementById("btnSettingsToggle");
   const settingsPanel = document.getElementById("settingsPanel");
 
@@ -822,16 +835,35 @@
   function updatePkEstimateInSettings() {
     if (state.lastRawPk == null) {
       pkEstimateText.textContent = "En attente de position GPS…";
+      if (pkCurrentValue) pkCurrentValue.textContent = "—";
+      if (pkCurrentDetails) pkCurrentDetails.textContent = "En attente de position GPS…";
       return;
     }
+
     const corrected = state.lastRawPk + pkOffset;
-    const pkText = "PK " + formatPk(corrected) +
-      " (~" + Math.round(corrected) + " m depuis l’origine de la ligne)";
+    const pkMeters = Math.round(corrected);
+    const pkTextMain = "PK " + formatPk(corrected);
     const distText = state.lastDist != null
       ? " · ~ " + Math.round(state.lastDist) + " m de la voie (projection)."
       : "";
-    pkEstimateText.textContent = pkText + distText;
+
+    // Texte dans les paramètres
+    pkEstimateText.textContent =
+      pkTextMain + " (~" + pkMeters + " m depuis l’origine de la ligne)" + distText;
+
+    // Carte "PK actuel" sur l’écran principal
+    if (pkCurrentValue) {
+      pkCurrentValue.textContent = pkTextMain;
+    }
+    if (pkCurrentDetails) {
+      let details = "≈ " + pkMeters + " m depuis l’origine de la ligne";
+      if (state.lastDist != null) {
+        details += " · ~" + Math.round(state.lastDist) + " m de la voie";
+      }
+      pkCurrentDetails.textContent = details;
+    }
   }
+
 
   let geolocActive = false;
 
