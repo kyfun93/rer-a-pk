@@ -318,7 +318,7 @@
       </div>
     </div>
 
-        <!-- PK ACTUEL -->
+    <!-- PK ACTUEL -->
     <div class="card">
       <div class="card-header">
         <div class="card-title">PK actuel</div>
@@ -455,6 +455,17 @@
         </button>
       </div>
 
+      <!-- AJOUT CALIBRAGE : bouton d’export -->
+      <div class="field">
+        <button id="btnExportCalibrations" class="btn btn-secondary btn-icon" type="button">
+          <span>📤</span><span>Exporter mes recalages (JSON)</span>
+        </button>
+        <div class="muted">
+          Exporte les recalages que tu as faits (PK exact + GPS) pour les déposer ensuite dans GitHub.
+        </div>
+      </div>
+      <!-- FIN AJOUT CALIBRAGE -->
+
       <div class="divider"></div>
 
       <!-- Recherche par PK -> accès -->
@@ -466,7 +477,7 @@
         </button>
       </div>
 
-            <div class="field" id="pkLookupResultField" style="display:none;">
+      <div class="field" id="pkLookupResultField" style="display:none;">
         <div id="pkLookupResult" class="muted"></div>
 
         <div class="field">
@@ -578,270 +589,270 @@
   const stations = troncCommun.concat(brancheBoissy, brancheChessy);
 
   // Pour les accès : un accès par gare pour l’instant
- const accessPoints = [
-  {
-    name: "Parking Leclerc Rue Michelet",
-    address: "Parking Leclerc, Rue Michelet, 94120 Fontenay-sous-Bois",
-    pk: 31500,
-    lat: 48.84958333, lon: 2.47111111,
-    nearestStation: "Fontenay-sous-Bois"
-  },
-  {
-    name: "Rampe de Fontenay / sortie du parking (Rue Michelet)",
-    address: "Rampe vers le RER depuis le parking, Rue Michelet, 94120 Fontenay-sous-Bois",
-    pk: 31500,
-    lat: 48.848, lon: 2.47222222,
-    nearestStation: "Fontenay-sous-Bois"
-  },
-  {
-    name: "Sortie côté Rue de Fontenay",
-    address: "Sortie piétonne côté Rue de Fontenay, 94120 Fontenay-sous-Bois",
-    pk: 31500,
-    lat: 48.84794444, lon: 2.47055556,
-    nearestStation: "Fontenay-sous-Bois"
-  },
-  {
-    name: "Accès côté Avenue de Neuilly",
-    address: "Avenue de Neuilly, 94120 Fontenay-sous-Bois",
-    pk: 31500,
-    lat: 48.84688889, lon: 2.47238889,
-    nearestStation: "Fontenay-sous-Bois"
-  },
-  {
-    name: "Accès piéton au niveau de l’Avenue du Maréchal de Lattre de Tassigny",
-    address: "Avenue du Maréchal de Lattre de Tassigny, Fontenay-sous-Bois",
-    pk: 31500,
-    lat: 48.84880556, lon: 2.46844444,
-    nearestStation: "Fontenay-sous-Bois"
-  },
-  {
-    name: "Parking Place Moreau David",
-    address: "Parking Place Moreau David, 94300 Vincennes",
-    pk: 30000,
-    lat: 48.84827778, lon: 2.43558333,
-    nearestStation: "Vincennes"
-  },
-  {
-    name: "Parking Rue Defrance",
-    address: "Parking Rue Defrance, 94300 Vincennes",
-    pk: 30000,
-    lat: 48.84680556, lon: 2.44075,
-    nearestStation: "Vincennes"
-  },
-  {
-    name: "Accès par le 28 Boulevard de la Libération",
-    address: "28 Boulevard de la Libération, 94300 Vincennes",
-    pk: 30000,
-    lat: 48.84751861, lon: 2.43810056,
-    nearestStation: "Vincennes"
-  },
-  {
-    name: "Accès Avenue de Paris (Vincennes)",
-    address: "Avenue de Paris, 94300 Vincennes",
-    pk: 30000,
-    lat: 48.84825, lon: 2.43327778,
-    nearestStation: "Vincennes"
-  },
-  {
-    name: "Parking Indigo Rue de la Jarry",
-    address: "Parking Indigo, Rue de la Jarry, 94300 Vincennes",
-    pk: 30000,
-    lat: 48.84580556, lon: 2.43711111,
-    nearestStation: "Vincennes"
-  },
-  {
-    name: "Accès côté Avenue de Paris (Joinville)",
-    address: "Avenue de Paris, 94340 Joinville-le-Pont",
-    pk: 37000,
-    lat: 48.82255556, lon: 2.46527778,
-    nearestStation: "Joinville-le-Pont"
-  },
-  {
-    name: "Accès côté Quai Gabriel Péri",
-    address: "Quai Gabriel Péri, 94340 Joinville-le-Pont",
-    pk: 37000,
-    lat: 48.82022222, lon: 2.4635,
-    nearestStation: "Joinville-le-Pont"
-  },
-  {
-    name: "Accès Rue de la Station (Joinville)",
-    address: "Rue de la Station, 94340 Joinville-le-Pont",
-    pk: 37000,
-    lat: 48.82125, lon: 2.46247222,
-    nearestStation: "Joinville-le-Pont"
-  },
-  {
-    name: "Accès Quai du Barrage",
-    address: "Quai du Barrage, 94340 Joinville-le-Pont",
-    pk: 37000,
-    lat: 48.81955556, lon: 2.46630556,
-    nearestStation: "Joinville-le-Pont"
-  },
-  {
-    name: "Accès Rue de Paris (Nogent)",
-    address: "Rue de Paris, 94130 Nogent-sur-Marne",
-    pk: 35500,
-    lat: 48.83405556, lon: 2.47230556,
-    nearestStation: "Nogent-sur-Marne"
-  },
-  {
-    name: "Accès Quai de la Marne (Nogent)",
-    address: "Quai de la Marne, 94130 Nogent-sur-Marne",
-    pk: 35500,
-    lat: 48.83641667, lon: 2.47438889,
-    nearestStation: "Nogent-sur-Marne"
-  },
-  {
-    name: "Accès Rue du Port",
-    address: "Rue du Port, 94130 Nogent-sur-Marne",
-    pk: 35500,
-    lat: 48.83530556, lon: 2.46988889,
-    nearestStation: "Nogent-sur-Marne"
-  },
-  {
-    name: "Accès Rue Hoche",
-    address: "Rue Hoche, 94130 Nogent-sur-Marne",
-    pk: 35500,
-    lat: 48.83366667, lon: 2.47333333,
-    nearestStation: "Nogent-sur-Marne"
-  },
-  {
-    name: "Accès Pont de Nogent (quai de la Marne)",
-    address: "Pont de Nogent, quai de la Marne",
-    pk: 35500,
-    lat: 48.83722222, lon: 2.47433333,
-    nearestStation: "Nogent-sur-Marne"
-  },
-  {
-    name: "Accès Avenue du Général Leclerc (Saint-Maur – Créteil)",
-    address: "Avenue du Général Leclerc, 94100 Saint-Maur-des-Fossés",
-    pk: 38500,
-    lat: 48.80872222, lon: 2.47177778,
-    nearestStation: "Saint-Maur – Créteil"
-  },
-  {
-    name: "Accès Avenue de Rigny",
-    address: "Avenue de Rigny, 94100 Saint-Maur-des-Fossés",
-    pk: 38500,
-    lat: 48.80766667, lon: 2.46894444,
-    nearestStation: "Saint-Maur – Créteil"
-  },
-  {
-    name: "Accès Pont de Créteil",
-    address: "Pont de Créteil, Saint-Maur-des-Fossés",
-    pk: 38500,
-    lat: 48.80963889, lon: 2.47269444,
-    nearestStation: "Saint-Maur – Créteil"
-  },
-  {
-    name: "Accès Rue du Pont de Créteil",
-    address: "Rue du Pont de Créteil, Saint-Maur-des-Fossés",
-    pk: 38500,
-    lat: 48.81022222, lon: 2.46922222,
-    nearestStation: "Saint-Maur – Créteil"
-  },
-  {
-    name: "Accès Avenue Pierre Semard (La Varenne)",
-    address: "Avenue Pierre Semard, 94210 Saint-Maur-des-Fossés",
-    pk: 40000,
-    lat: 48.79469444, lon: 2.51325,
-    nearestStation: "La Varenne – Chennevières"
-  },
-  {
-    name: "Accès Quai de la Pie",
-    address: "Quai de la Pie, 94100 Saint-Maur-des-Fossés",
-    pk: 40000,
-    lat: 48.79641667, lon: 2.51172222,
-    nearestStation: "La Varenne – Chennevières"
-  },
-  {
-    name: "Accès Avenue du Bac",
-    address: "Avenue du Bac, 94210 Saint-Maur-des-Fossés",
-    pk: 40000,
-    lat: 48.79344444, lon: 2.5145,
-    nearestStation: "La Varenne – Chennevières"
-  },
-  {
-    name: "Accès Avenue de Boissy (Sucy)",
-    address: "Avenue de Boissy, 94370 Sucy-en-Brie",
-    pk: 41500,
-    lat: 48.77144444, lon: 2.50833333,
-    nearestStation: "Sucy – Bonneuil"
-  },
-  {
-    name: "Accès par le Parking Parc de Sucy",
-    address: "Parking du Parc de Sucy, 94370 Sucy-en-Brie",
-    pk: 41500,
-    lat: 48.7705, lon: 2.50683333,
-    nearestStation: "Sucy – Bonneuil"
-  },
-  {
-    name: "Accès Avenue Georges Pompidou",
-    address: "Avenue Georges Pompidou, 94370 Sucy-en-Brie",
-    pk: 41500,
-    lat: 48.77002778, lon: 2.50911111,
-    nearestStation: "Sucy – Bonneuil"
-  },
-  {
-    name: "Accès Avenue du Général Leclerc (Boissy)",
-    address: "Avenue du Général Leclerc, 94470 Boissy-Saint-Léger",
-    pk: 43000,
-    lat: 48.75311111, lon: 2.51133333,
-    nearestStation: "Boissy-Saint-Léger"
-  },
-  {
-    name: "Accès Rue du Temple",
-    address: "Rue du Temple, 94470 Boissy-Saint-Léger",
-    pk: 43000,
-    lat: 48.75405556, lon: 2.50375,
-    nearestStation: "Boissy-Saint-Léger"
-  },
-  {
-    name: "Accès Avenue Charles de Gaulle",
-    address: "Avenue Charles de Gaulle, 94470 Boissy-Saint-Léger",
-    pk: 43000,
-    lat: 48.7555, lon: 2.50680556,
-    nearestStation: "Boissy-Saint-Léger"
-  },
-  {
-    name: "Accès Avenue de Grosbois",
-    address: "Avenue de Grosbois, 94470 Boissy-Saint-Léger",
-    pk: 43000,
-    lat: 48.75194444, lon: 2.50091667,
-    nearestStation: "Boissy-Saint-Léger"
-  },
-  {
-    name: "A proximité du 1 Rue de Bellevue, Boissy-Saint-Léger",
-    address: "A proximité du 1 Rue de Bellevue, 94470 Boissy-Saint-Léger",
-    pk: 43000,
-    lat: 48.749, lon: 2.50166667,
-    nearestStation: "Boissy-Saint-Léger"
-  }
-];
+  const accessPoints = [
+    {
+      name: "Parking Leclerc Rue Michelet",
+      address: "Parking Leclerc, Rue Michelet, 94120 Fontenay-sous-Bois",
+      pk: 31500,
+      lat: 48.84958333, lon: 2.47111111,
+      nearestStation: "Fontenay-sous-Bois"
+    },
+    {
+      name: "Rampe de Fontenay / sortie du parking (Rue Michelet)",
+      address: "Rampe vers le RER depuis le parking, Rue Michelet, 94120 Fontenay-sous-Bois",
+      pk: 31500,
+      lat: 48.848, lon: 2.47222222,
+      nearestStation: "Fontenay-sous-Bois"
+    },
+    {
+      name: "Sortie côté Rue de Fontenay",
+      address: "Sortie piétonne côté Rue de Fontenay, 94120 Fontenay-sous-Bois",
+      pk: 31500,
+      lat: 48.84794444, lon: 2.47055556,
+      nearestStation: "Fontenay-sous-Bois"
+    },
+    {
+      name: "Accès côté Avenue de Neuilly",
+      address: "Avenue de Neuilly, 94120 Fontenay-sous-Bois",
+      pk: 31500,
+      lat: 48.84688889, lon: 2.47238889,
+      nearestStation: "Fontenay-sous-Bois"
+    },
+    {
+      name: "Accès piéton au niveau de l’Avenue du Maréchal de Lattre de Tassigny",
+      address: "Avenue du Maréchal de Lattre de Tassigny, Fontenay-sous-Bois",
+      pk: 31500,
+      lat: 48.84880556, lon: 2.46844444,
+      nearestStation: "Fontenay-sous-Bois"
+    },
+    {
+      name: "Parking Place Moreau David",
+      address: "Parking Place Moreau David, 94300 Vincennes",
+      pk: 30000,
+      lat: 48.84827778, lon: 2.43558333,
+      nearestStation: "Vincennes"
+    },
+    {
+      name: "Parking Rue Defrance",
+      address: "Parking Rue Defrance, 94300 Vincennes",
+      pk: 30000,
+      lat: 48.84680556, lon: 2.44075,
+      nearestStation: "Vincennes"
+    },
+    {
+      name: "Accès par le 28 Boulevard de la Libération",
+      address: "28 Boulevard de la Libération, 94300 Vincennes",
+      pk: 30000,
+      lat: 48.84751861, lon: 2.43810056,
+      nearestStation: "Vincennes"
+    },
+    {
+      name: "Accès Avenue de Paris (Vincennes)",
+      address: "Avenue de Paris, 94300 Vincennes",
+      pk: 30000,
+      lat: 48.84825, lon: 2.43327778,
+      nearestStation: "Vincennes"
+    },
+    {
+      name: "Parking Indigo Rue de la Jarry",
+      address: "Parking Indigo, Rue de la Jarry, 94300 Vincennes",
+      pk: 30000,
+      lat: 48.84580556, lon: 2.43711111,
+      nearestStation: "Vincennes"
+    },
+    {
+      name: "Accès côté Avenue de Paris (Joinville)",
+      address: "Avenue de Paris, 94340 Joinville-le-Pont",
+      pk: 37000,
+      lat: 48.82255556, lon: 2.46527778,
+      nearestStation: "Joinville-le-Pont"
+    },
+    {
+      name: "Accès côté Quai Gabriel Péri",
+      address: "Quai Gabriel Péri, 94340 Joinville-le-Pont",
+      pk: 37000,
+      lat: 48.82022222, lon: 2.4635,
+      nearestStation: "Joinville-le-Pont"
+    },
+    {
+      name: "Accès Rue de la Station (Joinville)",
+      address: "Rue de la Station, 94340 Joinville-le-Pont",
+      pk: 37000,
+      lat: 48.82125, lon: 2.46247222,
+      nearestStation: "Joinville-le-Pont"
+    },
+    {
+      name: "Accès Quai du Barrage",
+      address: "Quai du Barrage, 94340 Joinville-le-Pont",
+      pk: 37000,
+      lat: 48.81955556, lon: 2.46630556,
+      nearestStation: "Joinville-le-Pont"
+    },
+    {
+      name: "Accès Rue de Paris (Nogent)",
+      address: "Rue de Paris, 94130 Nogent-sur-Marne",
+      pk: 35500,
+      lat: 48.83405556, lon: 2.47230556,
+      nearestStation: "Nogent-sur-Marne"
+    },
+    {
+      name: "Accès Quai de la Marne (Nogent)",
+      address: "Quai de la Marne, 94130 Nogent-sur-Marne",
+      pk: 35500,
+      lat: 48.83641667, lon: 2.47438889,
+      nearestStation: "Nogent-sur-Marne"
+    },
+    {
+      name: "Accès Rue du Port",
+      address: "Rue du Port, 94130 Nogent-sur-Marne",
+      pk: 35500,
+      lat: 48.83530556, lon: 2.46988889,
+      nearestStation: "Nogent-sur-Marne"
+    },
+    {
+      name: "Accès Rue Hoche",
+      address: "Rue Hoche, 94130 Nogent-sur-Marne",
+      pk: 35500,
+      lat: 48.83366667, lon: 2.47333333,
+      nearestStation: "Nogent-sur-Marne"
+    },
+    {
+      name: "Accès Pont de Nogent (quai de la Marne)",
+      address: "Pont de Nogent, quai de la Marne",
+      pk: 35500,
+      lat: 48.83722222, lon: 2.47433333,
+      nearestStation: "Nogent-sur-Marne"
+    },
+    {
+      name: "Accès Avenue du Général Leclerc (Saint-Maur – Créteil)",
+      address: "Avenue du Général Leclerc, 94100 Saint-Maur-des-Fossés",
+      pk: 38500,
+      lat: 48.80872222, lon: 2.47177778,
+      nearestStation: "Saint-Maur – Créteil"
+    },
+    {
+      name: "Accès Avenue de Rigny",
+      address: "Avenue de Rigny, 94100 Saint-Maur-des-Fossés",
+      pk: 38500,
+      lat: 48.80766667, lon: 2.46894444,
+      nearestStation: "Saint-Maur – Créteil"
+    },
+    {
+      name: "Accès Pont de Créteil",
+      address: "Pont de Créteil, Saint-Maur-des-Fossés",
+      pk: 38500,
+      lat: 48.80963889, lon: 2.47269444,
+      nearestStation: "Saint-Maur – Créteil"
+    },
+    {
+      name: "Accès Rue du Pont de Créteil",
+      address: "Rue du Pont de Créteil, Saint-Maur-des-Fossés",
+      pk: 38500,
+      lat: 48.81022222, lon: 2.46922222,
+      nearestStation: "Saint-Maur – Créteil"
+    },
+    {
+      name: "Accès Avenue Pierre Semard (La Varenne)",
+      address: "Avenue Pierre Semard, 94210 Saint-Maur-des-Fossés",
+      pk: 40000,
+      lat: 48.79469444, lon: 2.51325,
+      nearestStation: "La Varenne – Chennevières"
+    },
+    {
+      name: "Accès Quai de la Pie",
+      address: "Quai de la Pie, 94100 Saint-Maur-des-Fossés",
+      pk: 40000,
+      lat: 48.79641667, lon: 2.51172222,
+      nearestStation: "La Varenne – Chennevières"
+    },
+    {
+      name: "Accès Avenue du Bac",
+      address: "Avenue du Bac, 94210 Saint-Maur-des-Fossés",
+      pk: 40000,
+      lat: 48.79344444, lon: 2.5145,
+      nearestStation: "La Varenne – Chennevières"
+    },
+    {
+      name: "Accès Avenue de Boissy (Sucy)",
+      address: "Avenue de Boissy, 94370 Sucy-en-Brie",
+      pk: 41500,
+      lat: 48.77144444, lon: 2.50833333,
+      nearestStation: "Sucy – Bonneuil"
+    },
+    {
+      name: "Accès par le Parking Parc de Sucy",
+      address: "Parking du Parc de Sucy, 94370 Sucy-en-Brie",
+      pk: 41500,
+      lat: 48.7705, lon: 2.50683333,
+      nearestStation: "Sucy – Bonneuil"
+    },
+    {
+      name: "Accès Avenue Georges Pompidou",
+      address: "Avenue Georges Pompidou, 94370 Sucy-en-Brie",
+      pk: 41500,
+      lat: 48.77002778, lon: 2.50911111,
+      nearestStation: "Sucy – Bonneuil"
+    },
+    {
+      name: "Accès Avenue du Général Leclerc (Boissy)",
+      address: "Avenue du Général Leclerc, 94470 Boissy-Saint-Léger",
+      pk: 43000,
+      lat: 48.75311111, lon: 2.51133333,
+      nearestStation: "Boissy-Saint-Léger"
+    },
+    {
+      name: "Accès Rue du Temple",
+      address: "Rue du Temple, 94470 Boissy-Saint-Léger",
+      pk: 43000,
+      lat: 48.75405556, lon: 2.50375,
+      nearestStation: "Boissy-Saint-Léger"
+    },
+    {
+      name: "Accès Avenue Charles de Gaulle",
+      address: "Avenue Charles de Gaulle, 94470 Boissy-Saint-Léger",
+      pk: 43000,
+      lat: 48.7555, lon: 2.50680556,
+      nearestStation: "Boissy-Saint-Léger"
+    },
+    {
+      name: "Accès Avenue de Grosbois",
+      address: "Avenue de Grosbois, 94470 Boissy-Saint-Léger",
+      pk: 43000,
+      lat: 48.75194444, lon: 2.50091667,
+      nearestStation: "Boissy-Saint-Léger"
+    },
+    {
+      name: "A proximité du 1 Rue de Bellevue, Boissy-Saint-Léger",
+      address: "A proximité du 1 Rue de Bellevue, 94470 Boissy-Saint-Léger",
+      pk: 43000,
+      lat: 48.749, lon: 2.50166667,
+      nearestStation: "Boissy-Saint-Léger"
+    }
+  ];
 
   // On ajoute automatiquement chaque gare comme un "accès" supplémentaire
-for (const st of stations) {
-  accessPoints.push({
-    name: "Gare de " + st.name,
-    // Si tu veux mettre une adresse plus précise, tu pourras les affiner à partir de ta liste PDF
-    address: "Gare RER A " + st.name,
-    pk: st.pk,
-    lat: st.lat,
-    lon: st.lon,
-    nearestStation: st.name
-  });
-}
-
-    // Attribue une branche à chaque accès : "boissy", "chessy" ou "both" (tronc commun)
-for (const acc of accessPoints) {
-  if (acc.pk <= 34000) {
-    // Avant Val de Fontenay : tronc commun → visible des deux côtés
-    acc.branch = "both";
-  } else {
-    // Après la bifurcation : on classe selon la position GPS de l'accès
-    acc.branch = detectBranch(acc.lat, acc.lon); // "boissy" ou "chessy"
+  for (const st of stations) {
+    accessPoints.push({
+      name: "Gare de " + st.name,
+      // Adresse à affiner plus tard à partir de ton fichier complet
+      address: "Gare RER A " + st.name,
+      pk: st.pk,
+      lat: st.lat,
+      lon: st.lon,
+      nearestStation: st.name
+    });
   }
-}
+
+  // Attribue une branche à chaque accès : "boissy", "chessy" ou "both" (tronc commun)
+  for (const acc of accessPoints) {
+    if (acc.pk <= 34000) {
+      // Avant Val de Fontenay : tronc commun → visible des deux côtés
+      acc.branch = "both";
+    } else {
+      // Après la bifurcation : on classe selon la position GPS de l'accès
+      acc.branch = detectBranch(acc.lat, acc.lon); // "boissy" ou "chessy"
+    }
+  }
 
   // Ligne courante utilisée pour la projection (tronc + branche selon où tu es)
   let currentBranch = "chessy";
@@ -861,6 +872,7 @@ for (const acc of accessPoints) {
     lastLat: null,
     lastLon: null,
     lastDist: null,
+    lastAccuracy: null, // AJOUT CALIBRAGE : précision GPS
     direction: null,
     nearestStation: null,
     nearestAccess: null
@@ -871,6 +883,74 @@ for (const acc of accessPoints) {
   let motionSensitivity = "normal";
   let pkTarget = null;
   let lastPkLookupAccess = null;
+
+  // === AJOUT CALIBRAGE : stockage des recalages locaux + fichier partagé ===
+  const LOCAL_CAL_KEY = "pkCalibrations";
+  let localCalibrations = [];
+  let sharedCalibrations = [];
+
+  function loadLocalCalibrations() {
+    const raw = safeGetItem(LOCAL_CAL_KEY);
+    if (!raw) {
+      localCalibrations = [];
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      localCalibrations = Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      console.warn("Erreur de parsing pkCalibrations :", e);
+      localCalibrations = [];
+    }
+  }
+
+  function saveLocalCalibrations() {
+    try {
+      safeSetItem(LOCAL_CAL_KEY, JSON.stringify(localCalibrations));
+    } catch (e) {
+      console.warn("Erreur lors de la sauvegarde pkCalibrations :", e);
+    }
+  }
+
+  async function loadSharedCalibrations() {
+    try {
+      const resp = await fetch("data/calibrations.json", { cache: "no-store" });
+      if (!resp.ok) {
+        console.log("Aucun calibrage partagé (data/calibrations.json).");
+        return;
+      }
+      const data = await resp.json();
+      if (Array.isArray(data)) {
+        sharedCalibrations = data;
+        console.log("Calibrages partagés chargés :", sharedCalibrations.length);
+      }
+    } catch (e) {
+      console.log("Impossible de charger les calibrages partagés :", e);
+    }
+  }
+
+  function exportLocalCalibrationsForGitHub() {
+    if (!localCalibrations.length) {
+      alert("Tu n'as encore enregistré aucun recalage PK.");
+      return;
+    }
+
+    const dataStr = JSON.stringify(localCalibrations, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const now = new Date();
+    const stamp = now.toISOString().replace(/[:.]/g, "-");
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "pk-calibrations-local-" + stamp + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  // === FIN AJOUT CALIBRAGE ===
 
   const gpsStatusBadge = document.getElementById("gpsStatusBadge");
   const geolocText = document.getElementById("geolocText");
@@ -898,7 +978,6 @@ for (const acc of accessPoints) {
   const pkCurrentValue = document.getElementById("pkCurrentValue");
   const pkCurrentDetails = document.getElementById("pkCurrentDetails");
 
-
   const btnSettingsToggle = document.getElementById("btnSettingsToggle");
   const settingsPanel = document.getElementById("settingsPanel");
 
@@ -918,7 +997,6 @@ for (const acc of accessPoints) {
   const btnPkLookupOpenMaps = document.getElementById("btnPkLookupOpenMaps");
   const btnPkLookupOpenWaze = document.getElementById("btnPkLookupOpenWaze");
 
-
   const selectIncidentType = document.getElementById("selectIncidentType");
   const incidentOtherField = document.getElementById("incidentOtherField");
   const inputIncidentOther = document.getElementById("inputIncidentOther");
@@ -927,6 +1005,9 @@ for (const acc of accessPoints) {
   const incidentResultField = document.getElementById("incidentResultField");
   const incidentResultText = document.getElementById("incidentResultText");
   const btnCopyIncident = document.getElementById("btnCopyIncident");
+
+  // AJOUT CALIBRAGE : bouton d’export
+  const btnExportCalibrations = document.getElementById("btnExportCalibrations");
 
   function formatPk(pkMeters) {
     if (pkMeters == null || isNaN(pkMeters)) return "—";
@@ -1026,65 +1107,65 @@ for (const acc of accessPoints) {
     return best;
   }
 
-// Nearest access uniquement par PK (utilisé pour la recherche manuelle)
-function findNearestAccess(pk) {
-  if (pk == null) return null;
-  let best = null;
-  let bestDiff = Infinity;
-  for (const acc of accessPoints) {
-    if (acc.pk == null) continue;
-    const d = Math.abs(acc.pk - pk);
-    if (d < bestDiff) {
-      bestDiff = d;
-      best = acc;
+  // Nearest access uniquement par PK (utilisé pour la recherche manuelle)
+  function findNearestAccess(pk) {
+    if (pk == null) return null;
+    let best = null;
+    let bestDiff = Infinity;
+    for (const acc of accessPoints) {
+      if (acc.pk == null) continue;
+      const d = Math.abs(acc.pk - pk);
+      if (d < bestDiff) {
+        bestDiff = d;
+        best = acc;
+      }
     }
+    return best;
   }
-  return best;
-}
 
-// Nearest access par distance GPS (pour "autour de moi")
-function findNearestAccessGeo(lat, lon) {
-  if (lat == null || lon == null) return null;
-  let best = null;
-  let bestDist = Infinity;
-  for (const acc of accessPoints) {
-    if (acc.lat == null || acc.lon == null) continue;
-    const d = distanceMeters(lat, lon, acc.lat, acc.lon);
-    if (d < bestDist) {
-      bestDist = d;
-      best = acc;
+  // Nearest access par distance GPS (pour "autour de moi")
+  function findNearestAccessGeo(lat, lon) {
+    if (lat == null || lon == null) return null;
+    let best = null;
+    let bestDist = Infinity;
+    for (const acc of accessPoints) {
+      if (acc.lat == null || acc.lon == null) continue;
+      const d = distanceMeters(lat, lon, acc.lat, acc.lon);
+      if (d < bestDist) {
+        bestDist = d;
+        best = acc;
+      }
     }
-  }
-  return best;
-}
-
-// Top N accès par distance GPS (utilisé pour "Top 2 en PK")
-function getNearestAccessesGeo(lat, lon, pk, maxCount = 2) {
-  if (lat == null || lon == null) return [];
-
-  const list = [];
-
-  for (const acc of accessPoints) {
-    // 🔒 Filtre par branche :
-    // - "both" = tronc commun => toujours autorisé
-    // - sinon, on élimine les accès de la branche opposée
-    if (currentBranch === "boissy" && acc.branch === "chessy") continue;
-    if (currentBranch === "chessy" && acc.branch === "boissy") continue;
-
-    if (acc.lat == null || acc.lon == null) continue;
-
-    const dGeo = distanceMeters(lat, lon, acc.lat, acc.lon);
-    const dPk  = (pk != null && acc.pk != null) ? Math.abs(acc.pk - pk) : null;
-
-    list.push({ acc, dGeo, dPk });
+    return best;
   }
 
-  // Classement par distance GPS réelle
-  list.sort((a, b) => a.dGeo - b.dGeo);
+  // Top N accès par distance GPS (utilisé pour "Top 2 en PK")
+  function getNearestAccessesGeo(lat, lon, pk, maxCount = 2) {
+    if (lat == null || lon == null) return [];
 
-  // On ne garde que les N premiers (par défaut 2)
-  return list.slice(0, maxCount);
-}
+    const list = [];
+
+    for (const acc of accessPoints) {
+      // Filtre par branche :
+      // - "both" = tronc commun => toujours autorisé
+      // - sinon, on élimine les accès de la branche opposée
+      if (currentBranch === "boissy" && acc.branch === "chessy") continue;
+      if (currentBranch === "chessy" && acc.branch === "boissy") continue;
+
+      if (acc.lat == null || acc.lon == null) continue;
+
+      const dGeo = distanceMeters(lat, lon, acc.lat, acc.lon);
+      const dPk  = (pk != null && acc.pk != null) ? Math.abs(acc.pk - pk) : null;
+
+      list.push({ acc, dGeo, dPk });
+    }
+
+    // Classement par distance GPS réelle
+    list.sort((a, b) => a.dGeo - b.dGeo);
+
+    // On ne garde que les N premiers (par défaut 2)
+    return list.slice(0, maxCount);
+  }
 
   function findNextStation(pk, direction, branch) {
     if (pk == null) return null;
@@ -1116,22 +1197,22 @@ function getNearestAccessesGeo(lat, lon, pk, maxCount = 2) {
     return dBoissy < dChessy ? "boissy" : "chessy";
   }
 
-    function safeGetItem(key) {
-  try {
-    return localStorage.getItem(key);
-  } catch (e) {
-    console.warn("localStorage getItem bloqué pour", key, e);
-    return null;
+  function safeGetItem(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      console.warn("localStorage getItem bloqué pour", key, e);
+      return null;
+    }
   }
-}
 
-function safeSetItem(key, value) {
-  try {
-    localStorage.setItem(key, value);
-  } catch (e) {
-    console.warn("localStorage setItem bloqué pour", key, e);
+  function safeSetItem(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn("localStorage setItem bloqué pour", key, e);
+    }
   }
-}
 
   function loadSettings() {
     let storedOffset = parseFloat(safeGetItem("pkOffset"));
@@ -1146,7 +1227,7 @@ function safeSetItem(key, value) {
     inputSosPhone.value = sosPhone;
     selectSensitivity.value = motionSensitivity;
     updateOffsetInfo();
-}
+  }
 
   function updateOffsetInfo() {
     const val = Math.round(pkOffset);
@@ -1155,38 +1236,37 @@ function safeSetItem(key, value) {
   }
 
   function saveSettings() {
-  sosPhone = inputSosPhone.value.trim();
-  motionSensitivity = selectSensitivity.value;
+    sosPhone = inputSosPhone.value.trim();
+    motionSensitivity = selectSensitivity.value;
 
-  safeSetItem("sosPhone", sosPhone);
-  safeSetItem("motionSensitivity", motionSensitivity);
-  safeSetItem("pkOffset", pkOffset);
+    safeSetItem("sosPhone", sosPhone);
+    safeSetItem("motionSensitivity", motionSensitivity);
+    safeSetItem("pkOffset", pkOffset);
 
-  updateOffsetInfo();
-}
-
-function updatePkEstimateInSettings() {
-  if (state.lastRawPk == null) {
-    pkEstimateText.textContent = "En attente de position GPS…";
-    if (pkCurrentValue) pkCurrentValue.textContent = "—";
-    if (pkCurrentDetails) pkCurrentDetails.textContent = "En attente de position GPS…";
-    return;
+    updateOffsetInfo();
   }
 
-  const corrected = state.lastRawPk + pkOffset;
-  const pkText = "PK " + formatPk(corrected);
-  const distText = state.lastDist != null
-    ? "· ~" + Math.round(state.lastDist) + " m de la voie"
-    : "";
+  function updatePkEstimateInSettings() {
+    if (state.lastRawPk == null) {
+      pkEstimateText.textContent = "En attente de position GPS…";
+      if (pkCurrentValue) pkCurrentValue.textContent = "—";
+      if (pkCurrentDetails) pkCurrentDetails.textContent = "En attente de position GPS…";
+      return;
+    }
 
-  // Mise à jour du texte dans les paramètres
-  pkEstimateText.textContent = pkText + " " + distText;
+    const corrected = state.lastRawPk + pkOffset;
+    const pkText = "PK " + formatPk(corrected);
+    const distText = state.lastDist != null
+      ? "· ~" + Math.round(state.lastDist) + " m de la voie"
+      : "";
 
-  // Affichage sur la carte "PK actuel"
-  if (pkCurrentValue) pkCurrentValue.textContent = pkText;
-  if (pkCurrentDetails) pkCurrentDetails.textContent = distText || "";
-}
+    // Mise à jour du texte dans les paramètres
+    pkEstimateText.textContent = pkText + " " + distText;
 
+    // Affichage sur la carte "PK actuel"
+    if (pkCurrentValue) pkCurrentValue.textContent = pkText;
+    if (pkCurrentDetails) pkCurrentDetails.textContent = distText || "";
+  }
 
   let geolocActive = false;
 
@@ -1315,47 +1395,46 @@ function updatePkEstimateInSettings() {
     pkTargetInfo.textContent = "≈ " + dist + " m " + dir;
   }
 
-function updateAccessList(pk) {
-  // Pas de PK ou pas encore de GPS → on attend
-  if (pk == null || state.lastLat == null || state.lastLon == null) {
-    accessList.textContent = "En attente de position GPS…";
-    return;
-  }
-
-  // Top 2 accès les plus proches en distance GPS
-  const nearestList = getNearestAccessesGeo(state.lastLat, state.lastLon, pk, 2);
-
-  if (!nearestList.length) {
-    accessList.textContent = "Aucun accès disponible.";
-    return;
-  }
-
-  const lines = nearestList.map(item => {
-    const acc = item.acc;
-    const dGeo = Math.round(item.dGeo); // m "à vol d’oiseau"
-    const dPk  = (item.dPk != null) ? Math.round(item.dPk) : null;
-    const dir  = (acc.pk != null && pk != null && acc.pk >= pk)
-      ? "vers Chessy / Boissy"
-      : "vers St-Germain / Paris";
-
-    let pkLine = "PK " + formatPk(acc.pk) + " – " + acc.name;
-    let sub = "≈ " + dGeo + " m en distance GPS";
-
-    if (dPk != null) {
-      sub = "ΔPK ≈ " + dPk + " m " + dir + " · " + sub;
+  function updateAccessList(pk) {
+    // Pas de PK ou pas encore de GPS → on attend
+    if (pk == null || state.lastLat == null || state.lastLon == null) {
+      accessList.textContent = "En attente de position GPS…";
+      return;
     }
 
-    return (
-      '<div class="access-item">' +
-        '<div><strong>' + pkLine + "</strong></div>" +
-        '<div class="muted">' + sub + "</div>" +
-      "</div>"
-    );
-  });
+    // Top 2 accès les plus proches en distance GPS
+    const nearestList = getNearestAccessesGeo(state.lastLat, state.lastLon, pk, 2);
 
-  accessList.innerHTML = lines.join("");
-}
+    if (!nearestList.length) {
+      accessList.textContent = "Aucun accès disponible.";
+      return;
+    }
 
+    const lines = nearestList.map(item => {
+      const acc = item.acc;
+      const dGeo = Math.round(item.dGeo); // m "à vol d’oiseau"
+      const dPk  = (item.dPk != null) ? Math.round(item.dPk) : null;
+      const dir  = (acc.pk != null && pk != null && acc.pk >= pk)
+        ? "vers Chessy / Boissy"
+        : "vers St-Germain / Paris";
+
+      let pkLine = "PK " + formatPk(acc.pk) + " – " + acc.name;
+      let sub = "≈ " + dGeo + " m en distance GPS";
+
+      if (dPk != null) {
+        sub = "ΔPK ≈ " + dPk + " m " + dir + " · " + sub;
+      }
+
+      return (
+        '<div class="access-item">' +
+          '<div><strong>' + pkLine + "</strong></div>" +
+          '<div class="muted">' + sub + "</div>" +
+        "</div>"
+      );
+    });
+
+    accessList.innerHTML = lines.join("");
+  }
 
   function updateSmsPreview() {
     if (state.lastPk == null || state.lastLat == null) {
@@ -1439,45 +1518,45 @@ function updateAccessList(pk) {
     pkLookupResultField.style.display = "block";
   }
 
-function openPkLookupInMaps() {
-  if (!lastPkLookupAccess) {
-    alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
-    return;
+  function openPkLookupInMaps() {
+    if (!lastPkLookupAccess) {
+      alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
+      return;
+    }
+
+    let url;
+    // Si on a des coordonnées GPS précises → on ouvre directement à cet endroit
+    if (
+      lastPkLookupAccess.lat != null &&
+      lastPkLookupAccess.lon != null
+    ) {
+      url = "https://maps.google.com/?q=" +
+        lastPkLookupAccess.lat + "," + lastPkLookupAccess.lon;
+    } else {
+      // Sinon on ouvre une recherche sur l’adresse / le nom
+      const query = lastPkLookupAccess.address || lastPkLookupAccess.name;
+      url = "https://www.google.com/maps/search/?api=1&query=" +
+        encodeURIComponent(query);
+    }
+
+    window.open(url, "_blank");
   }
 
-  let url;
-  // Si on a des coordonnées GPS précises → on ouvre directement à cet endroit
-  if (
-    lastPkLookupAccess.lat != null &&
-    lastPkLookupAccess.lon != null
-  ) {
-    url = "https://maps.google.com/?q=" +
-      lastPkLookupAccess.lat + "," + lastPkLookupAccess.lon;
-  } else {
-    // Sinon on ouvre une recherche sur l’adresse / le nom
-    const query = lastPkLookupAccess.address || lastPkLookupAccess.name;
-    url = "https://www.google.com/maps/search/?api=1&query=" +
-      encodeURIComponent(query);
+  function openPkLookupInWaze() {
+    if (!lastPkLookupAccess) {
+      alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
+      return;
+    }
+    const lat = lastPkLookupAccess.lat;
+    const lon = lastPkLookupAccess.lon;
+    if (lat == null || lon == null) {
+      alert("Pas de coordonnées GPS pour cet accès.");
+      return;
+    }
+    // Lien universel Waze
+    const url = "https://waze.com/ul?ll=" + lat + "," + lon + "&navigate=yes";
+    window.open(url, "_blank");
   }
-
-  window.open(url, "_blank");
-}
-
-function openPkLookupInWaze() {
-  if (!lastPkLookupAccess) {
-    alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
-    return;
-  }
-  const lat = lastPkLookupAccess.lat;
-  const lon = lastPkLookupAccess.lon;
-  if (lat == null || lon == null) {
-    alert("Pas de coordonnées GPS pour cet accès.");
-    return;
-  }
-  // Lien universel Waze
-  const url = "https://waze.com/ul?ll=" + lat + "," + lon + "&navigate=yes";
-  window.open(url, "_blank");
-}
 
   selectIncidentType.addEventListener("change", () => {
     if (selectIncidentType.value === "Autre") {
@@ -1591,7 +1670,7 @@ function openPkLookupInWaze() {
 
   btnResetOffset.addEventListener("click", () => {
     pkOffset = 0;
-      safeSetItem("pkOffset", pkOffset);
+    safeSetItem("pkOffset", pkOffset);
     updateOffsetInfo();
     if (state.lastRawPk != null) {
       state.lastPk = state.lastRawPk;
@@ -1619,10 +1698,31 @@ function openPkLookupInWaze() {
       return;
     }
     pkOffset = exactPk - state.lastRawPk;
-  safeSetItem("pkOffset", pkOffset);
-  updateOffsetInfo();
-  updatePkEstimateInSettings();
+    safeSetItem("pkOffset", pkOffset);
+    updateOffsetInfo();
+    updatePkEstimateInSettings();
 
+    // AJOUT CALIBRAGE : on enregistre ce recalage comme un point de calibration
+    if (state.lastLat != null && state.lastLon != null) {
+      const calib = {
+        // PK exact saisi par toi
+        pkExact: exactPk,
+        // PK brut estimé par l’algorithme avant offset
+        pkRaw: state.lastRawPk,
+        // offset appliqué
+        pkOffset: pkOffset,
+        // coordonnées GPS au moment du recalage
+        lat: state.lastLat,
+        lon: state.lastLon,
+        accuracy: state.lastAccuracy,
+        branch: currentBranch,
+        timestamp: new Date().toISOString()
+      };
+      localCalibrations.push(calib);
+      saveLocalCalibrations();
+      console.log("Nouveau recalage enregistré :", calib);
+    }
+    // FIN AJOUT CALIBRAGE
   });
 
   btnSaveSettings.addEventListener("click", () => {
@@ -1632,24 +1732,34 @@ function openPkLookupInWaze() {
   });
 
   selectSensitivity.addEventListener("change", () => {
-  motionSensitivity = selectSensitivity.value;
-  safeSetItem("motionSensitivity", motionSensitivity);
+    motionSensitivity = selectSensitivity.value;
+    safeSetItem("motionSensitivity", motionSensitivity);
   });
 
   btnPkLookup.addEventListener("click", handlePkLookup);
   btnPkLookupOpenMaps.addEventListener("click", openPkLookupInMaps);
   btnPkLookupOpenWaze.addEventListener("click", openPkLookupInWaze);
 
+  // AJOUT CALIBRAGE : clic sur "Exporter mes recalages"
+  if (btnExportCalibrations) {
+    btnExportCalibrations.addEventListener("click", exportLocalCalibrationsForGitHub);
+  }
 
   selectIncidentType.dispatchEvent(new Event("change"));
 
+  // Initialisation
   loadSettings();
+  loadLocalCalibrations();
+  loadSharedCalibrations(); // lecture du fichier partagé (pour plus tard)
   updateSmsPreview();
   setGpsStatus("off");
 
   function handlePosition(pos) {
     const lat = pos.coords.latitude;
     const lon = pos.coords.longitude;
+    const accuracy = pos.coords.accuracy; // AJOUT CALIBRAGE
+
+    state.lastAccuracy = accuracy;
 
     setGpsStatus("on", "Position reçue (lat : " +
       lat.toFixed(5) + ", lon : " + lon.toFixed(5) + ")");
@@ -1686,21 +1796,21 @@ function openPkLookupInWaze() {
     state.lastLon = lon;
     state.lastDist = proj.dist;
 
-   const nearest = findNearestStation(correctedPk, currentBranch);
-// nearest access en GPS
-const nearestAccess = findNearestAccessGeo(lat, lon);
+    const nearest = findNearestStation(correctedPk, currentBranch);
+    const nearestAccess = findNearestAccessGeo(lat, lon);
 
-state.nearestStation = nearest;
-state.nearestAccess = nearestAccess;
+    state.nearestStation = nearest;
+    state.nearestAccess = nearestAccess;
 
-updateNearestStation(correctedPk, nearest);
-updateNextStation(correctedPk);
-updatePkTargetView();
-updateAccessList(correctedPk);  // utilisera state.lastLat / state.lastLon
-updateSmsPreview();
-updatePkEstimateInSettings();
+    updateNearestStation(correctedPk, nearest);
+    updateNextStation(correctedPk);
+    updatePkTargetView();
+    updateAccessList(correctedPk);
+    updateSmsPreview();
+    updatePkEstimateInSettings();
   }
-console.log("PK Assistant RER A – script chargé sans erreur ✅");
+
+  console.log("PK Assistant RER A – script chargé sans erreur ✅");
   </script>
 </body>
 </html>
