@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <title>PK Assistant – RER A</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- Empêche la 404 sur /favicon.ico -->
+  <link rel="icon" href="data:,">
   <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -2034,7 +2036,8 @@ let linePointsChessy = null;
     }
   }
 
-  async function loadSharedCalibrations() {
+  // async function loadSharedCalibrations() { ... }
+
     try {
       const resp = await fetch("data/calibrations.json", { cache: "no-store" });
       if (!resp.ok) {
@@ -3086,11 +3089,12 @@ if (toggleOrientation && orientationCard) {
 
 loadSettings();
 loadLocalCalibrations();
-// loadSharedCalibrations(); // désactivé pour éviter l'erreur 404
+// loadSharedCalibrations(); // désactivé pour éviter tout fetch
 updateSmsPreview();
 setGpsStatus("off");
 initAccessGate();  
 console.log("PK Assistant RER A – script chargé sans erreur ✅");
+
 
 
  function handlePosition(pos) {
