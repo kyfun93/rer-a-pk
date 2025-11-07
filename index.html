@@ -604,17 +604,15 @@ const accessPoints = [];
     });
   }
 
-  // Attribue une branche à chaque accès : "boissy", "chessy" ou "both" (tronc commun)
-for (const acc of accessPoints) {
-  if (acc.pk <= 34000 || acc.lat == null || acc.lon == null) {
-    // Avant Val de Fontenay ou sans GPS : on laisse en "both"
-    acc.branch = "both";
-  } else {
-    // Après la bifurcation : on classe selon la position GPS de l'accès
-    acc.branch = detectBranch(acc.lat, acc.lon); // "boissy" ou "chessy"
+   // Attribue une branche simple à chaque accès
+  // (tronc commun = both, le reste on laissera null)
+  for (const acc of accessPoints) {
+    if (acc.pk <= 34000) {
+      acc.branch = "both"; // tronçon commun
+    } else {
+      acc.branch = null;   // on déterminera la branche à la volée si besoin
+    }
   }
-}
-
 
   // Ligne courante utilisée pour la projection (tronc + branche selon où tu es)
 let currentBranch = "chessy";
