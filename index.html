@@ -1029,10 +1029,9 @@ function detectBranch(lat, lon) {
   }
 
   // S’assure que les polylignes calibrées sont prêtes
-  if (!linePointsBoissy || !linePointsChessy) {
-    buildCalibrationPolylines();
-  }
+  buildCalibrationPolylines();
 
+  // Distance minimale à la poly-ligne calibrée BOISSY
   let minBoissy = Infinity;
   for (const p of linePointsBoissy) {
     if (p.lat == null || p.lon == null) continue;
@@ -1040,6 +1039,7 @@ function detectBranch(lat, lon) {
     if (d < minBoissy) minBoissy = d;
   }
 
+  // Distance minimale à la poly-ligne calibrée CHESSY
   let minChessy = Infinity;
   for (const p of linePointsChessy) {
     if (p.lat == null || p.lon == null) continue;
