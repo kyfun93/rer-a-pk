@@ -2086,16 +2086,8 @@ let linePointsChessy = null;
   }
 
   // 👇👇 AJOUTE TOUT CE BLOC ICI 👇👇
-  function buildCalibrationPolylines() {
-    if (calibrationReady) return;
-
-    const calibTronc = [];
-    const calibBoissy = [];
-    const calibChessy = [];
-
-    // Version "grossière" pour séparer Boissy / Chessy à partir d’un point
 function buildCalibrationPolylines() {
-  const calibTronc = [];
+  const calibTronc  = [];
   const calibBoissy = [];
   const calibChessy = [];
 
@@ -2108,31 +2100,38 @@ function buildCalibrationPolylines() {
     return dBoissy < dChessy ? "boissy" : "chessy";
   }
 
+  // Ajoute un point de calibration dans les bons tableaux
   function addCalibPoint(pk, lat, lon, branchHint) {
     if (pk == null || lat == null || lon == null) return;
+    const calPoint = { pk, lat, lon };
 
+    // Tronc commun → [0, 34000] comme pour les accès
     if (pk <= 34000) {
-      // Avant Val de Fontenay : tronc commun
-      calibTronc.push({ pk, lat, lon });
-    } else {
-      let b = branchHint;
-      if (b !== "boissy" && b !== "chessy") {
-        b = roughBranchFromLatLon(lat, lon);
-      }
-      if (b === "boissy") calibBoissy.push({ pk, lat, lon });
-      else calibChessy.push({ pk, lat, lon });
+      calibTronc.push(calPoint);
+      return;
+    }
+
+    let branch = branchHint;
+    if (!branch || branch === "both") {
+      branch = roughBranchFromLatLon(lat, lon);
+    }
+
+    if (branch === "boissy") {
+      calibBoissy.push(calPoint);
+    } else if (branch === "chessy") {
+      calibChessy.push(calPoint);
     }
   }
 
-  // 1) Tous les accessPoints avec un PK + GPS
+  // 1) Points issus des accessPoints eux-mêmes (tes 191 accès + les gares ajoutées)
   for (const acc of accessPoints) {
     addCalibPoint(acc.pk, acc.lat, acc.lon, acc.branch);
   }
 
-  // 2) Recalages partagés (GitHub) + locaux (ton téléphone)
+  // 2) Points issus des recalages PK (local + partagé)
   const allCals = [];
   if (Array.isArray(sharedCalibrations)) allCals.push(...sharedCalibrations);
-  if (Array.isArray(localCalibrations)) allCals.push(...localCalibrations);
+  if (Array.isArray(localCalibrations))  allCals.push(...localCalibrations);
 
   for (const c of allCals) {
     if (!c) continue;
@@ -2140,6 +2139,7 @@ function buildCalibrationPolylines() {
     addCalibPoint(pk, c.lat, c.lon, c.branch);
   }
 
+  // Tri par PK
   calibTronc.sort((a, b) => a.pk - b.pk);
   calibBoissy.sort((a, b) => a.pk - b.pk);
   calibChessy.sort((a, b) => a.pk - b.pk);
@@ -2154,7 +2154,6 @@ function buildCalibrationPolylines() {
     .concat(calibTronc, brancheChessy, calibChessy)
     .sort((a, b) => a.pk - b.pk);
 }
-
 
   function findNearestStation(pk, branch) {
     if (pk == null) return null;
@@ -2255,13 +2254,14 @@ function buildCalibrationPolylines() {
     return candidates[0] || findNearestStation(pk, branch);
   }
 
-  function detectBranch(lat, lon) {
+function detectBranch(lat, lon) {
   // Si on n’a pas de GPS (cas de certains accès sans coordonnées),
   // on reste en "both" = tronc commun / branche inconnue
   if (lat == null || lon == null) {
     return "both";
   }
 
+  // S’assure que les polylignes calibrées sont prêtes
   buildCalibrationPolylines();
 
   let minBoissy = Infinity;
@@ -2278,22 +2278,14 @@ function buildCalibrationPolylines() {
     if (d < minChessy) minChessy = d;
   }
 
+  // Si pour une raison quelconque on n’a rien trouvé, on reste neutre
   if (!isFinite(minBoissy) && !isFinite(minChessy)) {
     return "both";
   }
+
+  // Branche = celle dont la poly-ligne calibrée est la plus proche
   return minBoissy <= minChessy ? "boissy" : "chessy";
 }
-
-
-    let minChessy = Infinity;
-    for (const p of linePointsChessy) {
-      const d = distanceMeters(lat, lon, p.lat, p.lon);
-      if (d < minChessy) minChessy = d;
-    }
-
-    return minBoissy < minChessy ? "boissy" : "chessy";
-  }
-
 
   function safeGetItem(key) {
     try {
