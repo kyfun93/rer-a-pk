@@ -1,0 +1,3173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>PK Assistant – RER A</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- Empêche la 404 sur /favicon.ico -->
+  <link rel="icon" href="data:,">
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+ 
+  :root {
+    color-scheme: dark;
+    --bg: #050510;
+    --bg-gradient: radial-gradient(circle at top, #251c4a 0%, #050510 60%, #010106 100%);
+    --card: #121522;
+    --card-soft: #16182a;
+    --border: #262a3a;
+    --text: #f0f2ff;
+    --muted: #a8abcc;
+    --accent: #3d7bff;
+    --danger: #ff4b6b;
+    --danger-soft: rgba(255, 75, 107, 0.18);
+    --good: #4bd67a;
+    --good-soft: rgba(75, 214, 122, 0.12);
+    --warning: #ffc75e;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    position: relative;
+    padding: 16px 0 40px;
+    background: var(--bg-gradient);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background-image:
+      radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,0.16), transparent 60%),
+      radial-gradient(2px 2px at 80% 30%, rgba(255,255,255,0.10), transparent 60%),
+      radial-gradient(1.5px 1.5px at 20% 80%, rgba(255,255,255,0.12), transparent 60%),
+      radial-gradient(1.5px 1.5px at 70% 70%, rgba(255,255,255,0.08), transparent 60%);
+    opacity: 0.35;
+  }
+
+  .app {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 0 16px 32px;
+  }
+
+  .header {
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  .title-pill {
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 0% 0%, #ff9f7b 0%, #ff4b6b 24%, #3d7bff 70%, #1a1b3a 100%);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.18);
+    margin: 0 auto;
+  }
+
+  .title-main {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #fff;
+    text-align: center;
+  }
+
+  .title-sub {
+    font-size: 1.05rem; /* RER A un peu plus gros */
+    font-weight: 600;
+    margin-top: 2px;
+    color: #f3f2ff;
+    text-align: center;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 6px 0 2px;
+  }
+
+  .note {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  .card {
+    background: linear-gradient(145deg, #121522, #0d0f18);
+    border-radius: 20px;
+    padding: 18px 18px 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 14px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.45);
+  }
+
+  .card-soft {
+    background: var(--card-soft);
+  }
+
+  .card-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+  }
+
+  .card-title {
+    font-size: 0.9rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .big-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin: 4px 0 3px;
+    color: #fff;
+  }
+
+  .big-sub {
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+
+  .muted {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .badge {
+    font-size: 0.8rem;
+    padding: 4px 9px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: #181b2a;
+  }
+
+  .badge-good {
+    color: var(--good);
+    background: var(--good-soft);
+  }
+
+  .badge-danger {
+    color: var(--danger);
+    background: var(--danger-soft);
+  }
+
+  .badge-warn {
+    color: var(--warning);
+    background: rgba(255,184,77,0.12);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 18px;
+    border-radius: 16px;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #3d7bff, #6fa3ff);
+    color: white;
+  }
+
+  .btn-secondary {
+    background: #1a1d2b;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-danger {
+    background: linear-gradient(135deg, #ff4b6b, #ff7592);
+    color: white;
+  }
+
+  .btn-icon {
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+
+  .field {
+    margin-top: 8px;
+    display:flex;
+    flex-direction:column;
+    gap: 6px;
+  }
+
+  .field label {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid #303047;
+    background: #0a0c12;
+    color: var(--text);
+    font-size: 0.95rem;
+    outline: none;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 6px rgba(61,123,255,0.4);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .access-item {
+    margin-bottom: 6px;
+  }
+
+  .bottom-bar {
+    margin-top: 10px;
+    display:flex;
+    justify-content:center;
+  }
+
+  .settings-footer {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .divider {
+    margin: 10px 0;
+    height: 1px;
+    background: rgba(255,255,255,0.04);
+  }
+
+.signalement-block {
+    background: linear-gradient(145deg, #221015, #170b0e);
+    border: 1px solid rgba(255, 75, 107, 0.4);
+    border-radius: 18px;
+    padding: 16px;
+    margin: 14px 0 6px;
+    box-shadow: 0 0 20px rgba(255, 75, 107, 0.12);
+  }
+
+  @media (max-width: 640px) {
+    .app {
+      padding: 0 10px 24px;
+    }
+    .card {
+      padding: 14px 14px 12px;
+      border-radius: 18px;
+    }
+    .big-value {
+      font-size: 1.5rem;
+    }
+    .btn {
+      width: 100%;
+      border-radius: 14px;
+    }
+  }
+  .orientation-block {
+  margin-top: 10px;
+  padding-top: 4px;
+}
+
+.orientation-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.orientation-picto-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 1.4rem;
+  margin-top: 2px;
+}
+
+.orientation-text-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.orientation-line-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.orientation-line-value {
+  font-size: 0.92rem;
+}
+
+</style>
+
+</head>
+<body>
+  <div id="accessOverlay" style="
+  position:fixed;
+  inset:0;
+  background:radial-gradient(circle at top, #251c4a 0%, #050510 60%, #010106 100%);
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+">
+  <div class="card" style="max-width:320px;width:90%;text-align:center;">
+    <div class="card-title" style="width:100%;text-align:center;">Code d'accès</div>
+    <div class="muted" style="margin-top:6px;">
+      Application interne – accès réservé.<br>
+      Saisis le code d'accès.
+    </div>
+
+    <div class="field" style="margin-top:12px;">
+      <input id="accessCodeInput"
+             type="password"
+             inputmode="numeric"
+             maxlength="6"
+             placeholder="Code"
+             style="text-align:center;font-size:1.1rem;letter-spacing:0.2em;">
+    </div>
+
+    <div class="field">
+      <button id="btnAccessCode" class="btn btn-primary btn-icon" type="button">
+        <span>🔓</span><span>Déverrouiller</span>
+      </button>
+    </div>
+
+    <div id="accessError" class="muted" style="color:var(--danger);display:none;">
+      Code incorrect.
+    </div>
+  </div>
+</div>
+
+  <div class="app">
+    <div class="header">
+      <div class="title-pill">
+        <div class="title-main">PK ASSISTANT</div>
+        <div class="title-sub">RER A</div>
+      </div>
+      <div class="subtitle">Estimation du PK en temps réel à partir de la géolocalisation.</div>
+      <div class="note">
+        Écart typique entre PK estimé et borne réelle : ~100–200 m. Toujours vérifier une borne quand c’est critique.
+      </div>
+    </div>
+
+    <!-- GÉOLOCALISATION -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Géolocalisation</div>
+        <span id="gpsStatusBadge" class="badge badge-danger">GPS inactif</span>
+      </div>
+      <div id="geolocText" class="muted">Position non encore reçue.</div>
+      <div class="field">
+        <button id="btnToggleGeoloc" class="btn btn-primary btn-icon" type="button">
+          <span>📍</span><span>Démarrer la géoloc</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PK ACTUEL -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">PK actuel</div>
+      </div>
+      <div id="pkCurrentValue" class="big-value">—</div>
+      <div id="pkCurrentDetails" class="big-sub">En attente de position GPS…</div>
+    </div>
+
+    <!-- GARE LA PLUS PROCHE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Gare la plus proche (en PK)</div>
+      </div>
+      <div id="nearestStationName" class="big-value">Aucune</div>
+      <div id="nearestStationInfo" class="big-sub">En attente de position GPS…</div>
+    </div>
+
+    <!-- SENS / MOUVEMENT -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Sens / mouvement</div>
+      </div>
+      <div id="movementTitle" class="big-value">En attente d’un deuxième point…</div>
+      <div id="movementDetails" class="big-sub">—</div>
+    </div>
+
+    <!-- PROCHAINE GARE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Prochaine gare (en PK)</div>
+      </div>
+      <div id="nextStationName" class="big-value">Aucune</div>
+      <div id="nextStationInfo" class="big-sub">En attente de position GPS…</div>
+    </div>
+
+    <!-- ORIENTATION / PK CIBLE / GARES / ACCÈS -->
+<div id="orientationCard" class="card orientation-block" style="display:none;">
+  <div class="card-header">
+    <div class="card-title">Orientation – PK / gares / accès</div>
+  </div>
+
+  <div class="orientation-row">
+    <div class="orientation-picto-col">
+      <div>🎯</div>
+      <div>🧭</div>
+      <div>🚉</div>
+      <div>🚪</div>
+    </div>
+    <div class="orientation-text-col">
+      <div>
+        <div class="orientation-line-label">PK actuel & cible</div>
+        <div id="orientPkLine" class="orientation-line-value">PK actuel : —</div>
+      </div>
+
+      <div>
+        <div class="orientation-line-label">Sens</div>
+        <div id="orientDirLine" class="orientation-line-value">En attente de GPS…</div>
+      </div>
+
+      <div>
+        <div class="orientation-line-label">Gare la plus proche</div>
+        <div id="orientGareLine" class="orientation-line-value">—</div>
+      </div>
+
+      <div>
+        <div class="orientation-line-label">Accès les plus proches</div>
+        <div id="orientAccessLine" class="orientation-line-value">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- PK CIBLE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">PK cible</div>
+      </div>
+      <div id="pkTargetLabel" class="big-value">Aucun</div>
+      <div id="pkTargetInfo" class="big-sub">
+        Saisis un PK puis clique sur « Définir ce PK comme cible ».
+      </div>
+      <div class="field">
+        <label for="inputPkTarget">Saisis un PK en mètres (ex : 32400) ou au format 32+400.</label>
+        <input id="inputPkTarget" type="text" placeholder="ex : 32400 ou 32+400" />
+        <button id="btnSetPkTarget" class="btn btn-primary" type="button">Définir ce PK comme cible</button>
+      </div>
+    </div>
+
+    <!-- ACCÈS / GARes LES PLUS PROCHES -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Accès / gares les plus proches (en PK)</div>
+      </div>
+      <div class="big-sub">Accès les plus proches</div>
+      <div id="accessList" class="muted" style="margin-top:8px;">
+        En attente de position GPS…
+      </div>
+    </div>
+
+    <!-- URGENCE / SMS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Urgence / partage position</div>
+      </div>
+      <div id="smsPreview" class="muted">
+        En attente de position GPS pour préparer le SMS.
+      </div>
+      <div class="field">
+        <button id="btnSms" class="btn btn-danger btn-icon" type="button">
+          <span>✉️</span><span>SMS d’urgence</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- BOUTON PARAMÈTRES EN BAS -->
+    <div class="bottom-bar">
+      <button id="btnSettingsToggle" class="btn btn-secondary btn-icon" type="button">
+        <span>⚙️</span><span>Paramètres</span>
+      </button>
+    </div>
+
+    <!-- PARAMÈTRES -->
+    <div id="settingsPanel" class="card card-soft" style="display:none; margin-top:10px;">
+      <div class="card-header">
+        <div class="card-title">Paramètres</div>
+        <span class="badge">Local au téléphone</span>
+      </div>
+
+      <div class="divider"></div>
+
+<div class="field">
+  <label>
+    <input id="toggleOrientation" type="checkbox">
+    Afficher le bloc « Orientation – PK / gares / accès »
+  </label>
+  <div class="muted">
+    Si décoché, le bloc d’orientation n’apparaît pas sur la page principale.
+  </div>
+</div>
+
+      <!-- Numéro SOS -->
+      <div class="field">
+        <label for="inputSosPhone">Numéro SOS pour le SMS d’urgence</label>
+        <input id="inputSosPhone" type="tel" placeholder="ex : 0612345678 ou +33612345678" />
+        <div class="muted">Ce numéro sera utilisé par le bouton « SMS d’urgence ».</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Sensibilité mouvement -->
+      <div class="field">
+        <label for="selectSensitivity">Sensibilité au mouvement</label>
+        <select id="selectSensitivity">
+          <option value="slow">Marche lente</option>
+          <option value="normal">Normal</option>
+          <option value="train">Train</option>
+        </select>
+        <div class="muted">« Marche lente » détecte plus facilement un déplacement à pied.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Recalage PK -->
+      <div class="field">
+        <label>Recalage PK</label>
+        <div id="pkOffsetInfo" class="muted">Offset actuel : ±0 m appliqués à tous les PK.</div>
+      </div>
+
+      <div class="field">
+        <label>Position PK estimée (lecture seule)</label>
+        <div id="pkEstimateText" class="muted">En attente de position GPS…</div>
+      </div>
+
+      <div class="field">
+        <label for="inputPkRecal">PK exact ici (pour recaler l’appli)</label>
+        <input id="inputPkRecal" type="text" placeholder="ex : 52700 ou 52+700" />
+        <button id="btnApplyRecal" class="btn btn-primary" type="button">Recaler l’appli sur ce PK</button>
+      </div>
+
+      <div class="field">
+        <button id="btnResetOffset" class="btn btn-secondary" type="button">
+          Réinitialiser le recalage PK
+        </button>
+      </div>
+
+      <!-- AJOUT CALIBRAGE : bouton d’export -->
+      <div class="field">
+        <button id="btnExportCalibrations" class="btn btn-secondary btn-icon" type="button">
+          <span>📤</span><span>Exporter mes recalages (JSON)</span>
+        </button>
+        <div class="muted">
+          Exporte les recalages que tu as faits (PK exact + GPS) pour les déposer ensuite dans GitHub.
+        </div>
+      </div>
+      <!-- FIN AJOUT CALIBRAGE -->
+
+      <div class="divider"></div>
+
+      <!-- Recherche par PK -> accès -->
+      <div class="field">
+        <label for="inputPkLookup">Recherche par PK (accès le plus proche)</label>
+        <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" />
+        <button id="btnPkLookup" class="btn btn-secondary btn-icon" type="button">
+          <span>🔎</span><span>Rechercher l’accès</span>
+        </button>
+      </div>
+
+      <div class="field" id="pkLookupResultField" style="display:none;">
+        <div id="pkLookupResult" class="muted"></div>
+
+        <div class="field">
+          <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
+            <span>📍</span><span>Google Maps</span>
+          </button>
+          <button id="btnPkLookupOpenWaze" class="btn btn-secondary btn-icon" type="button">
+            <span>🚗</span><span>Waze</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Signalement d’avarie -->
+      <div class="signalement-block">
+        <label for="selectIncidentType">🚨 Signalement d’avarie / incident</label>
+        <select id="selectIncidentType">
+          <option value="">-- Choisir un type d’incident --</option>
+          <option value="Cheminement endommagé">Cheminement endommagé</option>
+          <option value="Rail cassé">Rail cassé</option>
+          <option value="Animal mort">Animal mort</option>
+          <option value="Autre">Autre (saisir ci-dessous)</option>
+        </select>
+
+        <div class="field" id="incidentOtherField" style="display:none;">
+          <label for="inputIncidentOther">Précisez l’incident :</label>
+          <input id="inputIncidentOther" type="text" placeholder="ex : câble arraché, signal détérioré..." />
+        </div>
+
+        <div class="field">
+          <label for="incidentPhoto">Photo (optionnel)</label>
+          <input id="incidentPhoto" type="file" accept="image/*" />
+          <div class="muted">Tu peux prendre ou choisir une photo. Son nom sera ajouté au message.</div>
+        </div>
+
+        <div class="field">
+          <button id="btnGenerateIncident" class="btn btn-danger btn-icon" type="button">
+            <span>📣</span><span>Générer le message de signalement</span>
+          </button>
+        </div>
+
+        <div class="field" id="incidentResultField" style="display:none;">
+          <label>Message généré :</label>
+          <textarea id="incidentResultText" rows="4" readonly></textarea>
+          <button id="btnCopyIncident" class="btn btn-secondary btn-icon" type="button">
+            <span>📋</span><span>Copier le texte</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="field">
+        <button id="btnSaveSettings" class="btn btn-primary btn-icon" type="button">
+          <span>💾</span><span>Enregistrer les paramètres</span>
+        </button>
+      </div>
+
+      <div class="settings-footer">
+        Ces réglages restent stockés dans ton navigateur (localStorage).  
+        Ils ne sont pas effacés quand on met à jour l’application.
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    const ORIENT_ENABLED_KEY = "orientationEnabled";
+
+    const ACCESS_CODE_KEY = "pkAssistantAccessGranted";
+// ⚠️ Mets le code que tu veux ici (4 chiffres par ex.)
+const ACCESS_CODE = "3615";
+
+  // === DONNÉES DE LIGNE AVEC BIFURCATION ================================
+
+  const troncCommun = [
+    { name: "St-Germain-en-Laye",          lat: 48.8984745677, lon: 2.0946251970, pk:    0 },
+    { name: "Le Vésinet – Le Pecq",        lat: 48.8984530458, lon: 2.1222846835, pk:  2000 },
+    { name: "Le Vésinet – Centre",         lat: 48.8901555110, lon: 2.1347027835, pk:  4000 },
+    { name: "Chatou – Croissy",            lat: 48.8854638305, lon: 2.1564040970, pk:  6000 },
+    { name: "Rueil-Malmaison",             lat: 48.8877403423, lon: 2.1725468932, pk:  7000 },
+    { name: "Nanterre-Ville",              lat: 48.8952086355, lon: 2.1957210472, pk:  8000 },
+    { name: "Nanterre-Université",         lat: 48.9009541230, lon: 2.2128683712, pk: 11000 },
+    { name: "Nanterre-Préfecture",         lat: 48.8958449352, lon: 2.2230702306, pk: 12000 },
+    { name: "La Défense – Grande Arche",   lat: 48.8919045058, lon: 2.2385616258, pk: 13000 },
+    { name: "Charles de Gaulle – Étoile",  lat: 48.8742900059, lon: 2.2948848393, pk: 18000 },
+    { name: "Auber",                       lat: 48.8725358497, lon: 2.3298119681, pk: 20000 },
+    { name: "Châtelet – Les Halles",       lat: 48.8619752528, lon: 2.3469363528, pk: 22000 },
+    { name: "Gare de Lyon",                lat: 48.8444873499, lon: 2.3743558393, pk: 25000 },
+    { name: "Nation",                      lat: 48.8488218026, lon: 2.3970239229, pk: 27000 },
+    { name: "Vincennes",                   lat: 48.8475419027, lon: 2.4332766909, pk: 30000 },
+    { name: "Fontenay-sous-Bois",          lat: 48.8457834716, lon: 2.4641534958, pk: 31500 },
+    { name: "Val de Fontenay",             lat: 48.8544183594, lon: 2.4890884591, pk: 34000 }
+  ];
+
+  const brancheBoissy = [
+    { name: "Nogent-sur-Marne",            lat: 48.8353972244, lon: 2.4716593319, pk: 35500 },
+    { name: "Joinville-le-Pont",           lat: 48.8211820545, lon: 2.4641431755, pk: 37000 },
+    { name: "Saint-Maur – Créteil",        lat: 48.8088207060, lon: 2.4708026167, pk: 38500 },
+    { name: "La Varenne – Chennevières",   lat: 48.7941968899, lon: 2.5135124577, pk: 40000 },
+    { name: "Sucy – Bonneuil",             lat: 48.7709911746, lon: 2.5083777258, pk: 41500 },
+    { name: "Boissy-Saint-Léger",          lat: 48.7539872386, lon: 2.5059802969, pk: 43000 }
+  ];
+
+  const brancheChessy = [
+    { name: "Neuilly-Plaisance",           lat: 48.8534646981, lon: 2.5138398779, pk: 35500 },
+    { name: "Bry-sur-Marne",               lat: 48.8442657465, lon: 2.5261924528, pk: 37000 },
+    { name: "Noisy-le-Grand – Mont d’Est", lat: 48.8410135149, lon: 2.5527359297, pk: 39000 },
+    { name: "Noisy – Champs",              lat: 48.8429502416, lon: 2.5788366796, pk: 41000 },
+    { name: "Noisiel",                     lat: 48.8437650426, lon: 2.6160790153, pk: 43000 },
+    { name: "Lognes",                      lat: 48.8393611271, lon: 2.6335250335, pk: 45000 },
+    { name: "Torcy",                       lat: 48.8390276009, lon: 2.6550584298, pk: 47000 },
+    { name: "Bussy-Saint-Georges",         lat: 48.8371826388, lon: 2.7125386010, pk: 52000 },
+    { name: "Val d’Europe",                lat: 48.8561684149, lon: 2.7738274672, pk: 57000 },
+    { name: "Marne-la-Vallée – Chessy",    lat: 48.8707237150, lon: 2.7826307507, pk: 59000 }
+  ];
+
+  // Tous les points de gare (pour recherche la plus proche, tri, etc.)
+  const stations = troncCommun.concat(brancheBoissy, brancheChessy);
+
+  // Pour les accès : un accès par gare pour l’instant
+const accessPoints = [
+  {
+    name: "Gare de St Germain en Laye",
+    address: "Gare de St Germain en Laye",
+    pk: 0,
+    lat: 48.90389600,
+    lon: 2.10413400
+  },
+  {
+    name: "« Père Igor », 39 allée de la capitainerie / allée des gas Le Pecq",
+    address: "« Père Igor », 39 allée de la capitainerie / allée des gas Le Pecq",
+    pk: 1050,
+    lat: 48.90389410,
+    lon: 2.10404180
+  },
+  {
+    name: "Entre le 8 et le 10 allée des berceaux, Le Pecq (Accès difficile)",
+    address: "Entre le 8 et le 10 allée des berceaux, Le Pecq (Accès difficile)",
+    pk: 1100,
+    lat: 48.90419444,
+    lon: 2.10502778
+  },
+  {
+    name: "1 allée des Gas (accès difficile), Le Pecq",
+    address: "1 allée des Gas (accès difficile), Le Pecq",
+    pk: 1200,
+    lat: 48.90389890,
+    lon: 2.10613190
+  },
+  {
+    name: "21 bvd Folke Bernadotte, Le Pecq (2 accès chaque côté du pont RER)",
+    address: "21 bvd Folke Bernadotte, Le Pecq (2 accès chaque côté du pont RER)",
+    pk: 1750,
+    lat: 48.90280760,
+    lon: 2.11312440
+  },
+  {
+    name: "47 av. du centre (fin de route, cul-de-sac), Le Pecq",
+    address: "47 av. du centre (fin de route, cul-de-sac), Le Pecq",
+    pk: 1800,
+    lat: 48.90266080,
+    lon: 2.11381940
+  },
+  {
+    name: "63 route de Sartrouville, Le Pecq / 31 rue de Seine, Le Vésinet (de chaque côté du pont)",
+    address: "63 route de Sartrouville, Le Pecq / 31 rue de Seine, Le Vésinet (de chaque côté du pont)",
+    pk: 1855,
+    lat: 48.90248620,
+    lon: 2.11445710
+  },
+  {
+    name: "23 rue de seine, Le Vesinet",
+    address: "23 rue de seine, Le Vesinet",
+    pk: 1950,
+    lat: 48.90208930,
+    lon: 2.11583780
+  },
+  {
+    name: "5 ter rue de seine, Le Vesinet",
+    address: "5 ter rue de seine, Le Vesinet",
+    pk: 2300,
+    lat: 48.90016667,
+    lon: 2.11961111
+  },
+  {
+    name: "Sq. Watteau, Le Vésinet",
+    address: "Sq. Watteau, Le Vésinet",
+    pk: 2365,
+    lat: 48.89975000,
+    lon: 2.12088889
+  },
+  {
+    name: "Gare de Le Vesinet-Le Pecq",
+    address: "Gare de Le Vesinet-Le Pecq",
+    pk: 2505,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Le Vesinet PR, 8 rue Alexandre Dumas, Le Vesinet (grand portail)",
+    address: "Le Vesinet PR, 8 rue Alexandre Dumas, Le Vesinet (grand portail)",
+    pk: 2750,
+    lat: 48.89669444,
+    lon: 2.12341667
+  },
+  {
+    name: "100 av. Gallieni, Le Vésinet",
+    address: "100 av. Gallieni, Le Vésinet",
+    pk: 3100,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "54 av. Galliéni, 77 av. Emile Thiébault, Le Vésinet",
+    address: "54 av. Galliéni, 77 av. Emile Thiébault, Le Vésinet",
+    pk: 3460,
+    lat: 48.89200130,
+    lon: 2.12871240
+  },
+  {
+    name: "32 av. Galliéni, Le Vésinet",
+    address: "32 av. Galliéni, Le Vésinet",
+    pk: 3750,
+    lat: 48.89094210,
+    lon: 2.13186570
+  },
+  {
+    name: "Bout de quai de Vésinet Centre, 61 av. Emile Thiébault, Le Vésinet",
+    address: "Bout de quai de Vésinet Centre, 61 av. Emile Thiébault, Le Vésinet",
+    pk: 3808,
+    lat: 48.89060440,
+    lon: 2.13286440
+  },
+  {
+    name: "Gare de Le Vésinet Centre (côté V2 : 53 av. Maurice Berteaux, Le Vésinet)",
+    address: "Gare de Le Vésinet Centre (côté V2 : 53 av. Maurice Berteaux, Le Vésinet)",
+    pk: 3808,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Parking au croisement de av. Galliéni et rue Du Gal Clavery, Le Vésinet",
+    address: "Parking au croisement de av. Galliéni et rue Du Gal Clavery, Le Vésinet",
+    pk: 4060,
+    lat: 48.88966667,
+    lon: 2.13625000
+  },
+  {
+    name: "27 av. du Gal De Gaulle, Le Vésinet",
+    address: "27 av. du Gal De Gaulle, Le Vésinet",
+    pk: 4150,
+    lat: 48.88910410,
+    lon: 2.13773730
+  },
+  {
+    name: "2 bvd des États-Unis, Le Vésinet",
+    address: "2 bvd des États-Unis, Le Vésinet",
+    pk: 4400,
+    lat: 48.88791667,
+    lon: 2.14166667
+  },
+  {
+    name: "25 av. Maurice Bertaux, Le Vésinet",
+    address: "25 av. Maurice Bertaux, Le Vésinet",
+    pk: 4500,
+    lat: 48.88808333,
+    lon: 2.14105556
+  },
+  {
+    name: "29 avenue Charles Lambert, Châtou",
+    address: "29 avenue Charles Lambert, Châtou",
+    pk: 4890,
+    lat: 48.88650000,
+    lon: 2.14630556
+  },
+  {
+    name: "5 av. Charles Lambert, Châtou",
+    address: "5 av. Charles Lambert, Châtou",
+    pk: 5100,
+    lat: 48.88593117,
+    lon: 2.14874668
+  },
+  {
+    name: "25 av. du Maréchal Joffre, Châtou",
+    address: "25 av. du Maréchal Joffre, Châtou",
+    pk: 5250,
+    lat: 48.88558159,
+    lon: 2.15111261
+  },
+  {
+    name: "Gare de Châtou – Croissy",
+    address: "Gare de Châtou – Croissy",
+    pk: 5502,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Bout de quai V2 côté Paris : 2 av des Tilleuls, Châtou (fond de l’impasse)",
+    address: "Bout de quai V2 côté Paris : 2 av des Tilleuls, Châtou (fond de l’impasse)",
+    pk: 5727,
+    lat: 48.88516352,
+    lon: 2.15757085
+  },
+  {
+    name: "Mail des impressionnistes, Chatou (Île de Chatou,",
+    address: "Mail des impressionnistes, Chatou (Île de Chatou,",
+    pk: 5950,
+    lat: 48.88522222,
+    lon: 2.16013889
+  },
+  {
+    name: "Mail des impressionnistes, Chatou (Île de Chatou,",
+    address: "Mail des impressionnistes, Chatou (Île de Chatou,",
+    pk: 6070,
+    lat: 48.88547222,
+    lon: 2.16219444
+  },
+  {
+    name: "38 rue des Martinets, Rueil-Malmaison / 19 av. de Seine, Rueil-Malmaison",
+    address: "38 rue des Martinets, Rueil-Malmaison / 19 av. de Seine, Rueil-Malmaison",
+    pk: 6250,
+    lat: 48.88586272,
+    lon: 2.16488900
+  },
+  {
+    name: "27 av. de Seine, Rueil Malmaison",
+    address: "27 av. de Seine, Rueil Malmaison",
+    pk: 6430,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "PR de Rueil, Avenue de Colmar, Rueil-Malmaison",
+    address: "PR de Rueil, Avenue de Colmar, Rueil-Malmaison",
+    pk: 6570,
+    lat: 48.88666667,
+    lon: 2.16883333
+  },
+  {
+    name: "Gare de Rueil-Malmaison, 2 rue des 2 gares, Rueil-Malmaison",
+    address: "Gare de Rueil-Malmaison, 2 rue des 2 gares, Rueil-Malmaison",
+    pk: 6758,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Faisceau de Rueil, 143 bvd National, Rueil-Malmaison",
+    address: "Faisceau de Rueil, 143 bvd National, Rueil-Malmaison",
+    pk: 7500,
+    lat: 48.89034072,
+    lon: 2.17954308
+  },
+  {
+    name: "CAT Nanterre (accès par badge), 33 av. Henri Martin, Nanterre",
+    address: "CAT Nanterre (accès par badge), 33 av. Henri Martin, Nanterre",
+    pk: 8250,
+    lat: 48.89291667,
+    lon: 2.18800000
+  },
+  {
+    name: "Croisement 55 rue de Stalingrad / 57 bvd du Couchant, Nanterre",
+    address: "Croisement 55 rue de Stalingrad / 57 bvd du Couchant, Nanterre",
+    pk: 8500,
+    lat: 48.89447222,
+    lon: 2.19358333
+  },
+  {
+    name: "Gare de Nanterre Ville",
+    address: "Gare de Nanterre Ville",
+    pk: 8600,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "10 allée des Parfumeurs (fond de l’impasse), Nanterre (Parking difficile)",
+    address: "10 allée des Parfumeurs (fond de l’impasse), Nanterre (Parking difficile)",
+    pk: 9000,
+    lat: 48.89619076,
+    lon: 2.19848833
+  },
+  {
+    name: "Rd-pt 56 rue Pascal / 1 rue Paul Bert, Nanterre",
+    address: "Rd-pt 56 rue Pascal / 1 rue Paul Bert, Nanterre",
+    pk: 9200,
+    lat: 48.89711102,
+    lon: 2.20139055
+  },
+  {
+    name: "Cabane des signaux, 94 rue Pascal Nanterre",
+    address: "Cabane des signaux, 94 rue Pascal Nanterre",
+    pk: 9400,
+    lat: 48.89805290,
+    lon: 2.20437687
+  },
+  {
+    name: "118 rue Pascal Nanterre",
+    address: "118 rue Pascal Nanterre",
+    pk: 9650,
+    lat: 48.89871930,
+    lon: 2.20627078
+  },
+  {
+    name: "Passerelle Nanterre-Ville (2 accès de chaque côté de la passerelle), bvd Blaise Pascal, face au 1 allée Georges Courteline, Nanterre",
+    address: "Passerelle Nanterre-Ville (2 accès de chaque côté de la passerelle), bvd Blaise Pascal, face au 1 allée Georges Courteline, Nanterre",
+    pk: 9800,
+    lat: 48.89956965,
+    lon: 2.20894508
+  },
+  {
+    name: "1C / 2C (branche Cergy) (2 accès de chaque côté du pont), 83 bvd des Provinces Françaises, Nanterre",
+    address: "1C / 2C (branche Cergy) (2 accès de chaque côté du pont), 83 bvd des Provinces Françaises, Nanterre",
+    pk: 10050,
+    lat: 48.89977146,
+    lon: 2.21360501
+  },
+  {
+    name: "Gare de Nanterre Université",
+    address: "Gare de Nanterre Université",
+    pk: 10111,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Courbe de la Folie, Croisement 521 Bd des Provinces Françaises / allée d’Aquitaine, Nanterre",
+    address: "Courbe de la Folie, Croisement 521 Bd des Provinces Françaises / allée d’Aquitaine, Nanterre",
+    pk: 10450,
+    lat: 48.90204234,
+    lon: 2.21802275
+  },
+  {
+    name: "Gare de Nanterre Préfecture",
+    address: "Gare de Nanterre Préfecture",
+    pk: 11638,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "ADV 710 / 712 : passage par échelle au niveau de la baie de ventilation",
+    address: "ADV 710 / 712 : passage par échelle au niveau de la baie de ventilation",
+    pk: 12100,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Baie de ventilation, 26 rue des Longues Raies, Nanterre (accès avec la PP)",
+    address: "Baie de ventilation, 26 rue des Longues Raies, Nanterre (accès avec la PP)",
+    pk: 12430,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Bout de VA / VB à Défense",
+    address: "Bout de VA / VB à Défense",
+    pk: 12650,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Passage V2 / VB à Défense",
+    address: "Passage V2 / VB à Défense",
+    pk: 12730,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Gare de La Défense",
+    address: "Gare de La Défense",
+    pk: 12990,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Aire de stockage VA / VB de Défense",
+    address: "Aire de stockage VA / VB de Défense",
+    pk: 13280,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Musoir de Défense >–",
+    address: "Musoir de Défense >–",
+    pk: 13420,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Pont de Neuilly, 191 av. Ch. De Gaulle, Neuilly via la station de métro Pont de Neuilly (milieu de Quai dir. Château de Vincennes)",
+    address: "Pont de Neuilly, 191 av. Ch. De Gaulle, Neuilly via la station de métro Pont de Neuilly (milieu de Quai dir. Château de Vincennes)",
+    pk: 14934,
+    lat: 48.88446330,
+    lon: 2.26128519
+  },
+  {
+    name: "Nordling, Place Nordling, Neuilly sur Seine (entrée face au 5 rue Raoul Nordling)",
+    address: "Nordling, Place Nordling, Neuilly sur Seine (entrée face au 5 rue Raoul Nordling)",
+    pk: 16350,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Gare de Charles De Gaulle - Étoile",
+    address: "Gare de Charles De Gaulle - Étoile",
+    pk: 17563,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Accès pompier « Friedland », 147 bvd Haussmann, Paris 8e (entrée piéton du parking sur la rue)",
+    address: "Accès pompier « Friedland », 147 bvd Haussmann, Paris 8e (entrée piéton du parking sur la rue)",
+    pk: 18895,
+    lat: 48.87495190,
+    lon: 2.31164272
+  },
+  {
+    name: "Gare de Auber, 17 rue Scribe, 5 Rue des Mathurins",
+    address: "Gare de Auber, 17 rue Scribe, 5 Rue des Mathurins",
+    pk: 20201,
+    lat: 48.87290641,
+    lon: 2.32995737
+  },
+  {
+    name: "Musoir de Châtelet –<",
+    address: "Musoir de Châtelet –<",
+    pk: 21626,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Gare de Châtelet les Halles. Via souterrain des Halles (suivre « forum Nord »). Via station Les Halles L4 : 103 rue Rambuteau",
+    address: "Gare de Châtelet les Halles. Via souterrain des Halles (suivre « forum Nord »). Via station Les Halles L4 : 103 rue Rambuteau",
+    pk: 22077,
+    lat: 48.86269354,
+    lon: 2.34661165
+  },
+  {
+    name: "« Nicolas Flamel » (trappe) (À CONFIRMER), Angle 39 rue de Rivoli / 10 rue St Martin À côté du square de la tour St Jacques. Accès commun ligne A et B",
+    address: "« Nicolas Flamel » (trappe) (À CONFIRMER), Angle 39 rue de Rivoli / 10 rue St Martin À côté du square de la tour St Jacques. Accès commun ligne A et B",
+    pk: 22650,
+    lat: 48.85795843,
+    lon: 2.34956165
+  },
+  {
+    name: "← V1 / ← V2 (REDAN À CONFIRMER)",
+    address: "← V1 / ← V2 (REDAN À CONFIRMER)",
+    pk: 23180,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Par escaliers accès pompiers, Nonnains d'Hyères (trappe) 10-12 rue Nonnains d'Hyères, Paris 4e",
+    address: "Par escaliers accès pompiers, Nonnains d'Hyères (trappe) 10-12 rue Nonnains d'Hyères, Paris 4e",
+    pk: 23420,
+    lat: 48.85404139,
+    lon: 2.35854652
+  },
+  {
+    name: "Gare de Lyon, Accès face au 164 rue de Bercy, Paris 12e",
+    address: "Gare de Lyon, Accès face au 164 rue de Bercy, Paris 12e",
+    pk: 24902,
+    lat: 48.84319067,
+    lon: 2.37499372
+  },
+  {
+    name: "Les ruches (entrée du tunnel), 5 av. Gambetta, Saint-Mandé",
+    address: "Les ruches (entrée du tunnel), 5 av. Gambetta, Saint-Mandé",
+    pk: 28900,
+    lat: 48.84430170,
+    lon: 2.42007197
+  },
+  {
+    name: "Rampe en terre, 102 av. Aubert, Vincennes",
+    address: "Rampe en terre, 102 av. Aubert, Vincennes",
+    pk: 29350,
+    lat: 48.84620131,
+    lon: 2.42424566
+  },
+  {
+    name: "Gare de Vincennes",
+    address: "Gare de Vincennes",
+    pk: 29894,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Mairie de St-Mandé, 16 av. Pierre Brossolette, Vincennes",
+    address: "Mairie de St-Mandé, 16 av. Pierre Brossolette, Vincennes",
+    pk: 30660,
+    lat: 48.84694709,
+    lon: 2.44195127
+  },
+  {
+    name: "28 bvd de la libération, Vincennes",
+    address: "28 bvd de la libération, Vincennes",
+    pk: 31250,
+    lat: 48.84663889,
+    lon: 2.44977778
+  },
+  {
+    name: "Accès Pompiers, 1 Place du Maréchal-Lyautey, Vincennes",
+    address: "Accès Pompiers, 1 Place du Maréchal-Lyautey, Vincennes",
+    pk: 31400,
+    lat: 48.84619098,
+    lon: 2.45189408
+  },
+  {
+    name: "49 av. des Charmes, Fontenay sous Bois",
+    address: "49 av. des Charmes, Fontenay sous Bois",
+    pk: 31795,
+    lat: 48.84551317,
+    lon: 2.45553573
+  },
+  {
+    name: "Via la gare de Fontenay",
+    address: "Via la gare de Fontenay",
+    pk: 32460,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Gare de Val de Fontenay",
+    address: "Gare de Val de Fontenay",
+    pk: 34421,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "CAT VDF (accès par badge), 199 rue Carnot, Fontenay sous Bois",
+    address: "CAT VDF (accès par badge), 199 rue Carnot, Fontenay sous Bois",
+    pk: 34660,
+    lat: 48.85463889,
+    lon: 2.48977778
+  },
+  {
+    name: "« Le bateau », Chemin de la Prairie, Neuilly Plaisance",
+    address: "« Le bateau », Chemin de la Prairie, Neuilly Plaisance",
+    pk: 35200,
+    lat: 48.85713889,
+    lon: 2.49594444
+  },
+  {
+    name: "18 rue Pasteur Neuilly Plaisance",
+    address: "18 rue Pasteur Neuilly Plaisance",
+    pk: 35500,
+    lat: 48.85746827,
+    lon: 2.49998451
+  },
+  {
+    name: "Gare de Neuilly Plaisance",
+    address: "Gare de Neuilly Plaisance",
+    pk: 36630,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "PR de Bry (fin du viaduc)",
+    address: "PR de Bry (fin du viaduc)",
+    pk: 37050,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "30 rue du Général Leclerc, Bry-sur-Marne",
+    address: "30 rue du Général Leclerc, Bry-sur-Marne",
+    pk: 37100,
+    lat: 48.83272275,
+    lon: 2.52168104
+  },
+  {
+    name: "145 bvd de la Liberté, Bry-sur-Marne",
+    address: "145 bvd de la Liberté, Bry-sur-Marne",
+    pk: 37300,
+    lat: 48.83562965,
+    lon: 2.49469926
+  },
+  {
+    name: "Gare de Bry-sur-Marne",
+    address: "Gare de Bry-sur-Marne",
+    pk: 37892,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "121 bvd de la Liberté (Accès difficile), Bry-sur-Marne",
+    address: "121 bvd de la Liberté (Accès difficile), Bry-sur-Marne",
+    pk: 38130,
+    lat: 48.84838889,
+    lon: 2.53066667
+  },
+  {
+    name: "Parking 23 bvd G. Clémenceau, Bry-sur-Marne",
+    address: "Parking 23 bvd G. Clémenceau, Bry-sur-Marne",
+    pk: 38500,
+    lat: 48.84262630,
+    lon: 2.52663406
+  },
+  {
+    name: "Rue des Pâtis, Bry-sur-Marne",
+    address: "Rue des Pâtis, Bry-sur-Marne",
+    pk: 38800,
+    lat: 48.84436111,
+    lon: 2.53772222
+  },
+  {
+    name: "Parking du RER (4 accès), 3 av. Jean Kiffer, Champigny-sur-Marne",
+    address: "Parking du RER (4 accès), 3 av. Jean Kiffer, Champigny-sur-Marne",
+    pk: 39400,
+    lat: 48.84175000,
+    lon: 2.54502778
+  },
+  {
+    name: "Gare de Champigny",
+    address: "Gare de Champigny",
+    pk: 39529,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "39 av. J. Baptiste Clément, Champigny-sur-Marne",
+    address: "39 av. J. Baptiste Clément, Champigny-sur-Marne",
+    pk: 39950,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "13 av. Foch, Champigny-sur-Marne",
+    address: "13 av. Foch, Champigny-sur-Marne",
+    pk: 40200,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "19 av. du Maréchal Leclerc, La Varenne",
+    address: "19 av. du Maréchal Leclerc, La Varenne",
+    pk: 40500,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "37 av. Foch, La Varenne",
+    address: "37 av. Foch, La Varenne",
+    pk: 40850,
+    lat: 48.83088889,
+    lon: 2.56069444
+  },
+  {
+    name: "Gare de La Varenne - Chennevières",
+    address: "Gare de La Varenne - Chennevières",
+    pk: 41229,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "60 av. du Maréchal Leclerc, La Varenne",
+    address: "60 av. du Maréchal Leclerc, La Varenne",
+    pk: 41700,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "118 av. du Maréchal Leclerc, La Varenne",
+    address: "118 av. du Maréchal Leclerc, La Varenne",
+    pk: 42150,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "150 av. du Maréchal Leclerc, La Varenne",
+    address: "150 av. du Maréchal Leclerc, La Varenne",
+    pk: 42600,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "102 av. du Général De Gaulle, Sucy-en-Brie",
+    address: "102 av. du Général De Gaulle, Sucy-en-Brie",
+    pk: 42750,
+    lat: 48.81308333,
+    lon: 2.57508333
+  },
+  {
+    name: "191 av. du Général De Gaulle, Sucy-en-Brie",
+    address: "191 av. du Général De Gaulle, Sucy-en-Brie",
+    pk: 43500,
+    lat: 48.80919444,
+    lon: 2.58255556
+  },
+  {
+    name: "Gare de Sucy-Bonneuil",
+    address: "Gare de Sucy-Bonneuil",
+    pk: 44577,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "« La cantine » 11 chemin vert (accès au niveau du pont), Sucy en Brie",
+    address: "« La cantine » 11 chemin vert (accès au niveau du pont), Sucy en Brie",
+    pk: 45150,
+    lat: 48.76594444,
+    lon: 2.50536111
+  },
+  {
+    name: "Voie Mexico, Rue de Villeneuve, Boissy St Léger",
+    address: "Voie Mexico, Rue de Villeneuve, Boissy St Léger",
+    pk: 45800,
+    lat: 48.75961111,
+    lon: 2.50802778
+  },
+  {
+    name: "Atelier MRF Sucy, 13 chemin vert, Sucy en brie",
+    address: "Atelier MRF Sucy, 13 chemin vert, Sucy en brie",
+    pk: 46200,
+    lat: 48.76529003,
+    lon: 2.50217879
+  },
+  {
+    name: "Gare de Boissy-Saint-Léger",
+    address: "Gare de Boissy-Saint-Léger",
+    pk: 47795,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "PST Sucy",
+    address: "PST Sucy",
+    pk: 47780,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Bvd Georges Clémenceau",
+    address: "Bvd Georges Clémenceau",
+    pk: 47380,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "20 av. de l'hippodrome, La Varenne",
+    address: "20 av. de l'hippodrome, La Varenne",
+    pk: 44050,
+    lat: 48.86168940,
+    lon: 2.21708690
+  },
+  {
+    name: "17 route de Brétigny, Bonneuil sur marne (Portail à droite avant le pont)",
+    address: "17 route de Brétigny, Bonneuil sur marne (Portail à droite avant le pont)",
+    pk: 43160,
+    lat: 48.78379361,
+    lon: 2.50701747
+  },
+  {
+    name: "253 bvd de Créteil, St Maur des fossés",
+    address: "253 bvd de Créteil, St Maur des fossés",
+    pk: 42500,
+    lat: 48.78880556,
+    lon: 2.49950000
+  },
+  {
+    name: "PR de St Maur (3 accès), bvd de Créteil St Maur des fossés",
+    address: "PR de St Maur (3 accès), bvd de Créteil St Maur des fossés",
+    pk: 41500,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "16 allée du Petit Parc, St Maur des fossés",
+    address: "16 allée du Petit Parc, St Maur des fossés",
+    pk: 41200,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "20 bvd de Créteil, St Maur des fossés",
+    address: "20 bvd de Créteil, St Maur des fossés",
+    pk: 40850,
+    lat: 48.80272222,
+    lon: 2.48561111
+  },
+  {
+    name: "Gare de St-Maur - Créteil",
+    address: "Gare de St-Maur - Créteil",
+    pk: 40750,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "50 av. du Bac, St Maur des fossés",
+    address: "50 av. du Bac, St Maur des fossés",
+    pk: 39500,
+    lat: 48.79488373,
+    lon: 2.51269474
+  },
+  {
+    name: "86 av. du Bac, St Maur des fossés",
+    address: "86 av. du Bac, St Maur des fossés",
+    pk: 39150,
+    lat: 48.79407368,
+    lon: 2.51247564
+  },
+  {
+    name: "Gare de Le Parc de St-Maur",
+    address: "Gare de Le Parc de St-Maur",
+    pk: 38623,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "76 av. du Maréchal Lyautey, St Maur des fossés",
+    address: "76 av. du Maréchal Lyautey, St Maur des fossés",
+    pk: 38450,
+    lat: 48.81013889,
+    lon: 2.47586111
+  },
+  {
+    name: "3 av. de la Terrasse, St Maur des fossés",
+    address: "3 av. de la Terrasse, St Maur des fossés",
+    pk: 37950,
+    lat: 48.81394444,
+    lon: 2.46969444
+  },
+  {
+    name: "20 av. de Condé, St Maur des fossés",
+    address: "20 av. de Condé, St Maur des fossés",
+    pk: 37550,
+    lat: 48.81722222,
+    lon: 2.46483333
+  },
+  {
+    name: "Gare de St-Maur - L'Écluse",
+    address: "Gare de St-Maur - L'Écluse",
+    pk: 37476,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "3 av. Jean Brossolette, St Maur des fossés",
+    address: "3 av. Jean Brossolette, St Maur des fossés",
+    pk: 37200,
+    lat: 48.80636689,
+    lon: 2.49329289
+  },
+  {
+    name: "1 av. de Condé, St Maur des fossés",
+    address: "1 av. de Condé, St Maur des fossés",
+    pk: 37050,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Gare de Joinville-le-Pont",
+    address: "Gare de Joinville-le-Pont",
+    pk: 35800,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "32 av. Foch, Joinville-le-Pont",
+    address: "32 av. Foch, Joinville-le-Pont",
+    pk: 35600,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "16 quai de Polangis, Joinville-le-Pont",
+    address: "16 quai de Polangis, Joinville-le-Pont",
+    pk: 35300,
+    lat: 48.82212116,
+    lon: 2.46435795
+  },
+  {
+    name: "47 bvd de l'Europe, Joinville-le-Pont",
+    address: "47 bvd de l'Europe, Joinville-le-Pont",
+    pk: 35150,
+    lat: 48.81500797,
+    lon: 2.46438259
+  },
+  {
+    name: "4 rue de l'Espérance, Joinville-le-Pont",
+    address: "4 rue de l'Espérance, Joinville-le-Pont",
+    pk: 35000,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "6 av. des Tilleuls, Nogent-sur-Marne",
+    address: "6 av. des Tilleuls, Nogent-sur-Marne",
+    pk: 34800,
+    lat: 48.83143509,
+    lon: 2.47019678
+  },
+  {
+    name: "20 bvd de la Marne, Nogent-sur-Marne",
+    address: "20 bvd de la Marne, Nogent-sur-Marne",
+    pk: 34650,
+    lat: 48.83182648,
+    lon: 2.47057077
+  },
+  {
+    name: "Gare de Nogent-sur-Marne",
+    address: "Gare de Nogent-sur-Marne",
+    pk: 34020,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "60 bvd de la République, Nogent-sur-Marne",
+    address: "60 bvd de la République, Nogent-sur-Marne",
+    pk: 33700,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "20 bvd de la Marne, Nogent-sur-Marne",
+    address: "20 bvd de la Marne, Nogent-sur-Marne",
+    pk: 33550,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "155 av. du Général Leclerc, Nogent-sur-Marne",
+    address: "155 av. du Général Leclerc, Nogent-sur-Marne",
+    pk: 33450,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "5 rue des Hautes Plainses, Fontenay (Accès difficile)",
+    address: "5 rue des Hautes Plainses, Fontenay (Accès difficile)",
+    pk: 33200,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Gare de Fontenay",
+    address: "Gare de Fontenay",
+    pk: 32890,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "5 av. Gambetta, Saint-Mandé",
+    address: "5 av. Gambetta, Saint-Mandé",
+    pk: 32200,
+    lat: 48.84437790,
+    lon: 2.42016489
+  },
+  {
+    name: "145 av. du Général Leclerc, St Mandé",
+    address: "145 av. du Général Leclerc, St Mandé",
+    pk: 31950,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "PR de Bry (fin du viaduc) / 8 Rue du Vingt Six Août 1944, Bry-sur-Marne",
+    address: "PR de Bry (fin du viaduc) / 8 Rue du Vingt Six Août 1944, Bry-sur-Marne",
+    pk: 37100,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Sortie du parc de Bry / 86 av. de Rigny, Bry-sur-Marne",
+    address: "Sortie du parc de Bry / 86 av. de Rigny, Bry-sur-Marne",
+    pk: 37700,
+    lat: 48.84683028,
+    lon: 2.52364667
+  },
+  {
+    name: "Gare de Bry-sur-Marne",
+    address: "Gare de Bry-sur-Marne",
+    pk: 37835,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Parc de Bry / 127 bvd Gallieni, Bry-sur-Marne",
+    address: "Parc de Bry / 127 bvd Gallieni, Bry-sur-Marne",
+    pk: 38050,
+    lat: 48.84528599,
+    lon: 2.52629374
+  },
+  {
+    name: "66 av Georges Clémenceau, Bry-sur-Marne",
+    address: "66 av Georges Clémenceau, Bry-sur-Marne",
+    pk: 38200,
+    lat: 48.84301133,
+    lon: 2.52677550
+  },
+  {
+    name: "11 rue des Templiers / 14 rue de la Croix aux Biches, Bry-sur-Marne",
+    address: "11 rue des Templiers / 14 rue de la Croix aux Biches, Bry-sur-Marne",
+    pk: 38380,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "« Razel » / 1 rue des Vignes, Bry-sur-Marne",
+    address: "« Razel » / 1 rue des Vignes, Bry-sur-Marne",
+    pk: 38600,
+    lat: 48.84108994,
+    lon: 2.53137569
+  },
+  {
+    name: "Gare de Noisy le Gd – Mt d'Est (Accès ascenseur bout de quai 2)",
+    address: "Gare de Noisy le Gd – Mt d'Est (Accès ascenseur bout de quai 2)",
+    pk: 39749,
+    lat: 48.84177778,
+    lon: 2.54927778
+  },
+  {
+    name: "Escalier métallique / Face au 14 av. du Pavé Neuf, Noisy-le-Grand",
+    address: "Escalier métallique / Face au 14 av. du Pavé Neuf, Noisy-le-Grand",
+    pk: 40200,
+    lat: 48.84055556,
+    lon: 2.55380556
+  },
+  {
+    name: "1 Rue du Marnois Noisy-le-Grand",
+    address: "1 Rue du Marnois Noisy-le-Grand",
+    pk: 40680,
+    lat: 48.84092116,
+    lon: 2.56042493
+  },
+  {
+    name: "A proximité du 120 rue Malnoue, Noisy-le-Grand",
+    address: "A proximité du 120 rue Malnoue, Noisy-le-Grand",
+    pk: 41350,
+    lat: 48.84144444,
+    lon: 2.56930556
+  },
+  {
+    name: "(Accès à confirmer) / A proximité du 21 rue du Maréchal Juin (Accès difficile), Noisy-le-Grand",
+    address: "(Accès à confirmer) / A proximité du 21 rue du Maréchal Juin (Accès difficile), Noisy-le-Grand",
+    pk: 41530,
+    lat: 48.84204558,
+    lon: 2.57206337
+  },
+  {
+    name: "Rue des Hauts Châteaux / Noisy-le-Grand",
+    address: "Rue des Hauts Châteaux / Noisy-le-Grand",
+    pk: 41725,
+    lat: 48.84252778,
+    lon: 2.57372222
+  },
+  {
+    name: "Gare de Noisy-Champs",
+    address: "Gare de Noisy-Champs",
+    pk: 42058,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Fin de quai / Avant le 1 bvd Archimède, Champs-sur-Marne",
+    address: "Fin de quai / Avant le 1 bvd Archimède, Champs-sur-Marne",
+    pk: 42340,
+    lat: 48.84309131,
+    lon: 2.58204106
+  },
+  {
+    name: "« Les sangliers » / Route de Malnoue (PR Noisiel), Champs-sur-Marne",
+    address: "« Les sangliers » / Route de Malnoue (PR Noisiel), Champs-sur-Marne",
+    pk: 43750,
+    lat: 48.84188889,
+    lon: 2.60125000
+  },
+  {
+    name: "42 cours du Luzard (accès de chaque côté du pont), Champs-sur-Marne",
+    address: "42 cours du Luzard (accès de chaque côté du pont), Champs-sur-Marne",
+    pk: 44050,
+    lat: 48.84247222,
+    lon: 2.60525000
+  },
+  {
+    name: "Gare de Noisiel (Le Luzard)",
+    address: "Gare de Noisiel (Le Luzard)",
+    pk: 44754,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "2 allée Jean Paul Sartre / Cours du Buisson (2 accès Rdpt Bvd Salvador Allendé), Noisiel",
+    address: "2 allée Jean Paul Sartre / Cours du Buisson (2 accès Rdpt Bvd Salvador Allendé), Noisiel",
+    pk: 45080,
+    lat: 48.84366667,
+    lon: 2.61972222
+  },
+  {
+    name: "« Chocolaterie » / 111 grande allée du 12 février 1934, Noisiel",
+    address: "« Chocolaterie » / 111 grande allée du 12 février 1934, Noisiel",
+    pk: 45490,
+    lat: 48.84213889,
+    lon: 2.62422222
+  },
+  {
+    name: "Bv de la Malvoisine, Lognes",
+    address: "Bv de la Malvoisine, Lognes",
+    pk: 45900,
+    lat: 48.84027778,
+    lon: 2.62963889
+  },
+  {
+    name: "Gare de Lognes / Accès parking 18 rue Nicolas Appert",
+    address: "Gare de Lognes / Accès parking 18 rue Nicolas Appert",
+    pk: 46107,
+    lat: 48.83947222,
+    lon: 2.63150000
+  },
+  {
+    name: "« Les paraboles » / Vers le 11 Bvd Frédéric Chopin, Lognes",
+    address: "« Les paraboles » / Vers le 11 Bvd Frédéric Chopin, Lognes",
+    pk: 47100,
+    lat: 48.83830556,
+    lon: 2.64500000
+  },
+  {
+    name: "Gare de Torcy (2 accès : 2 av. Jean Moulin / 2 Rue Léon Blum)",
+    address: "Gare de Torcy (2 accès : 2 av. Jean Moulin / 2 Rue Léon Blum)",
+    pk: 47757,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Parking parc (côté Torcy) / D128, Bussy-Saint-Martin",
+    address: "Parking parc (côté Torcy) / D128, Bussy-Saint-Martin",
+    pk: 48150,
+    lat: 48.84038889,
+    lon: 2.65830556
+  },
+  {
+    name: "MRF V19 (côté Chessy) / Rd-pt de la grille noire, Bussy-Saint-Martin",
+    address: "MRF V19 (côté Chessy) / Rd-pt de la grille noire, Bussy-Saint-Martin",
+    pk: 48700,
+    lat: 48.84186111,
+    lon: 2.66744444
+  },
+  {
+    name: "1 Av. Michel Chartier, Bussy-Saint-Martin",
+    address: "1 Av. Michel Chartier, Bussy-Saint-Martin",
+    pk: 48850,
+    lat: 48.84116667,
+    lon: 2.66863889
+  },
+  {
+    name: "« Croix Blanche » (Accès difficile) / Entrée parking à côté du 3 All. du Parc, Collégien",
+    address: "« Croix Blanche » (Accès difficile) / Entrée parking à côté du 3 All. du Parc, Collégien",
+    pk: 49550,
+    lat: 48.83922222,
+    lon: 2.67655556
+  },
+  {
+    name: "« Les Bordes » (Accès difficile) / 41 rue de la brosse, Collégien",
+    address: "« Les Bordes » (Accès difficile) / 41 rue de la brosse, Collégien",
+    pk: 50250,
+    lat: 48.83558333,
+    lon: 2.68463889
+  },
+  {
+    name: "« Les gitans » / Rue de la Butte de Vaux, Collégien",
+    address: "« Les gitans » / Rue de la Butte de Vaux, Collégien",
+    pk: 51150,
+    lat: 48.83513889,
+    lon: 2.69605556
+  },
+  {
+    name: "Bvd de Lagny, Bussy-Saint-Georges",
+    address: "Bvd de Lagny, Bussy-Saint-Georges",
+    pk: 51850,
+    lat: 48.83600000,
+    lon: 2.70575000
+  },
+  {
+    name: "Gare de Bussy-Saint-Georges",
+    address: "Gare de Bussy-Saint-Georges",
+    pk: 52099,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "« La ferme » (Accès piéton et véhicule) / 7 allée Madame de Montespan, Bussy-Saint-Georges",
+    address: "« La ferme » (Accès piéton et véhicule) / 7 allée Madame de Montespan, Bussy-Saint-Georges",
+    pk: 53350,
+    lat: 48.83874883,
+    lon: 2.72748201
+  },
+  {
+    name: "Croisement av. du Général de Gaulle / 17 Bd des 100 Arpents, Bussy-Saint-Georges",
+    address: "Croisement av. du Général de Gaulle / 17 Bd des 100 Arpents, Bussy-Saint-Georges",
+    pk: 54100,
+    lat: 48.84200000,
+    lon: 2.73833333
+  },
+  {
+    name: "« PER Jossigny » (Accès piéton et véhicule) / Rd-pt sur av. de l'europe (D10), Jossigny",
+    address: "« PER Jossigny » (Accès piéton et véhicule) / Rd-pt sur av. de l'europe (D10), Jossigny",
+    pk: 55100,
+    lat: 48.84519444,
+    lon: 2.74533333
+  },
+  {
+    name: "(Accès à confirmer) / 77 Rue de la Charbonnière (derrière le pont), Montévrain",
+    address: "(Accès à confirmer) / 77 Rue de la Charbonnière (derrière le pont), Montévrain",
+    pk: 56560,
+    lat: 48.85341667,
+    lon: 2.76950000
+  },
+  {
+    name: "« Les lapins » (Accès piéton et véhicule) / D231, Jossigny",
+    address: "« Les lapins » (Accès piéton et véhicule) / D231, Jossigny",
+    pk: 56650,
+    lat: 48.85063889,
+    lon: 2.76561111
+  },
+  {
+    name: "Gare de Val d'Europe",
+    address: "Gare de Val d'Europe",
+    pk: 57150,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "PER Chessy (Accès piéton et véhicule) / Av. Hergé, Chessy",
+    address: "PER Chessy (Accès piéton et véhicule) / Av. Hergé, Chessy",
+    pk: 58500,
+    lat: 48.86172222,
+    lon: 2.78038889
+  },
+  {
+    name: "Disney / Rue Morris, Chessy",
+    address: "Disney / Rue Morris, Chessy",
+    pk: 58800,
+    lat: 48.86652778,
+    lon: 2.78127778
+  },
+  {
+    name: "Gare de Chessy / Via hôtel Disney's New York, Rue de la Marnière",
+    address: "Gare de Chessy / Via hôtel Disney's New York, Rue de la Marnière",
+    pk: 59078,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "(Accès à confirmer) Arrière gare de Chessy / Zone de service, Coupvray (parking)",
+    address: "(Accès à confirmer) Arrière gare de Chessy / Zone de service, Coupvray (parking)",
+    pk: 59700,
+    lat: null,
+    lon: null
+  },
+];
+
+  // On ajoute automatiquement chaque gare comme un "accès" supplémentaire
+  for (const st of stations) {
+    accessPoints.push({
+      name: "Gare de " + st.name,
+      // Adresse à affiner plus tard à partir de ton fichier complet
+      address: "Gare RER A " + st.name,
+      pk: st.pk,
+      lat: st.lat,
+      lon: st.lon,
+      nearestStation: st.name
+    });
+  }
+
+   // Attribue une branche simple à chaque accès
+  // (tronc commun = both, le reste on laissera null)
+  for (const acc of accessPoints) {
+    if (acc.pk <= 34000) {
+      acc.branch = "both"; // tronçon commun
+    } else {
+      acc.branch = null;   // on déterminera la branche à la volée si besoin
+    }
+  }
+
+  // Ligne courante utilisée pour la projection (tronc + branche selon où tu es)
+let currentBranch = "chessy";
+let linePoints = troncCommun.concat(brancheChessy);
+// Polylignes calibrées (remplies à partir des accessPoints + recalages)
+let linePointsBoissy = null;
+let linePointsChessy = null;
+
+
+
+  const sensitivityProfiles = {
+    slow:   { idle: 0.15, walk: 1.5 },
+    normal: { idle: 0.30, walk: 2.5 },
+    train:  { idle: 1.00, walk: 6.0 }
+  };
+
+  const state = {
+    watchId: null,
+    lastRawPk: null,
+    lastPk: null,
+    lastPkTime: null,
+    lastLat: null,
+    lastLon: null,
+    lastDist: null,
+    lastAccuracy: null, // AJOUT CALIBRAGE : précision GPS
+    direction: null,
+    nearestStation: null,
+    nearestAccess: null
+  };
+
+  let pkOffset = 0;
+  let sosPhone = "";
+  let motionSensitivity = "normal";
+  let pkTarget = null;
+  let lastPkLookupAccess = null;
+
+  // === AJOUT CALIBRAGE : stockage des recalages locaux + fichier partagé ===
+  const LOCAL_CAL_KEY = "pkCalibrations";
+  let localCalibrations = [];
+  let sharedCalibrations = [];
+
+  function loadLocalCalibrations() {
+    const raw = safeGetItem(LOCAL_CAL_KEY);
+    if (!raw) {
+      localCalibrations = [];
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      localCalibrations = Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      console.warn("Erreur de parsing pkCalibrations :", e);
+      localCalibrations = [];
+    }
+  }
+
+  function saveLocalCalibrations() {
+    try {
+      safeSetItem(LOCAL_CAL_KEY, JSON.stringify(localCalibrations));
+    } catch (e) {
+      console.warn("Erreur lors de la sauvegarde pkCalibrations :", e);
+    }
+  }
+
+// === AJOUT CALIBRAGE : fichier partagé optionnel =========================
+async function loadSharedCalibrations() {
+  try {
+    const resp = await fetch("data/calibrations.json", { cache: "no-store" });
+    if (!resp.ok) {
+      console.log("Aucun calibrage partagé (data/calibrations.json).");
+      return;
+    }
+    const data = await resp.json();
+    if (Array.isArray(data)) {
+      sharedCalibrations = data;
+      console.log("Calibrages partagés chargés :", sharedCalibrations.length);
+    }
+  } catch (e) {
+    console.log("Impossible de charger les calibrages partagés :", e);
+  }
+}
+// Laisse l’appel désactivé tant que le fichier n’existe pas :
+// loadSharedCalibrations();
+
+
+  function exportLocalCalibrationsForGitHub() {
+    if (!localCalibrations.length) {
+      alert("Tu n'as encore enregistré aucun recalage PK.");
+      return;
+    }
+
+    const dataStr = JSON.stringify(localCalibrations, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const now = new Date();
+    const stamp = now.toISOString().replace(/[:.]/g, "-");
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "pk-calibrations-local-" + stamp + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  // === FIN AJOUT CALIBRAGE ===
+
+  const gpsStatusBadge = document.getElementById("gpsStatusBadge");
+  const geolocText = document.getElementById("geolocText");
+  const btnToggleGeoloc = document.getElementById("btnToggleGeoloc");
+
+  const nearestStationName = document.getElementById("nearestStationName");
+  const nearestStationInfo = document.getElementById("nearestStationInfo");
+
+  const movementTitle = document.getElementById("movementTitle");
+  const movementDetails = document.getElementById("movementDetails");
+
+  const nextStationName = document.getElementById("nextStationName");
+  const nextStationInfo = document.getElementById("nextStationInfo");
+
+  const pkTargetLabel = document.getElementById("pkTargetLabel");
+  const pkTargetInfo = document.getElementById("pkTargetInfo");
+  const inputPkTarget = document.getElementById("inputPkTarget");
+  const btnSetPkTarget = document.getElementById("btnSetPkTarget");
+
+  const accessList = document.getElementById("accessList");
+
+  const smsPreview = document.getElementById("smsPreview");
+  const btnSms = document.getElementById("btnSms");
+
+  const pkCurrentValue = document.getElementById("pkCurrentValue");
+  const pkCurrentDetails = document.getElementById("pkCurrentDetails");
+
+  const toggleOrientation = document.getElementById("toggleOrientation");
+const orientationCard   = document.getElementById("orientationCard");
+
+  const btnSettingsToggle = document.getElementById("btnSettingsToggle");
+  const settingsPanel = document.getElementById("settingsPanel");
+
+  const inputSosPhone = document.getElementById("inputSosPhone");
+  const selectSensitivity = document.getElementById("selectSensitivity");
+  const pkOffsetInfo = document.getElementById("pkOffsetInfo");
+  const pkEstimateText = document.getElementById("pkEstimateText");
+  const inputPkRecal = document.getElementById("inputPkRecal");
+  const btnApplyRecal = document.getElementById("btnApplyRecal");
+  const btnResetOffset = document.getElementById("btnResetOffset");
+  const btnSaveSettings = document.getElementById("btnSaveSettings");
+
+  const inputPkLookup = document.getElementById("inputPkLookup");
+  const btnPkLookup = document.getElementById("btnPkLookup");
+  const pkLookupResultField = document.getElementById("pkLookupResultField");
+  const pkLookupResult = document.getElementById("pkLookupResult");
+  const btnPkLookupOpenMaps = document.getElementById("btnPkLookupOpenMaps");
+  const btnPkLookupOpenWaze = document.getElementById("btnPkLookupOpenWaze");
+
+  const selectIncidentType = document.getElementById("selectIncidentType");
+  const incidentOtherField = document.getElementById("incidentOtherField");
+  const inputIncidentOther = document.getElementById("inputIncidentOther");
+  const incidentPhotoInput = document.getElementById("incidentPhoto");
+  const btnGenerateIncident = document.getElementById("btnGenerateIncident");
+  const incidentResultField = document.getElementById("incidentResultField");
+  const incidentResultText = document.getElementById("incidentResultText");
+  const btnCopyIncident = document.getElementById("btnCopyIncident");
+
+  // AJOUT CALIBRAGE : bouton d’export
+  const btnExportCalibrations = document.getElementById("btnExportCalibrations");
+
+  function formatPk(pkMeters) {
+    if (pkMeters == null || isNaN(pkMeters)) return "—";
+    const m = Math.round(pkMeters);
+    const km = Math.floor(m / 1000);
+    const rest = m % 1000;
+    return km + "+" + rest.toString().padStart(3, "0");
+  }
+
+  function parsePkInput(str) {
+    if (!str) return null;
+    str = String(str).trim().replace(/\s+/g, "");
+    if (/^\d+\+\d+$/.test(str)) {
+      const [km, r] = str.split("+");
+      return parseInt(km, 10) * 1000 + parseInt(r, 10);
+    }
+    if (/^\d+$/.test(str)) {
+      return parseInt(str, 10);
+    }
+    return null;
+  }
+
+  function distanceMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const toRad = x => x * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2)**2 +
+              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+              Math.sin(dLon/2)**2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  function projectToSegment(lat, lon, a, b) {
+    const meanLat = (a.lat + b.lat) / 2 * Math.PI/180;
+    const cosLat = Math.cos(meanLat);
+
+    const ax = a.lon * cosLat;
+    const ay = a.lat;
+    const bx = b.lon * cosLat;
+    const by = b.lat;
+    const px = lon * cosLat;
+    const py = lat;
+
+    const vx = bx - ax;
+    const vy = by - ay;
+    const wx = px - ax;
+    const wy = py - ay;
+
+    const c1 = vx * wx + vy * wy;
+    const c2 = vx * vx + vy * vy;
+    let t = c2 > 0 ? c1 / c2 : 0;
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+
+    const latProj = a.lat + (b.lat - a.lat) * t;
+    const lonProj = a.lon + (b.lon - a.lon) * t;
+    const pkProj = a.pk + (b.pk - a.pk) * t;
+    const dist = distanceMeters(lat, lon, latProj, lonProj);
+
+    return { latProj, lonProj, pkProj, dist };
+  }
+
+  function projectToLine(lat, lon) {
+    let best = { dist: Infinity, pkProj: null, latProj: null, lonProj: null };
+    for (let i = 0; i < linePoints.length - 1; i++) {
+      const a = linePoints[i];
+      const b = linePoints[i+1];
+      const res = projectToSegment(lat, lon, a, b);
+      if (res.dist < best.dist) {
+        best = { dist: res.dist, pkProj: res.pkProj, latProj: res.latProj, lonProj: res.lonProj };
+      }
+    }
+    return best;
+  }
+
+  // 👇👇 AJOUTE TOUT CE BLOC ICI 👇👇
+function buildCalibrationPolylines() {
+  const calibTronc  = [];
+  const calibBoissy = [];
+  const calibChessy = [];
+
+  // Version "grossière" pour séparer Boissy / Chessy à partir d’un point
+  function roughBranchFromLatLon(lat, lon) {
+    const boissyRef = brancheBoissy[0];
+    const chessyRef = brancheChessy[0];
+    const dBoissy = distanceMeters(lat, lon, boissyRef.lat, boissyRef.lon);
+    const dChessy = distanceMeters(lat, lon, chessyRef.lat, chessyRef.lon);
+    return dBoissy < dChessy ? "boissy" : "chessy";
+  }
+
+  // Ajoute un point de calibration dans les bons tableaux
+  function addCalibPoint(pk, lat, lon, branchHint) {
+    if (pk == null || lat == null || lon == null) return;
+    const calPoint = { pk, lat, lon };
+
+    // Tronc commun → [0, 34000] comme pour les accès
+    if (pk <= 34000) {
+      calibTronc.push(calPoint);
+      return;
+    }
+
+    let branch = branchHint;
+    if (!branch || branch === "both") {
+      branch = roughBranchFromLatLon(lat, lon);
+    }
+
+    if (branch === "boissy") {
+      calibBoissy.push(calPoint);
+    } else if (branch === "chessy") {
+      calibChessy.push(calPoint);
+    }
+  }
+
+  // 1) Points issus des accessPoints eux-mêmes (tes 191 accès + les gares ajoutées)
+  for (const acc of accessPoints) {
+    addCalibPoint(acc.pk, acc.lat, acc.lon, acc.branch);
+  }
+
+  // 2) Points issus des recalages PK (local + partagé)
+  const allCals = [];
+  if (Array.isArray(sharedCalibrations)) allCals.push(...sharedCalibrations);
+  if (Array.isArray(localCalibrations))  allCals.push(...localCalibrations);
+
+  for (const c of allCals) {
+    if (!c) continue;
+    const pk = c.pkExact != null ? c.pkExact : c.pk;
+    addCalibPoint(pk, c.lat, c.lon, c.branch);
+  }
+
+  // Tri par PK
+  calibTronc.sort((a, b) => a.pk - b.pk);
+  calibBoissy.sort((a, b) => a.pk - b.pk);
+  calibChessy.sort((a, b) => a.pk - b.pk);
+
+  // Poly-ligne calibrée Boissy = tronc commun + branche Boissy + points de calibration
+  linePointsBoissy = troncCommun
+    .concat(calibTronc, brancheBoissy, calibBoissy)
+    .sort((a, b) => a.pk - b.pk);
+
+  // Poly-ligne calibrée Chessy = tronc commun + branche Chessy + points de calibration
+  linePointsChessy = troncCommun
+    .concat(calibTronc, brancheChessy, calibChessy)
+    .sort((a, b) => a.pk - b.pk);
+}
+
+  function findNearestStation(pk, branch) {
+    if (pk == null) return null;
+    let list;
+    if (branch === "boissy") {
+      list = troncCommun.concat(brancheBoissy);
+    } else if (branch === "chessy") {
+      list = troncCommun.concat(brancheChessy);
+    } else {
+      list = stations;
+    }
+    let best = null;
+    let bestDiff = Infinity;
+    for (const st of list) {
+      const d = Math.abs(st.pk - pk);
+      if (d < bestDiff) {
+        bestDiff = d;
+        best = st;
+      }
+    }
+    return best;
+  }
+
+  // Nearest access uniquement par PK (utilisé pour la recherche manuelle)
+  function findNearestAccess(pk) {
+    if (pk == null) return null;
+    let best = null;
+    let bestDiff = Infinity;
+    for (const acc of accessPoints) {
+      if (acc.pk == null) continue;
+      const d = Math.abs(acc.pk - pk);
+      if (d < bestDiff) {
+        bestDiff = d;
+        best = acc;
+      }
+    }
+    return best;
+  }
+
+  // Nearest access par distance GPS (pour "autour de moi")
+  function findNearestAccessGeo(lat, lon) {
+    if (lat == null || lon == null) return null;
+    let best = null;
+    let bestDist = Infinity;
+    for (const acc of accessPoints) {
+      if (acc.lat == null || acc.lon == null) continue;
+      const d = distanceMeters(lat, lon, acc.lat, acc.lon);
+      if (d < bestDist) {
+        bestDist = d;
+        best = acc;
+      }
+    }
+    return best;
+  }
+
+  // Top N accès par distance GPS (utilisé pour "Top 2 en PK")
+  function getNearestAccessesGeo(lat, lon, pk, maxCount = 2) {
+    if (lat == null || lon == null) return [];
+
+    const list = [];
+
+    for (const acc of accessPoints) {
+     
+      if (acc.lat == null || acc.lon == null) continue;
+
+      const dGeo = distanceMeters(lat, lon, acc.lat, acc.lon);
+      const dPk  = (pk != null && acc.pk != null) ? Math.abs(acc.pk - pk) : null;
+
+      list.push({ acc, dGeo, dPk });
+    }
+
+    // Classement par distance GPS réelle
+    list.sort((a, b) => a.dGeo - b.dGeo);
+
+    // On ne garde que les N premiers (par défaut 2)
+    return list.slice(0, maxCount);
+  }
+
+  function findNextStation(pk, direction, branch) {
+    if (pk == null) return null;
+    let arr;
+    if (branch === "boissy") {
+      arr = troncCommun.concat(brancheBoissy);
+    } else if (branch === "chessy") {
+      arr = troncCommun.concat(brancheChessy);
+    } else {
+      arr = stations;
+    }
+
+    let candidates;
+    if (direction === "est") {
+      candidates = arr.filter(s => s.pk > pk).sort((a,b) => a.pk - b.pk);
+    } else if (direction === "ouest") {
+      candidates = arr.filter(s => s.pk < pk).sort((a,b) => b.pk - a.pk);
+    } else {
+      return findNearestStation(pk, branch);
+    }
+    return candidates[0] || findNearestStation(pk, branch);
+  }
+
+function detectBranch(lat, lon) {
+  // Si on n'a pas de GPS (cas de certains accès sans coordonnées),
+  // on reste en "both" = tronc commun / branche inconnue
+  if (lat == null || lon == null) {
+    return "both";
+  }
+
+  // S'assure que les polylignes calibrées sont prêtes
+  buildCalibrationPolylines();
+
+  // Vérification de sécurité : si les polylignes ne sont pas initialisées, on utilise les valeurs par défaut
+  if (!linePointsBoissy || !linePointsChessy) {
+    return "both";
+  }
+
+  // Distance minimale à la poly-ligne calibrée BOISSY
+  let minBoissy = Infinity;
+  for (const p of linePointsBoissy) {
+    if (p.lat == null || p.lon == null) continue;
+    const d = distanceMeters(lat, lon, p.lat, p.lon);
+    if (d < minBoissy) minBoissy = d;
+  }
+
+  // Distance minimale à la poly-ligne calibrée CHESSY
+  let minChessy = Infinity;
+  for (const p of linePointsChessy) {
+    if (p.lat == null || p.lon == null) continue;
+    const d = distanceMeters(lat, lon, p.lat, p.lon);
+    if (d < minChessy) minChessy = d;
+  }
+
+  // Si pour une raison quelconque on n'a rien trouvé, on reste neutre
+  if (!isFinite(minBoissy) && !isFinite(minChessy)) {
+    return "both";
+  }
+
+  // Branche = celle dont la poly-ligne calibrée est la plus proche
+  return minBoissy <= minChessy ? "boissy" : "chessy";
+}
+
+  function safeGetItem(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      console.warn("localStorage getItem bloqué pour", key, e);
+      return null;
+    }
+  }
+
+  function safeSetItem(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn("localStorage setItem bloqué pour", key, e);
+    }
+  }
+
+  function loadSettings() {
+    let storedOffset = parseFloat(safeGetItem("pkOffset"));
+    pkOffset = isNaN(storedOffset) ? 0 : storedOffset;
+
+    const sos = safeGetItem("sosPhone");
+    const ms  = safeGetItem("motionSensitivity");
+
+    sosPhone = sos || "";
+    motionSensitivity = ms || "normal";
+
+    inputSosPhone.value = sosPhone;
+    selectSensitivity.value = motionSensitivity;
+    updateOffsetInfo();
+    // Orientation : visible ou non
+  if (toggleOrientation && orientationCard) {
+    const stored = safeGetItem(ORIENT_ENABLED_KEY);
+    const enabled = stored === null ? false : (stored === "1");
+    toggleOrientation.checked = enabled;
+    orientationCard.style.display = enabled ? "block" : "none";
+  }
+}
+
+  function updateOffsetInfo() {
+    const val = Math.round(pkOffset);
+    const sign = val === 0 ? "0" : (val > 0 ? "+"+val : ""+val);
+    pkOffsetInfo.textContent = "Offset actuel : " + sign + " m appliqués à tous les PK.";
+  }
+
+  function saveSettings() {
+    sosPhone = inputSosPhone.value.trim();
+    motionSensitivity = selectSensitivity.value;
+
+    safeSetItem("sosPhone", sosPhone);
+    safeSetItem("motionSensitivity", motionSensitivity);
+    safeSetItem("pkOffset", pkOffset);
+
+    updateOffsetInfo();
+  }
+
+  function updatePkEstimateInSettings() {
+    if (state.lastRawPk == null) {
+      pkEstimateText.textContent = "En attente de position GPS…";
+      if (pkCurrentValue) pkCurrentValue.textContent = "—";
+      if (pkCurrentDetails) pkCurrentDetails.textContent = "En attente de position GPS…";
+      return;
+    }
+
+    const corrected = state.lastRawPk + pkOffset;
+    const pkText = "PK " + formatPk(corrected);
+    const distText = state.lastDist != null
+      ? "· ~" + Math.round(state.lastDist) + " m de la voie"
+      : "";
+
+    // Mise à jour du texte dans les paramètres
+    pkEstimateText.textContent = pkText + " " + distText;
+
+    // Affichage sur la carte "PK actuel"
+    if (pkCurrentValue) pkCurrentValue.textContent = pkText;
+    if (pkCurrentDetails) pkCurrentDetails.textContent = distText || "";
+  }
+
+  let geolocActive = false;
+
+  function setGpsStatus(status, message) {
+    if (status === "off") {
+      gpsStatusBadge.className = "badge badge-danger";
+      gpsStatusBadge.textContent = "GPS inactif";
+      geolocText.textContent = message || "Position non encore reçue.";
+    } else if (status === "on") {
+      gpsStatusBadge.className = "badge badge-good";
+      gpsStatusBadge.textContent = "GPS actif";
+      if (message) geolocText.textContent = message;
+    } else if (status === "error") {
+      gpsStatusBadge.className = "badge badge-danger";
+      gpsStatusBadge.textContent = "Erreur GPS";
+      geolocText.textContent = message ||
+        "Impossible d’obtenir la position. Vérifie que la géolocalisation est autorisée pour ce site.";
+    }
+  }
+
+  function startGeoloc() {
+    if (!navigator.geolocation) {
+      setGpsStatus("error", "Ce navigateur ne supporte pas la géolocalisation.");
+      return;
+    }
+    if (geolocActive) return;
+
+    geolocActive = true;
+    btnToggleGeoloc.innerHTML = "Arrêter la géoloc";
+    setGpsStatus("on", "En attente d’un premier point…");
+
+    state.watchId = navigator.geolocation.watchPosition(
+      handlePosition,
+      handleGeolocError,
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
+    );
+  }
+
+  function stopGeoloc() {
+    if (state.watchId != null) {
+      navigator.geolocation.clearWatch(state.watchId);
+      state.watchId = null;
+    }
+    geolocActive = false;
+    btnToggleGeoloc.innerHTML = "Démarrer la géoloc";
+    setGpsStatus("off");
+  }
+
+  function handleGeolocError(err) {
+    setGpsStatus("error");
+    console.error(err);
+  }
+
+  function handlePosition(pos) {
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+    const accuracy = pos.coords.accuracy; // AJOUT CALIBRAGE
+
+    state.lastAccuracy = accuracy;
+
+    setGpsStatus(
+      "on",
+      "Position reçue (lat : " + lat.toFixed(5) + ", lon : " + lon.toFixed(5) + ")"
+    );
+
+    // Détection de la branche avec la géo + polylignes calibrées
+    currentBranch = detectBranch(lat, lon);
+
+    // On choisit la bonne poly-ligne pour la projection PK
+    if (currentBranch === "boissy") {
+      linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+    } else if (currentBranch === "chessy") {
+      linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+    } else {
+      // Sécurité : si "both" ou autre, on reste sur Chessy par défaut
+      linePoints = troncCommun.concat(brancheChessy);
+    }
+
+    const proj = projectToLine(lat, lon);
+    if (proj.pkProj == null) return;
+
+    const rawPk = proj.pkProj;
+    const correctedPk = rawPk + pkOffset;
+    const now = Date.now() / 1000;
+
+    if (state.lastPk != null && state.lastPkTime != null) {
+      const dPk = correctedPk - state.lastPk;
+      const dt = now - state.lastPkTime;
+      if (dt > 1) {
+        updateMovement(dPk, dt);
+      }
+    } else {
+      movementTitle.textContent = "En attente d'un deuxième point…";
+      movementDetails.textContent = "—";
+    }
+
+    state.lastRawPk   = rawPk;
+    state.lastPk      = correctedPk;
+    state.lastPkTime  = now;
+    state.lastLat     = lat;
+    state.lastLon     = lon;
+    state.lastDist    = proj.dist;
+
+    const nearest       = findNearestStation(correctedPk, currentBranch);
+    const nearestAccess = findNearestAccessGeo(lat, lon);
+
+    state.nearestStation = nearest;
+    state.nearestAccess  = nearestAccess;
+
+    updateNearestStation(correctedPk, nearest);
+    updateNextStation(correctedPk);
+    updatePkTargetView();
+    updateAccessList(correctedPk);
+    updateSmsPreview();
+    updatePkEstimateInSettings();
+    updateOrientationPanel();
+  }
+
+  function updateMovement(dPk, dt) {
+    const profile = sensitivityProfiles[motionSensitivity] || sensitivityProfiles.normal;
+    const speed = Math.abs(dPk) / dt;
+
+    if (dPk > 0) state.direction = "est";
+    else if (dPk < 0) state.direction = "ouest";
+
+    const dirLabel = state.direction === "est" ? "vers Chessy / Boissy"
+                    : state.direction === "ouest" ? "vers St-Germain / Paris"
+                    : "";
+
+    const distText = "ΔPK ≈ " + Math.round(Math.abs(dPk)) +
+      " m sur ~" + Math.round(dt) + " s.";
+
+    if (speed < profile.idle) {
+      movementTitle.textContent = "Quasi immobile";
+      movementDetails.textContent = distText;
+    } else if (speed < profile.walk) {
+      movementTitle.textContent = "À pied " + dirLabel;
+      movementDetails.textContent = distText + " (≈ " + speed.toFixed(1) + " m/s)";
+    } else {
+      movementTitle.textContent = "Train " + dirLabel;
+      movementDetails.textContent = distText + " (≈ " + speed.toFixed(1) + " m/s)";
+    }
+  }
+
+  function updateNearestStation(pk, nearest) {
+    if (!nearest || pk == null) {
+      nearestStationName.textContent = "Aucune";
+      nearestStationInfo.textContent = "En attente de position GPS…";
+      return;
+    }
+    nearestStationName.textContent = nearest.name;
+    const delta = Math.round(Math.abs(nearest.pk - pk));
+    nearestStationInfo.textContent =
+      "PK " + formatPk(nearest.pk) + " · ΔPK ≈ " + delta + " m";
+  }
+
+  function updateNextStation(pk) {
+    if (pk == null) {
+      nextStationName.textContent = "Aucune";
+      nextStationInfo.textContent = "En attente de position GPS…";
+      return;
+    }
+    const next = findNextStation(pk, state.direction, currentBranch);
+    if (!next) {
+      nextStationName.textContent = "Aucune";
+      nextStationInfo.textContent = "—";
+      return;
+    }
+    nextStationName.textContent = next.name;
+    const delta = Math.round(Math.abs(next.pk - pk));
+    const dir = next.pk >= pk ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
+    nextStationInfo.textContent =
+      "PK " + formatPk(next.pk) + " · ≈ " + delta + " m " + dir;
+  }
+
+ function updatePkTargetView() {
+  if (!pkTarget) {
+    pkTargetLabel.textContent = "Aucun";
+    pkTargetInfo.textContent =
+      "Saisis un PK puis clique sur « Définir ce PK comme cible ».";
+    return;
+  }
+
+  pkTargetLabel.textContent = "PK " + formatPk(pkTarget);
+  if (state.lastPk == null) {
+    pkTargetInfo.textContent = "En attente de position GPS…";
+    return;
+  }
+  const delta = pkTarget - state.lastPk;
+  const dist = Math.round(Math.abs(delta));
+  const dir = delta >= 0 ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
+  pkTargetInfo.textContent = "≈ " + dist + " m " + dir;
+}
+
+    function updateOrientationPanel() {
+  const card       = document.getElementById("orientationCard");
+  const pkLine     = document.getElementById("orientPkLine");
+  const dirLine    = document.getElementById("orientDirLine");
+  const gareLine   = document.getElementById("orientGareLine");
+  const accessLine = document.getElementById("orientAccessLine");
+
+  if (!card || !pkLine || !dirLine || !gareLine || !accessLine) return;
+
+  // Si le bloc est caché, on ne fait rien
+  if (card.style.display === "none") return;
+
+  // Pas encore de GPS
+  if (state.lastPk == null) {
+    pkLine.textContent     = "PK actuel : —";
+    dirLine.textContent    = "En attente de position…";
+    gareLine.textContent   = "—";
+    accessLine.textContent = "—";
+    return;
+  }
+
+  // PK actuel + cible
+  let txtPk = "PK actuel : " + formatPk(state.lastPk);
+  if (pkTarget) {
+    txtPk += " · cible " + formatPk(pkTarget);
+  }
+  pkLine.textContent = txtPk;
+
+  // Sens
+  let dirLabel = "indéterminé";
+  if (state.direction === "est") {
+    dirLabel = "vers Chessy / Boissy";
+  } else if (state.direction === "ouest") {
+    dirLabel = "vers St-Germain / Paris";
+  }
+
+  if (pkTarget && state.lastPk != null) {
+    const delta = pkTarget - state.lastPk;
+    if (delta > 0) dirLabel = "vers le PK cible (Chessy / Boissy)";
+    else if (delta < 0) dirLabel = "vers le PK cible (St-Germain / Paris)";
+  }
+  dirLine.textContent = dirLabel;
+
+  // Gare la plus proche
+  if (state.nearestStation) {
+    gareLine.textContent =
+      state.nearestStation.name +
+      " (PK " + formatPk(state.nearestStation.pk) + ")";
+  } else {
+    gareLine.textContent = "—";
+  }
+
+  // 2 accès les plus proches autour de moi
+  const list = getNearestAccessesGeo(state.lastLat, state.lastLon, state.lastPk, 2);
+  if (list && list.length) {
+    const txt = list
+      .map(item => item.acc.name + " (PK " + formatPk(item.acc.pk) + ")")
+      .join(" · ");
+    accessLine.textContent = txt;
+  } else {
+    accessLine.textContent = "—";
+  }
+}
+
+  function updateAccessList(pk) {
+    // Pas de PK ou pas encore de GPS → on attend
+    if (pk == null || state.lastLat == null || state.lastLon == null) {
+      accessList.textContent = "En attente de position GPS…";
+      return;
+    }
+
+    // Top 2 accès les plus proches en distance GPS
+    const nearestList = getNearestAccessesGeo(state.lastLat, state.lastLon, pk, 2);
+
+    if (!nearestList.length) {
+      accessList.textContent = "Aucun accès disponible.";
+      return;
+    }
+
+    const lines = nearestList.map(item => {
+      const acc = item.acc;
+      const dGeo = Math.round(item.dGeo); // m "à vol d’oiseau"
+      const dPk  = (item.dPk != null) ? Math.round(item.dPk) : null;
+      const dir  = (acc.pk != null && pk != null && acc.pk >= pk)
+        ? "vers Chessy / Boissy"
+        : "vers St-Germain / Paris";
+
+      let pkLine = "PK " + formatPk(acc.pk) + " – " + acc.name;
+      let sub = "≈ " + dGeo + " m en distance GPS";
+
+      if (dPk != null) {
+        sub = "ΔPK ≈ " + dPk + " m " + dir + " · " + sub;
+      }
+
+      return (
+        '<div class="access-item">' +
+          '<div><strong>' + pkLine + "</strong></div>" +
+          '<div class="muted">' + sub + "</div>" +
+        "</div>"
+      );
+    });
+
+    accessList.innerHTML = lines.join("");
+  }
+
+  function updateSmsPreview() {
+    if (state.lastPk == null || state.lastLat == null) {
+      smsPreview.textContent =
+        "En attente de position GPS pour préparer le SMS.";
+      return;
+    }
+    const pkText = "PK " + formatPk(state.lastPk);
+    const nearestName = state.nearestStation ? state.nearestStation.name : "inconnue";
+    const branchLabel = currentBranch === "boissy" ? "branche Boissy-Saint-Léger"
+                     : currentBranch === "chessy" ? "branche Marne-la-Vallée – Chessy"
+                     : "branche inconnue";
+    let base =
+      pkText + " (" + branchLabel + "), gare la plus proche : " + nearestName +
+      ", lat " + state.lastLat.toFixed(5) +
+      ", lon " + state.lastLon.toFixed(5) + ".";
+
+    if (state.nearestAccess) {
+      base += " Accès le plus proche : " + state.nearestAccess.name +
+        " (" + state.nearestAccess.address + ").";
+    }
+
+    const numPart = " Numéro utilisé : " +
+      (sosPhone ? sosPhone : "aucun (à définir dans Paramètres).");
+    smsPreview.textContent = base + numPart;
+  }
+
+  function sendSms() {
+    if (state.lastPk == null || state.lastLat == null) {
+      alert("Position GPS insuffisante pour préparer le SMS.");
+      return;
+    }
+    const pkText = "PK " + formatPk(state.lastPk);
+    const nearestName = state.nearestStation ? state.nearestStation.name : "inconnue";
+    const branchLabel = currentBranch === "boissy" ? "branche Boissy-Saint-Léger"
+                     : currentBranch === "chessy" ? "branche Marne-la-Vallée – Chessy"
+                     : "branche inconnue";
+    let message =
+      "PK : " + pkText + " (" + branchLabel + ")\n" +
+      "Gare la plus proche : " + nearestName + "\n";
+
+    if (state.nearestAccess) {
+      message +=
+        "Accès le plus proche : " + state.nearestAccess.name +
+        " (" + state.nearestAccess.address + ")\n";
+    }
+
+    message +=
+      "Coordonnées : " + state.lastLat.toFixed(5) + ", " + state.lastLon.toFixed(5) + "\n";
+
+    const body = encodeURIComponent(message);
+    const numberPart = sosPhone ? encodeURIComponent(sosPhone) : "";
+    const url = numberPart
+      ? "sms:" + numberPart + "?&body=" + body
+      : "sms:?&body=" + body;
+
+    window.location.href = url;
+  }
+
+  function handlePkLookup() {
+    const val = parsePkInput(inputPkLookup.value);
+    if (val == null) {
+      alert("PK invalide. Utilise 32400 ou 32+400.");
+      return;
+    }
+    const acc = findNearestAccess(val);
+    if (!acc) {
+      pkLookupResultField.style.display = "none";
+      alert("Aucun accès disponible pour ce PK.");
+      return;
+    }
+    lastPkLookupAccess = acc;
+    const delta = Math.round(Math.abs(acc.pk - val));
+    const dir = acc.pk >= val ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
+
+    pkLookupResult.innerHTML =
+      "<strong>Accès le plus proche :</strong> " + acc.name + "<br>" +
+      "PK " + formatPk(acc.pk) + " (ΔPK ≈ " + delta + " m " + dir + ")<br>" +
+      "<span class='muted'>" + acc.address + "</span>";
+
+    pkLookupResultField.style.display = "block";
+  }
+
+  function openPkLookupInMaps() {
+    if (!lastPkLookupAccess) {
+      alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
+      return;
+    }
+
+    let url;
+    // Si on a des coordonnées GPS précises → on ouvre directement à cet endroit
+    if (
+      lastPkLookupAccess.lat != null &&
+      lastPkLookupAccess.lon != null
+    ) {
+      url = "https://maps.google.com/?q=" +
+        lastPkLookupAccess.lat + "," + lastPkLookupAccess.lon;
+    } else {
+      // Sinon on ouvre une recherche sur l’adresse / le nom
+      const query = lastPkLookupAccess.address || lastPkLookupAccess.name;
+      url = "https://www.google.com/maps/search/?api=1&query=" +
+        encodeURIComponent(query);
+    }
+
+    window.open(url, "_blank");
+  }
+
+  function openPkLookupInWaze() {
+    if (!lastPkLookupAccess) {
+      alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
+      return;
+    }
+    const lat = lastPkLookupAccess.lat;
+    const lon = lastPkLookupAccess.lon;
+    if (lat == null || lon == null) {
+      alert("Pas de coordonnées GPS pour cet accès.");
+      return;
+    }
+    // Lien universel Waze
+    const url = "https://waze.com/ul?ll=" + lat + "," + lon + "&navigate=yes";
+    window.open(url, "_blank");
+  }
+
+  selectIncidentType.addEventListener("change", () => {
+    if (selectIncidentType.value === "Autre") {
+      incidentOtherField.style.display = "block";
+    } else {
+      incidentOtherField.style.display = "none";
+    }
+  });
+
+  btnGenerateIncident.addEventListener("click", () => {
+    if (state.lastPk == null || state.lastLat == null) {
+      alert("Position GPS non disponible. Lance la géoloc avant de signaler.");
+      return;
+    }
+    let type = selectIncidentType.value;
+    if (!type) {
+      alert("Choisis un type d’incident avant de générer le message.");
+      return;
+    }
+    if (type === "Autre") {
+      const desc = inputIncidentOther.value.trim();
+      if (!desc) {
+        alert("Précise la nature de l’incident.");
+        return;
+      }
+      type = desc;
+    }
+
+    const pkTxt = "PK " + formatPk(state.lastPk);
+    const station = state.nearestStation ? state.nearestStation.name : "inconnue";
+    const lat = state.lastLat.toFixed(5);
+    const lon = state.lastLon.toFixed(5);
+    const now = new Date();
+    const dateTxt = now.toLocaleDateString("fr-FR");
+    const timeTxt = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+
+    let message =
+      "🚨 Signalement d’avarie / incident\n" +
+      "Type : " + type + "\n" +
+      "PK : " + pkTxt + "\n" +
+      "Branche : " + (currentBranch === "boissy"
+                      ? "Boissy-Saint-Léger"
+                      : currentBranch === "chessy"
+                        ? "Marne-la-Vallée – Chessy"
+                        : "inconnue") + "\n" +
+      "Gare la plus proche : " + station + "\n";
+
+    if (state.nearestAccess) {
+      message +=
+        "Accès le plus proche : " + state.nearestAccess.name +
+        " (" + state.nearestAccess.address + ")\n";
+    }
+
+    message +=
+      "Coordonnées : " + lat + ", " + lon + "\n" +
+      "Date/heure : " + dateTxt + " – " + timeTxt;
+
+    if (incidentPhotoInput && incidentPhotoInput.files && incidentPhotoInput.files.length > 0) {
+      const file = incidentPhotoInput.files[0];
+      if (file && file.name) {
+        message += "\nPhoto jointe : " + file.name;
+      }
+    }
+
+    incidentResultText.value = message;
+    incidentResultField.style.display = "block";
+  });
+
+  btnCopyIncident.addEventListener("click", () => {
+    const text = incidentResultText.value;
+    if (!text) {
+      alert("Aucun message à copier.");
+      return;
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Message copié dans le presse-papiers ✅");
+      }).catch(() => {
+        incidentResultText.select();
+        document.execCommand("copy");
+        alert("Message copié dans le presse-papiers ✅");
+      });
+    } else {
+      incidentResultText.select();
+      document.execCommand("copy");
+      alert("Message copié dans le presse-papiers ✅");
+    }
+  });
+
+  btnToggleGeoloc.addEventListener("click", () => {
+    if (geolocActive) stopGeoloc();
+    else startGeoloc();
+  });
+
+  btnSettingsToggle.addEventListener("click", () => {
+    const isVisible = settingsPanel.style.display !== "none";
+    settingsPanel.style.display = isVisible ? "none" : "block";
+  });
+
+  btnSetPkTarget.addEventListener("click", () => {
+    const val = parsePkInput(inputPkTarget.value);
+    if (val == null) {
+      alert("PK cible invalide. Utilise 32400 ou 32+400.");
+      return;
+    }
+    pkTarget = val;
+    updatePkTargetView();
+    updateOrientationPanel();
+  });
+
+  btnSms.addEventListener("click", sendSms);
+
+  btnResetOffset.addEventListener("click", () => {
+    pkOffset = 0;
+    safeSetItem("pkOffset", pkOffset);
+    updateOffsetInfo();
+    if (state.lastRawPk != null) {
+      state.lastPk = state.lastRawPk;
+      state.nearestStation = findNearestStation(state.lastPk, currentBranch);
+      state.nearestAccess = (state.lastLat != null && state.lastLon != null) 
+        ? findNearestAccessGeo(state.lastLat, state.lastLon)
+        : findNearestAccess(state.lastPk);
+      updateNearestStation(state.lastPk, state.nearestStation);
+      updateNextStation(state.lastPk);
+      updatePkTargetView();
+      updateAccessList(state.lastPk);
+      updateSmsPreview();
+      updatePkEstimateInSettings();
+    } else {
+      updatePkEstimateInSettings();
+    }
+  });
+
+  btnApplyRecal.addEventListener("click", () => {
+    const exactPk = parsePkInput(inputPkRecal.value);
+    if (exactPk == null) {
+      alert("PK invalide. Utilise 52700 ou 52+700.");
+      return;
+    }
+    if (state.lastRawPk == null) {
+      alert("Pas de position GPS pour recaler. Lance la géoloc d’abord.");
+      return;
+    }
+    pkOffset = exactPk - state.lastRawPk;
+    safeSetItem("pkOffset", pkOffset);
+    updateOffsetInfo();
+    updatePkEstimateInSettings();
+
+    // AJOUT CALIBRAGE : on enregistre ce recalage comme un point de calibration
+    if (state.lastLat != null && state.lastLon != null) {
+      const calib = {
+        // PK exact saisi par toi
+        pkExact: exactPk,
+        // PK brut estimé par l’algorithme avant offset
+        pkRaw: state.lastRawPk,
+        // offset appliqué
+        pkOffset: pkOffset,
+        // coordonnées GPS au moment du recalage
+        lat: state.lastLat,
+        lon: state.lastLon,
+        accuracy: state.lastAccuracy,
+        branch: currentBranch,
+        timestamp: new Date().toISOString()
+      };
+      localCalibrations.push(calib);
+      saveLocalCalibrations();
+      console.log("Nouveau recalage enregistré :", calib);
+    }
+    // FIN AJOUT CALIBRAGE
+  });
+
+  btnSaveSettings.addEventListener("click", () => {
+    saveSettings();
+    updateSmsPreview();
+    alert("Paramètres enregistrés ✅");
+  });
+
+selectSensitivity.addEventListener("change", () => {
+  motionSensitivity = selectSensitivity.value;
+  safeSetItem("motionSensitivity", motionSensitivity);
+});
+
+// Gestion de l’affichage du bloc Orientation
+if (toggleOrientation && orientationCard) {
+  toggleOrientation.addEventListener("change", () => {
+    const enabled = toggleOrientation.checked;
+    orientationCard.style.display = enabled ? "block" : "none";
+    safeSetItem(ORIENT_ENABLED_KEY, enabled ? "1" : "0");
+    if (enabled) {
+      updateOrientationPanel();
+    }
+  });
+}
+
+  btnPkLookup.addEventListener("click", handlePkLookup);
+  btnPkLookupOpenMaps.addEventListener("click", openPkLookupInMaps);
+  btnPkLookupOpenWaze.addEventListener("click", openPkLookupInWaze);
+
+  // AJOUT CALIBRAGE : clic sur "Exporter mes recalages"
+  if (btnExportCalibrations) {
+    btnExportCalibrations.addEventListener("click", exportLocalCalibrationsForGitHub);
+  }
+
+  selectIncidentType.dispatchEvent(new Event("change"));
+
+  // Initialisation
+    function initAccessGate() {
+  const overlay = document.getElementById("accessOverlay");
+  const input   = document.getElementById("accessCodeInput");
+  const btn     = document.getElementById("btnAccessCode");
+  const err     = document.getElementById("accessError");
+
+  if (!overlay || !input || !btn) return;
+
+  const already = safeGetItem(ACCESS_CODE_KEY);
+  if (already === "ok") {
+    // Déjà autorisé sur cet appareil -> on masque l'overlay
+    overlay.style.display = "none";
+    return;
+  }
+
+  function tryCode() {
+    const v = (input.value || "").trim();
+    if (v === ACCESS_CODE) {
+      safeSetItem(ACCESS_CODE_KEY, "ok");
+      err.style.display = "none";
+      overlay.style.transition = "opacity 0.2s ease";
+      overlay.style.opacity = "0";
+      setTimeout(() => { overlay.style.display = "none"; }, 200);
+    } else {
+      err.style.display = "block";
+    }
+  }
+
+  btn.addEventListener("click", tryCode);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") tryCode();
+  });
+}
+
+loadSettings();
+loadLocalCalibrations();
+// loadSharedCalibrations(); // désactivé pour éviter tout fetch
+updateSmsPreview();
+setGpsStatus("off");
+initAccessGate();
+console.log("PK Assistant RER A – script chargé sans erreur ✅");
+  </script>
+</body>
+</html>

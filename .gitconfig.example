@@ -1,0 +1,16 @@
+# Exemple de configuration Git
+# Copiez ce fichier vers ~/.gitconfig ou utilisez les commandes ci-dessous
+
+[user]
+    name = Votre Nom
+    email = votre.email@example.com
+
+[remote "origin"]
+    url = https://github.com/kyfun93/rer-a-pk.git
+    fetch = +refs/heads/*:refs/remotes/origin/*
+
+[branch "main"]
+    remote = origin
+    merge = refs/heads/main
+
+
