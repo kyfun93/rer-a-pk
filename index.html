@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 <!-- Empêche la 404 sur /favicon.ico -->
   <link rel="icon" href="data:,">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
  
@@ -104,6 +108,13 @@
     background-repeat: repeat;
     opacity: 1;
     animation: starsAnimated 15s linear infinite;
+    /* Optimisation batterie : pause les animations quand la page n'est pas visible */
+    animation-play-state: running;
+  }
+
+  /* Pause les animations quand la page n'est pas visible (économie batterie) */
+  body[data-page-hidden="true"]::after {
+    animation-play-state: paused;
   }
 
   @keyframes starsAnimated {
@@ -138,6 +149,22 @@
     text-align: center;
   }
 
+  .title-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 0 auto;
+    width: fit-content;
+  }
+
+  .gyrophare-gif {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
   .title-pill {
     display: inline-block;
     padding: 10px 18px;
@@ -145,7 +172,7 @@
     background: radial-gradient(circle at 0% 0%, #ff9f7b 0%, #ff4b6b 24%, #3d7bff 70%, #1a1b3a 100%);
     box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     border: 1px solid rgba(255,255,255,0.18);
-    margin: 0 auto;
+    margin: 0;
   }
 
   .title-main {
@@ -293,6 +320,51 @@
     color: var(--muted);
   }
 
+  .pk-lookup-section {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 16px;
+    margin: 12px 0;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .pk-lookup-section .field label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .pk-calibration-section {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 16px;
+    margin: 12px 0;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .pk-calibration-section .field label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .sensitivity-section {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 16px;
+    margin: 12px 0;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .sensitivity-section .field label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
   input, select, textarea {
     width: 100%;
     padding: 10px 12px;
@@ -328,6 +400,17 @@
     margin-top: 8px;
     font-size: 0.8rem;
     color: var(--muted);
+  }
+
+  /* Signature en bas de page */
+  .app-footer {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
   }
 
   .divider {
@@ -366,35 +449,149 @@
   padding-top: 4px;
 }
 
-.orientation-row {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
+/* Carte interactive Leaflet avec thème sombre */
+#orientationMap {
+  width: 100%;
+  height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 12px;
+  background: #0a0c12;
 }
 
-.orientation-picto-col {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 1.4rem;
-  margin-top: 2px;
+/* Style personnalisé pour Leaflet avec thème sombre */
+.leaflet-container {
+  background: #0a0c12;
+  color: #fff;
 }
 
-.orientation-text-col {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+/* Marqueur PK actuel (point central) */
+.leaflet-marker-pk-actuel {
+  background: #3d7bff;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  width: 20px !important;
+  height: 20px !important;
+  box-shadow: 0 0 15px rgba(61, 123, 255, 0.8);
+  animation: pkPulse 2s ease-in-out infinite;
+  /* Optimisation batterie : pause les animations quand la page n'est pas visible */
+  animation-play-state: running;
 }
 
-.orientation-line-label {
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+/* Pause les animations quand la page n'est pas visible */
+body[data-page-hidden="true"] .leaflet-marker-pk-actuel {
+  animation-play-state: paused;
+}
+
+@keyframes pkPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 15px rgba(61, 123, 255, 0.8);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 25px rgba(61, 123, 255, 1);
+  }
+}
+
+/* Icône de gare */
+.leaflet-marker-gare {
+  background: #ff4b6b;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  width: 24px !important;
+  height: 24px !important;
+  box-shadow: 0 0 10px rgba(255, 75, 107, 0.6);
+}
+
+/* Icône d'accès (porte) */
+.leaflet-marker-acces {
+  background: #ff9f7b;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  width: 18px !important;
+  height: 18px !important;
+  box-shadow: 0 0 8px rgba(255, 159, 123, 0.6);
+}
+
+/* Flèche de direction */
+.leaflet-marker-direction {
+  background: transparent;
+  border: none;
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.direction-arrow {
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-bottom: 25px solid #3d7bff;
+  filter: drop-shadow(0 0 8px rgba(61, 123, 255, 0.8));
+}
+
+.direction-arrow-moving {
+  animation: arrowMoveForward 2s ease-in-out infinite;
+  /* Optimisation batterie : pause les animations quand la page n'est pas visible */
+  animation-play-state: running;
+}
+
+/* Pause les animations quand la page n'est pas visible */
+body[data-page-hidden="true"] .direction-arrow-moving {
+  animation-play-state: paused;
+}
+
+.direction-arrow-indetermine {
+  border-bottom-color: #666;
+  filter: drop-shadow(0 0 4px rgba(102, 102, 102, 0.4));
+  animation: none;
+}
+
+/* Animation de la flèche qui avance en temps réel */
+@keyframes arrowMoveForward {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-8px) scale(1.1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Panneau d'information sur la carte */
+.orientation-info-panel {
+  position: relative;
+  margin-top: 12px;
+  background: rgba(10, 12, 18, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.orientation-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 0.85rem;
+}
+
+.orientation-info-label {
   color: var(--muted);
+  font-weight: 600;
 }
 
-.orientation-line-value {
-  font-size: 0.92rem;
+.orientation-info-value {
+  color: #fff;
+  font-weight: 600;
 }
 
 </style>
@@ -440,13 +637,17 @@
 
   <div class="app">
     <div class="header">
-      <div class="title-pill">
-        <div class="title-main">PK ASSISTANT</div>
-        <div class="title-sub">RER A</div>
+      <div class="title-wrapper">
+        <img src="https://www.gifsgratuits.fr/gyrophares/g%20%2831%29.gif" alt="Gyrophare" class="gyrophare-gif" />
+        <div class="title-pill">
+          <div class="title-main">PK ASSISTANT</div>
+          <div class="title-sub">RER A</div>
+        </div>
+        <img src="https://www.gifsgratuits.fr/gyrophares/g%20%2831%29.gif" alt="Gyrophare" class="gyrophare-gif" />
       </div>
       <div class="subtitle">Estimation du PK en temps réel à partir de la géolocalisation.</div>
       <div class="note">
-        Écart typique entre PK estimé et borne réelle : ~100–200 m. Toujours vérifier une borne quand c’est critique.
+        Toujours vérifier une borne quand c’est critique.
       </div>
     </div>
 
@@ -506,36 +707,39 @@
     <div class="card-title">Orientation – PK / gares / accès</div>
   </div>
 
-  <div class="orientation-row">
-    <div class="orientation-picto-col">
-      <div>🎯</div>
-      <div>🧭</div>
-      <div>🚉</div>
-      <div>🚪</div>
+  <!-- Carte interactive Leaflet -->
+  <div id="orientationMap"></div>
+  
+  <!-- Panneau d'information -->
+  <div id="orientationInfoPanel" class="orientation-info-panel" style="display: none;">
+    <div class="orientation-info-item">
+      <span class="orientation-info-label">PK actuel :</span>
+      <span id="orientPkValue" class="orientation-info-value">—</span>
     </div>
-    <div class="orientation-text-col">
-      <div>
-        <div class="orientation-line-label">PK actuel & cible</div>
-        <div id="orientPkLine" class="orientation-line-value">PK actuel : —</div>
-      </div>
-
-      <div>
-        <div class="orientation-line-label">Sens</div>
-        <div id="orientDirLine" class="orientation-line-value">En attente de GPS…</div>
-      </div>
-
-      <div>
-        <div class="orientation-line-label">Gare la plus proche</div>
-        <div id="orientGareLine" class="orientation-line-value">—</div>
-      </div>
-
-      <div>
-        <div class="orientation-line-label">Accès les plus proches</div>
-        <div id="orientAccessLine" class="orientation-line-value">—</div>
-      </div>
+    <div class="orientation-info-item">
+      <span class="orientation-info-label">Sens :</span>
+      <span id="orientDirValue" class="orientation-info-value">En attente de GPS…</span>
+    </div>
+    <div class="orientation-info-item">
+      <span class="orientation-info-label">Gare la plus proche :</span>
+      <span id="orientGareValue" class="orientation-info-value">—</span>
+    </div>
+    <div class="orientation-info-item">
+      <span class="orientation-info-label">Accès les plus proches :</span>
+      <span id="orientAccessValue" class="orientation-info-value">—</span>
     </div>
   </div>
 </div>
+
+    <!-- Case à cocher Orientation -->
+    <div class="card" style="margin-bottom: 12px;">
+      <div class="field" style="margin: 0; padding: 12px;">
+        <label style="display: flex; align-items: center; cursor: pointer; width: 100%; margin: 0; position: relative;">
+          <input id="toggleOrientation" type="checkbox" style="margin: 0; width: 18px; height: 18px; flex-shrink: 0;">
+          <span style="position: absolute; left: 50%; transform: translateX(-50%); text-align: center; width: 100%; pointer-events: none; font-size: 1.1rem; font-weight: 600; color: #fff;">Orientation – PK / gares / accès</span>
+        </label>
+      </div>
+    </div>
 
     <!-- PK CIBLE -->
     <div class="card">
@@ -589,105 +793,105 @@
     <!-- PARAMÈTRES -->
     <div id="settingsPanel" class="card card-soft" style="display:none; margin-top:10px;">
       <div class="card-header">
-        <div class="card-title">Paramètres</div>
         <span class="badge">Local au téléphone</span>
       </div>
 
       <div class="divider"></div>
 
-<div class="field">
-  <label>
-    <input id="toggleOrientation" type="checkbox">
-    Afficher le bloc « Orientation – PK / gares / accès »
-  </label>
-  <div class="muted">
-    Si décoché, le bloc d’orientation n’apparaît pas sur la page principale.
-  </div>
-</div>
-
       <!-- Numéro SOS -->
       <div class="field">
-        <label for="inputSosPhone">Numéro SOS pour le SMS d’urgence</label>
-        <input id="inputSosPhone" type="tel" placeholder="ex : 0612345678 ou +33612345678" />
-        <div class="muted">Ce numéro sera utilisé par le bouton « SMS d’urgence ».</div>
+        <label for="inputSosPhone">Numéro SOS pour le SMS d'urgence</label>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <input id="inputSosPhone" type="tel" placeholder="ex : 0612345678 ou +33612345678" style="flex: 1;" />
+          <button id="btnSavePhone" class="btn btn-primary btn-icon" type="button" style="white-space: nowrap;">
+            <span>💾</span><span>Sauvegarder</span>
+          </button>
+        </div>
+        <div class="muted">Ce numéro sera utilisé par le bouton « SMS d'urgence ».</div>
       </div>
 
       <div class="divider"></div>
 
       <!-- Sensibilité mouvement -->
-      <div class="field">
-        <label for="selectSensitivity">Sensibilité au mouvement</label>
-        <select id="selectSensitivity">
-          <option value="slow">Marche lente</option>
-          <option value="normal">Normal</option>
-          <option value="train">Train</option>
-        </select>
-        <div class="muted">« Marche lente » détecte plus facilement un déplacement à pied.</div>
+      <div class="sensitivity-section">
+        <div class="field">
+          <label for="selectSensitivity">Sensibilité au mouvement</label>
+          <select id="selectSensitivity">
+            <option value="slow">Marche lente</option>
+            <option value="normal">Normal</option>
+            <option value="train">Train</option>
+          </select>
+          <div class="muted">« Marche lente » détecte plus facilement un déplacement à pied.</div>
+        </div>
       </div>
 
       <div class="divider"></div>
 
       <!-- Recalage PK -->
-      <div class="field">
-        <label>Recalage PK</label>
-        <div id="pkOffsetInfo" class="muted">Offset actuel : ±0 m appliqués à tous les PK.</div>
-      </div>
-
-      <div class="field">
-        <label>Position PK estimée (lecture seule)</label>
-        <div id="pkEstimateText" class="muted">En attente de position GPS…</div>
-      </div>
-
-      <div class="field">
-        <label for="inputPkRecal">PK exact ici (pour recaler l’appli)</label>
-        <input id="inputPkRecal" type="text" placeholder="ex : 52700 ou 52+700" />
-        <button id="btnApplyRecal" class="btn btn-primary" type="button">Recaler l’appli sur ce PK</button>
-      </div>
-
-      <div class="field">
-        <button id="btnResetOffset" class="btn btn-secondary" type="button">
-          Réinitialiser le recalage PK
-        </button>
-      </div>
-
-      <!-- AJOUT CALIBRAGE : bouton d’export -->
-      <div class="field">
-        <button id="btnExportCalibrations" class="btn btn-secondary btn-icon" type="button">
-          <span>📤</span><span>Exporter mes recalages (JSON)</span>
-        </button>
-        <div class="muted">
-          Exporte les recalages que tu as faits (PK exact + GPS) pour les déposer ensuite dans GitHub.
+      <div class="pk-calibration-section">
+        <div class="field">
+          <label>Recalage PK</label>
+          <div id="pkOffsetInfo" class="muted">Offset actuel : ±0 m appliqués à tous les PK.</div>
         </div>
+
+        <div class="field">
+          <label>Position PK estimée (lecture seule)</label>
+          <div id="pkEstimateText" class="muted">En attente de position GPS…</div>
+        </div>
+
+        <div class="field">
+          <label for="inputPkRecal">PK exact ici (pour recaler l'appli)</label>
+          <input id="inputPkRecal" type="text" placeholder="ex : 52700 ou 52+700" />
+          <button id="btnApplyRecal" class="btn btn-primary" type="button">Recaler l'appli sur ce PK</button>
+        </div>
+
+        <div class="field">
+          <button id="btnResetOffset" class="btn btn-secondary" type="button">
+            Réinitialiser le recalage PK
+          </button>
+        </div>
+
+        <!-- AJOUT CALIBRAGE : bouton d'export -->
+        <div class="field">
+          <button id="btnExportCalibrations" class="btn btn-secondary btn-icon" type="button">
+            <span>📤</span><span>Exporter mes recalages (JSON)</span>
+          </button>
+          <div class="muted">
+            Exporte les recalages que tu as faits (PK exact + GPS) pour les déposer ensuite dans GitHub.
+          </div>
+        </div>
+        <!-- FIN AJOUT CALIBRAGE -->
       </div>
-      <!-- FIN AJOUT CALIBRAGE -->
 
       <div class="divider"></div>
 
       <!-- Recherche par PK -> accès -->
-      <div class="field">
-        <label for="inputPkLookup">Recherche par PK (accès le plus proche)</label>
-        <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" />
-        <button id="btnPkLookup" class="btn btn-secondary btn-icon" type="button">
-          <span>🔎</span><span>Rechercher l’accès</span>
-        </button>
-      </div>
-
-      <div class="field" id="pkLookupResultField" style="display:none;">
-        <div id="pkLookupResult" class="muted"></div>
-
+      <div class="pk-lookup-section">
         <div class="field">
-          <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
-            <span>📍</span><span>Google Maps</span>
+          <label for="inputPkLookup">Recherche par PK (accès le plus proche)</label>
+          <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" />
+          <button id="btnPkLookup" class="btn btn-secondary btn-icon" type="button">
+            <span>🔎</span><span>Rechercher l'accès</span>
           </button>
-          <button id="btnPkLookupOpenWaze" class="btn btn-secondary btn-icon" type="button">
-            <span>🚗</span><span>Waze</span>
-          </button>
+        </div>
+
+        <div class="field" id="pkLookupResultField" style="display:none;">
+          <div id="pkLookupResult" class="muted"></div>
+
+          <div class="field">
+            <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
+              <span>📍</span><span>Google Maps</span>
+            </button>
+            <button id="btnPkLookupOpenWaze" class="btn btn-secondary btn-icon" type="button">
+              <span>🚗</span><span>Waze</span>
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Signalement d’avarie -->
       <div class="signalement-block">
-        <label for="selectIncidentType">🚨 Signalement d’avarie / incident</label>
+        <label for="selectIncidentType" style="font-weight: 700;">🚨 Signalement d'avarie / incident</label>
         <select id="selectIncidentType">
           <option value="">-- Choisir un type d’incident --</option>
           <option value="Cheminement endommagé">Cheminement endommagé</option>
@@ -722,12 +926,6 @@
         </div>
       </div>
 
-      <div class="field">
-        <button id="btnSaveSettings" class="btn btn-primary btn-icon" type="button">
-          <span>💾</span><span>Enregistrer les paramètres</span>
-        </button>
-      </div>
-
       <div class="settings-footer">
         Ces réglages restent stockés dans ton navigateur (localStorage).  
         Ils ne sont pas effacés quand on met à jour l’application.
@@ -746,7 +944,7 @@ const ACCESS_CODE = "3615";
   // === DONNÉES DE LIGNE AVEC BIFURCATION ================================
 
   const troncCommun = [
-    { name: "St-Germain-en-Laye",          lat: 48.8984745677, lon: 2.0946251970, pk:    0 },
+    { name: "St-Germain-en-Laye",          lat: 48.8984745677, lon: 2.0946251970, pk:     0 },
     { name: "Le Vésinet – Le Pecq",        lat: 48.8984530458, lon: 2.1222846835, pk:  2000 },
     { name: "Le Vésinet – Centre",         lat: 48.8901555110, lon: 2.1347027835, pk:  4000 },
     { name: "Chatou – Croissy",            lat: 48.8854638305, lon: 2.1564040970, pk:  6000 },
@@ -755,7 +953,7 @@ const ACCESS_CODE = "3615";
     { name: "Nanterre-Université",         lat: 48.9009541230, lon: 2.2128683712, pk: 11000 },
     { name: "Nanterre-Préfecture",         lat: 48.8958449352, lon: 2.2230702306, pk: 12000 },
     { name: "La Défense – Grande Arche",   lat: 48.8919045058, lon: 2.2385616258, pk: 13000 },
-    { name: "Charles de Gaulle – Étoile",  lat: 48.8742900059, lon: 2.2948848393, pk: 18000 },
+    { name: "Charles-de-Gaulle – Étoile",  lat: 48.8742900059, lon: 2.2948848393, pk: 18000 },
     { name: "Auber",                       lat: 48.8725358497, lon: 2.3298119681, pk: 20000 },
     { name: "Châtelet – Les Halles",       lat: 48.8619752528, lon: 2.3469363528, pk: 22000 },
     { name: "Gare de Lyon",                lat: 48.8444873499, lon: 2.3743558393, pk: 25000 },
@@ -2182,14 +2380,13 @@ const orientationCard   = document.getElementById("orientationCard");
   const settingsPanel = document.getElementById("settingsPanel");
 
   const inputSosPhone = document.getElementById("inputSosPhone");
+  const btnSavePhone = document.getElementById("btnSavePhone");
   const selectSensitivity = document.getElementById("selectSensitivity");
   const pkOffsetInfo = document.getElementById("pkOffsetInfo");
   const pkEstimateText = document.getElementById("pkEstimateText");
   const inputPkRecal = document.getElementById("inputPkRecal");
   const btnApplyRecal = document.getElementById("btnApplyRecal");
   const btnResetOffset = document.getElementById("btnResetOffset");
-  const btnSaveSettings = document.getElementById("btnSaveSettings");
-
   const inputPkLookup = document.getElementById("inputPkLookup");
   const btnPkLookup = document.getElementById("btnPkLookup");
   const pkLookupResultField = document.getElementById("pkLookupResultField");
@@ -2214,7 +2411,7 @@ const orientationCard   = document.getElementById("orientationCard");
     const m = Math.round(pkMeters);
     const km = Math.floor(m / 1000);
     const rest = m % 1000;
-    return km + "+" + rest.toString().padStart(3, "0");
+    return km + " " + rest.toString().padStart(3, "0");
   }
 
   function parsePkInput(str) {
@@ -2274,14 +2471,107 @@ const orientationCard   = document.getElementById("orientationCard");
 
   function projectToLine(lat, lon) {
     let best = { dist: Infinity, pkProj: null, latProj: null, lonProj: null };
+    
+    // Vérification de sécurité
+    if (!linePoints || linePoints.length < 2) {
+      return best;
+    }
+    
+    // Méthode 1 : Projection sur les segments de la ligne (méthode classique)
     for (let i = 0; i < linePoints.length - 1; i++) {
       const a = linePoints[i];
       const b = linePoints[i+1];
+      
+      // Ignorer les points sans coordonnées GPS
+      if (a.lat == null || a.lon == null || b.lat == null || b.lon == null) continue;
+      
       const res = projectToSegment(lat, lon, a, b);
       if (res.dist < best.dist) {
         best = { dist: res.dist, pkProj: res.pkProj, latProj: res.latProj, lonProj: res.lonProj };
       }
     }
+    
+    // Méthode 2 : Interpolation pondérée basée sur TOUS les points GPS connus (affinage)
+    // Utilise les accessPoints + les points de calibration pour améliorer la précision
+    const nearbyPoints = [];
+    
+    // 1) Points issus des accessPoints (191 accès + gares ajoutées)
+    for (const acc of accessPoints) {
+      if (acc.lat == null || acc.lon == null || acc.pk == null) continue;
+      const d = distanceMeters(lat, lon, acc.lat, acc.lon);
+      // On garde les points dans un rayon de 500m pour l'interpolation
+      if (d < 500) {
+        nearbyPoints.push({ pk: acc.pk, lat: acc.lat, lon: acc.lon, dist: d, weight: 1.0 });
+      }
+    }
+    
+    // 2) Points issus des recalages PK (local + partagé) - ces points sont plus précis
+    const allCals = [];
+    if (Array.isArray(sharedCalibrations)) allCals.push(...sharedCalibrations);
+    if (Array.isArray(localCalibrations))  allCals.push(...localCalibrations);
+    
+    for (const c of allCals) {
+      if (!c || c.lat == null || c.lon == null) continue;
+      const pk = c.pkExact != null ? c.pkExact : c.pk;
+      if (pk == null) continue;
+      const d = distanceMeters(lat, lon, c.lat, c.lon);
+      // Les points de calibration sont plus précis, on les garde dans un rayon de 1000m
+      // et on leur donne un poids plus élevé (1.5) car ce sont des mesures calibrées
+      if (d < 1000) {
+        nearbyPoints.push({ pk: pk, lat: c.lat, lon: c.lon, dist: d, weight: 1.5 });
+      }
+    }
+    
+    // Si on a des points GPS proches, on affine le calcul
+    if (nearbyPoints.length >= 2) {
+      // Tri par distance
+      nearbyPoints.sort((a, b) => a.dist - b.dist);
+      
+      // Interpolation pondérée : on utilise jusqu'à 5 points les plus proches
+      // Plus on a de points GPS, plus la précision est grande
+      const maxPoints = Math.min(5, nearbyPoints.length);
+      const topPoints = nearbyPoints.slice(0, maxPoints);
+      
+      // Calcul du poids inverse de la distance (plus proche = plus de poids)
+      let totalWeight = 0;
+      let weightedPk = 0;
+      
+      for (const pt of topPoints) {
+        // Poids = (weight * 1) / (distance + 1) pour éviter division par zéro
+        // Les points de calibration ont un poids plus élevé (1.5 vs 1.0)
+        const weight = (pt.weight || 1.0) / (pt.dist + 1);
+        totalWeight += weight;
+        weightedPk += pt.pk * weight;
+      }
+      
+      if (totalWeight > 0) {
+        const interpolatedPk = weightedPk / totalWeight;
+        
+        // On combine la projection sur la ligne (méthode 1) avec l'interpolation GPS (méthode 2)
+        // Si on est très proche d'un point GPS connu (< 50m), on privilégie l'interpolation
+        // Sinon, on fait une moyenne pondérée
+        const minDist = topPoints[0].dist;
+        
+        if (minDist < 50) {
+          // Très proche d'un point GPS connu : on utilise l'interpolation
+          best.pkProj = interpolatedPk;
+        } else if (best.dist < 200 && best.pkProj != null) {
+          // On combine les deux méthodes avec un poids selon la distance
+          const projectionWeight = best.dist < 100 ? 0.7 : 0.5;
+          const interpolationWeight = 1 - projectionWeight;
+          best.pkProj = best.pkProj * projectionWeight + interpolatedPk * interpolationWeight;
+        }
+      }
+    } else if (nearbyPoints.length === 1) {
+      // Un seul point proche : on l'utilise comme référence si on est très proche
+      const closest = nearbyPoints[0];
+      if (closest.dist < 30) {
+        // Très proche d'un point GPS connu : on utilise son PK directement
+        best.pkProj = closest.pk;
+        best.dist = closest.dist;
+      }
+    }
+    
     return best;
   }
 
@@ -2291,12 +2581,56 @@ function buildCalibrationPolylines() {
   const calibBoissy = [];
   const calibChessy = [];
 
-  // Version "grossière" pour séparer Boissy / Chessy à partir d’un point
+  // Version améliorée pour séparer Boissy / Chessy / Tronc commun à partir d'un point
   function roughBranchFromLatLon(lat, lon) {
-    const boissyRef = brancheBoissy[0];
-    const chessyRef = brancheChessy[0];
-    const dBoissy = distanceMeters(lat, lon, boissyRef.lat, boissyRef.lon);
-    const dChessy = distanceMeters(lat, lon, chessyRef.lat, chessyRef.lon);
+    // D'abord, vérifier si on est sur le tronc commun (PK <= 34000)
+    // On projette sur le tronc commun pour obtenir le PK estimé
+    let minTronc = Infinity;
+    let pkTronc = null;
+    
+    for (let i = 0; i < troncCommun.length - 1; i++) {
+      const a = troncCommun[i];
+      const b = troncCommun[i + 1];
+      if (a.lat == null || a.lon == null || b.lat == null || b.lon == null) continue;
+      
+      const proj = projectToSegment(lat, lon, a, b);
+      if (proj.dist < minTronc) {
+        minTronc = proj.dist;
+        pkTronc = proj.pkProj;
+      }
+    }
+    
+    // Si on est proche du tronc commun (moins de 300m) ET que le PK est <= 34000, on est sur le tronc commun
+    if (minTronc < 300 && pkTronc != null && pkTronc <= 34000) {
+      return "both"; // Tronc commun
+    }
+    
+    // Sinon, comparer la distance aux branches Boissy et Chessy
+    // On utilise plusieurs points de référence pour plus de précision
+    let dBoissy = Infinity;
+    let dChessy = Infinity;
+    
+    // Pour Boissy : utiliser les 3 premiers points de la branche
+    for (let i = 0; i < Math.min(3, brancheBoissy.length); i++) {
+      const ref = brancheBoissy[i];
+      if (ref.lat == null || ref.lon == null) continue;
+      const d = distanceMeters(lat, lon, ref.lat, ref.lon);
+      if (d < dBoissy) dBoissy = d;
+    }
+    
+    // Pour Chessy : utiliser les 3 premiers points de la branche
+    for (let i = 0; i < Math.min(3, brancheChessy.length); i++) {
+      const ref = brancheChessy[i];
+      if (ref.lat == null || ref.lon == null) continue;
+      const d = distanceMeters(lat, lon, ref.lat, ref.lon);
+      if (d < dChessy) dChessy = d;
+    }
+    
+    // Si les distances sont très proches (< 100m de différence), on reste neutre
+    if (Math.abs(dBoissy - dChessy) < 100) {
+      return "both"; // Indéterminé, on reste sur tronc commun
+    }
+    
     return dBoissy < dChessy ? "boissy" : "chessy";
   }
 
@@ -2465,24 +2799,62 @@ function detectBranch(lat, lon) {
   buildCalibrationPolylines();
 
   // Vérification de sécurité : si les polylignes ne sont pas initialisées, on utilise les valeurs par défaut
-  if (!linePointsBoissy || !linePointsChessy) {
+  if (!linePointsBoissy || !linePointsChessy || !troncCommun || troncCommun.length < 2) {
     return "both";
   }
 
-  // Distance minimale à la poly-ligne calibrée BOISSY
-  let minBoissy = Infinity;
-  for (const p of linePointsBoissy) {
-    if (p.lat == null || p.lon == null) continue;
-    const d = distanceMeters(lat, lon, p.lat, p.lon);
-    if (d < minBoissy) minBoissy = d;
+  // ÉTAPE 1 : Vérifier d'abord si on est sur le TRONC COMMUN (PK 0-34000)
+  // On projette sur le tronc commun pour obtenir la distance et le PK estimé
+  let minTronc = Infinity;
+  let pkTronc = null;
+  
+  for (let i = 0; i < troncCommun.length - 1; i++) {
+    const a = troncCommun[i];
+    const b = troncCommun[i + 1];
+    if (a.lat == null || a.lon == null || b.lat == null || b.lon == null) continue;
+    
+    const proj = projectToSegment(lat, lon, a, b);
+    if (proj.dist < minTronc) {
+      minTronc = proj.dist;
+      pkTronc = proj.pkProj;
+    }
   }
 
-  // Distance minimale à la poly-ligne calibrée CHESSY
+  // Si on est très proche du tronc commun (moins de 200m) ET que le PK est <= 34000, on est sur le tronc commun
+  if (minTronc < 200 && pkTronc != null && pkTronc <= 34000) {
+    return "both"; // Tronc commun
+  }
+
+  // ÉTAPE 2 : Si on n'est pas clairement sur le tronc commun, comparer Boissy vs Chessy
+  // On utilise la projection sur les segments (plus précis que la distance aux points)
+  let minBoissy = Infinity;
+  let pkBoissy = null;
+  
+  for (let i = 0; i < linePointsBoissy.length - 1; i++) {
+    const a = linePointsBoissy[i];
+    const b = linePointsBoissy[i + 1];
+    if (a.lat == null || a.lon == null || b.lat == null || b.lon == null) continue;
+    
+    const proj = projectToSegment(lat, lon, a, b);
+    if (proj.dist < minBoissy) {
+      minBoissy = proj.dist;
+      pkBoissy = proj.pkProj;
+    }
+  }
+
   let minChessy = Infinity;
-  for (const p of linePointsChessy) {
-    if (p.lat == null || p.lon == null) continue;
-    const d = distanceMeters(lat, lon, p.lat, p.lon);
-    if (d < minChessy) minChessy = d;
+  let pkChessy = null;
+  
+  for (let i = 0; i < linePointsChessy.length - 1; i++) {
+    const a = linePointsChessy[i];
+    const b = linePointsChessy[i + 1];
+    if (a.lat == null || a.lon == null || b.lat == null || b.lon == null) continue;
+    
+    const proj = projectToSegment(lat, lon, a, b);
+    if (proj.dist < minChessy) {
+      minChessy = proj.dist;
+      pkChessy = proj.pkProj;
+    }
   }
 
   // Si pour une raison quelconque on n'a rien trouvé, on reste neutre
@@ -2490,8 +2862,38 @@ function detectBranch(lat, lon) {
     return "both";
   }
 
-  // Branche = celle dont la poly-ligne calibrée est la plus proche
-  return minBoissy <= minChessy ? "boissy" : "chessy";
+  // ÉTAPE 3 : Comparer les distances avec un seuil de tolérance
+  // Si les deux distances sont très proches (< 50m de différence), on utilise le PK pour trancher
+  const diff = Math.abs(minBoissy - minChessy);
+  
+  if (diff < 50 && pkBoissy != null && pkChessy != null) {
+    // Si les distances sont très proches, on utilise le PK pour déterminer la branche
+    // Si on est proche de la bifurcation (PK ~34000), on privilégie la distance
+    if (pkBoissy > 34000 && pkChessy > 34000) {
+      // On est clairement sur une branche, on utilise la distance la plus proche
+      return minBoissy < minChessy ? "boissy" : "chessy";
+    } else if (pkBoissy <= 34000 && pkChessy <= 34000) {
+      // On est sur le tronc commun
+      return "both";
+    } else {
+      // Une branche a un PK > 34000, l'autre non : on choisit celle avec PK > 34000
+      return pkBoissy > 34000 ? "boissy" : "chessy";
+    }
+  }
+
+  // ÉTAPE 4 : Branche = celle dont la poly-ligne calibrée est la plus proche
+  // Avec un seuil : si la différence est trop faible, on reste sur "both" pour éviter les erreurs
+  if (diff < 30) {
+    // Si la différence est très faible, on vérifie le PK pour trancher
+    if (pkBoissy != null && pkChessy != null) {
+      if (pkBoissy > 34000 && pkChessy <= 34000) return "boissy";
+      if (pkChessy > 34000 && pkBoissy <= 34000) return "chessy";
+    }
+    // Sinon, on reste neutre si vraiment indéterminé
+    return "both";
+  }
+
+  return minBoissy < minChessy ? "boissy" : "chessy";
 }
 
   function safeGetItem(key) {
@@ -2539,15 +2941,83 @@ function detectBranch(lat, lon) {
     pkOffsetInfo.textContent = "Offset actuel : " + sign + " m appliqués à tous les PK.";
   }
 
+  function savePhoneNumber() {
+    const phoneValue = inputSosPhone.value.trim();
+    
+    if (!phoneValue) {
+      alert("Veuillez saisir un numéro de téléphone.");
+      return;
+    }
+
+    // Validation et nettoyage du numéro de téléphone
+    // Supprimer les espaces, tirets et points
+    const cleaned = phoneValue.replace(/[\s\-\.]/g, "");
+    
+    // Vérifier le format : doit commencer par +33 ou 0, puis 9 chiffres
+    // Format accepté : +33XXXXXXXXX ou 0XXXXXXXXX (10 chiffres au total)
+    const phoneRegex = /^(\+33|0)[1-9]\d{8}$/;
+    
+    if (!phoneRegex.test(cleaned)) {
+      // Avertissement mais on permet quand même la sauvegarde
+      const confirmSave = confirm(
+        "Le format du numéro de téléphone semble incorrect.\n" +
+        "Format recommandé : 0612345678 ou +33612345678\n\n" +
+        "Voulez-vous quand même enregistrer ce numéro ?"
+      );
+      if (!confirmSave) {
+        return; // L'utilisateur annule
+      }
+      sosPhone = phoneValue; // Sauvegarder tel quel si format incorrect mais confirmé
+    } else {
+      // Si le format est correct, on sauvegarde le numéro nettoyé
+      sosPhone = cleaned;
+      inputSosPhone.value = sosPhone;
+    }
+
+    safeSetItem("sosPhone", sosPhone);
+    
+    // Message de confirmation
+    alert("Numéro de téléphone sauvegardé avec succès ✅\n\nLe numéro sera conservé et rechargé automatiquement.");
+  }
+
   function saveSettings() {
     sosPhone = inputSosPhone.value.trim();
     motionSensitivity = selectSensitivity.value;
+
+    // Validation et nettoyage du numéro de téléphone (optionnel)
+    if (sosPhone) {
+      // Supprimer les espaces, tirets et points
+      const cleaned = sosPhone.replace(/[\s\-\.]/g, "");
+      
+      // Vérifier le format : doit commencer par +33 ou 0, puis 9 chiffres
+      // Format accepté : +33XXXXXXXXX ou 0XXXXXXXXX (10 chiffres au total)
+      const phoneRegex = /^(\+33|0)[1-9]\d{8}$/;
+      
+      if (!phoneRegex.test(cleaned)) {
+        // Avertissement mais on permet quand même la sauvegarde
+        const confirmSave = confirm(
+          "Le format du numéro de téléphone semble incorrect.\n" +
+          "Format recommandé : 0612345678 ou +33612345678\n\n" +
+          "Voulez-vous quand même enregistrer ce numéro ?"
+        );
+        if (!confirmSave) {
+          return; // L'utilisateur annule
+        }
+      } else {
+        // Si le format est correct, on sauvegarde le numéro nettoyé
+        sosPhone = cleaned;
+        inputSosPhone.value = sosPhone;
+      }
+    }
 
     safeSetItem("sosPhone", sosPhone);
     safeSetItem("motionSensitivity", motionSensitivity);
     safeSetItem("pkOffset", pkOffset);
 
     updateOffsetInfo();
+    
+    // Message de confirmation
+    alert("Paramètres enregistrés avec succès ✅");
   }
 
   function updatePkEstimateInSettings() {
@@ -2602,10 +3072,16 @@ function detectBranch(lat, lon) {
     btnToggleGeoloc.innerHTML = "Arrêter la géoloc";
     setGpsStatus("on", "En attente d’un premier point…");
 
+    // Optimisation batterie : augmenter maximumAge pour utiliser le cache GPS
+    // et réduire la fréquence des mises à jour
     state.watchId = navigator.geolocation.watchPosition(
       handlePosition,
       handleGeolocError,
-      { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
+      { 
+        enableHighAccuracy: true, 
+        maximumAge: 5000, // Utiliser les positions en cache jusqu'à 5 secondes (au lieu de 1)
+        timeout: 15000 
+      }
     );
   }
 
@@ -2624,6 +3100,10 @@ function detectBranch(lat, lon) {
     console.error(err);
   }
 
+  // Throttle pour limiter la fréquence des mises à jour (économie batterie)
+  let lastUpdateTime = 0;
+  const UPDATE_THROTTLE_MS = 1000; // Mise à jour max toutes les 1 seconde
+
   function handlePosition(pos) {
     const lat = pos.coords.latitude;
     const lon = pos.coords.longitude;
@@ -2631,10 +3111,21 @@ function detectBranch(lat, lon) {
 
     state.lastAccuracy = accuracy;
 
+    // Throttle : ne pas mettre à jour trop souvent
+    const now = Date.now();
+    const timeSinceLastUpdate = now - lastUpdateTime;
+    
+    // Toujours mettre à jour le statut GPS (léger)
     setGpsStatus(
       "on",
       "Position reçue (lat : " + lat.toFixed(5) + ", lon : " + lon.toFixed(5) + ")"
     );
+
+    // Si moins de 1 seconde depuis la dernière mise à jour, ignorer (sauf première position)
+    if (timeSinceLastUpdate < UPDATE_THROTTLE_MS && state.lastPk != null) {
+      return;
+    }
+    lastUpdateTime = now;
 
     // Détection de la branche avec la géo + polylignes calibrées
     currentBranch = detectBranch(lat, lon);
@@ -2654,11 +3145,11 @@ function detectBranch(lat, lon) {
 
     const rawPk = proj.pkProj;
     const correctedPk = rawPk + pkOffset;
-    const now = Date.now() / 1000;
+    const nowSeconds = Date.now() / 1000;
 
     if (state.lastPk != null && state.lastPkTime != null) {
       const dPk = correctedPk - state.lastPk;
-      const dt = now - state.lastPkTime;
+      const dt = nowSeconds - state.lastPkTime;
       if (dt > 1) {
         updateMovement(dPk, dt);
       }
@@ -2669,7 +3160,7 @@ function detectBranch(lat, lon) {
 
     state.lastRawPk   = rawPk;
     state.lastPk      = correctedPk;
-    state.lastPkTime  = now;
+    state.lastPkTime  = nowSeconds;
     state.lastLat     = lat;
     state.lastLon     = lon;
     state.lastDist    = proj.dist;
@@ -2765,69 +3256,356 @@ function detectBranch(lat, lon) {
   pkTargetInfo.textContent = "≈ " + dist + " m " + dir;
 }
 
-    function updateOrientationPanel() {
-  const card       = document.getElementById("orientationCard");
-  const pkLine     = document.getElementById("orientPkLine");
-  const dirLine    = document.getElementById("orientDirLine");
-  const gareLine   = document.getElementById("orientGareLine");
-  const accessLine = document.getElementById("orientAccessLine");
+  // Variables globales pour la carte Leaflet
+  let orientationMap = null;
+  let pkActuelMarker = null;
+  let gareMarker = null;
+  let accesMarkers = [];
+  let directionMarker = null;
+  let allGareMarkers = []; // Tous les marqueurs de gares
+  let allAccesMarkers = []; // Tous les marqueurs d'accès
 
-  if (!card || !pkLine || !dirLine || !gareLine || !accessLine) return;
+  // Initialisation de la carte Leaflet
+  function initOrientationMap() {
+    const mapElement = document.getElementById("orientationMap");
+    if (!mapElement || orientationMap) return;
 
-  // Si le bloc est caché, on ne fait rien
-  if (card.style.display === "none") return;
+    // Créer la carte avec un thème sombre (CartoDB Dark Matter)
+    orientationMap = L.map("orientationMap", {
+      zoomControl: true,
+      attributionControl: true,
+    });
 
-  // Pas encore de GPS
-  if (state.lastPk == null) {
-    pkLine.textContent     = "PK actuel : —";
-    dirLine.textContent    = "En attente de position…";
-    gareLine.textContent   = "—";
-    accessLine.textContent = "—";
-    return;
+    // Ajouter une couche de tuiles sombre (CartoDB Dark Matter)
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: "abcd",
+      maxZoom: 19,
+    }).addTo(orientationMap);
+
+    // Centrer la carte sur Paris (RER A)
+    orientationMap.setView([48.85, 2.35], 12);
+
+    // Écouter les événements de zoom et de déplacement pour mettre à jour les marqueurs
+    orientationMap.on("zoomend moveend", updateVisibleMarkers);
   }
 
-  // PK actuel + cible
-  let txtPk = "PK actuel : " + formatPk(state.lastPk);
-  if (pkTarget) {
-    txtPk += " · cible " + formatPk(pkTarget);
-  }
-  pkLine.textContent = txtPk;
+  // Fonction pour mettre à jour les marqueurs visibles selon la zone et le zoom
+  function updateVisibleMarkers() {
+    if (!orientationMap) return;
 
-  // Sens
-  let dirLabel = "indéterminé";
-  if (state.direction === "est") {
-    dirLabel = "vers Chessy / Boissy";
-  } else if (state.direction === "ouest") {
-    dirLabel = "vers St-Germain / Paris";
+    const bounds = orientationMap.getBounds();
+    const zoom = orientationMap.getZoom();
+
+    // Seuil de zoom pour afficher les gares et accès
+    // Zoom < 13 : afficher seulement les gares principales
+    // Zoom >= 13 : afficher toutes les gares et accès dans la zone visible
+    const minZoomForGares = 12;
+    const minZoomForAcces = 13;
+
+    // Filtrer et afficher les gares dans la zone visible
+    if (allGareMarkers && Array.isArray(allGareMarkers)) {
+      allGareMarkers.forEach(marker => {
+        if (!marker) return;
+        try {
+          const latlng = marker.getLatLng();
+          const isVisible = bounds.contains(latlng);
+          const shouldShow = zoom >= minZoomForGares && isVisible;
+          
+          if (shouldShow && !orientationMap.hasLayer(marker)) {
+            orientationMap.addLayer(marker);
+          } else if (!shouldShow && orientationMap.hasLayer(marker)) {
+            orientationMap.removeLayer(marker);
+          }
+        } catch (e) {
+          console.warn("Erreur lors de la mise à jour du marqueur de gare :", e);
+        }
+      });
+    }
+
+    // Filtrer et afficher les accès dans la zone visible
+    if (allAccesMarkers && Array.isArray(allAccesMarkers)) {
+      allAccesMarkers.forEach(marker => {
+        if (!marker) return;
+        try {
+          const latlng = marker.getLatLng();
+          const isVisible = bounds.contains(latlng);
+          const shouldShow = zoom >= minZoomForAcces && isVisible;
+          
+          if (shouldShow && !orientationMap.hasLayer(marker)) {
+            orientationMap.addLayer(marker);
+          } else if (!shouldShow && orientationMap.hasLayer(marker)) {
+            orientationMap.removeLayer(marker);
+          }
+        } catch (e) {
+          console.warn("Erreur lors de la mise à jour du marqueur d'accès :", e);
+        }
+      });
+    }
   }
 
-  if (pkTarget && state.lastPk != null) {
-    const delta = pkTarget - state.lastPk;
-    if (delta > 0) dirLabel = "vers le PK cible (Chessy / Boissy)";
-    else if (delta < 0) dirLabel = "vers le PK cible (St-Germain / Paris)";
-  }
-  dirLine.textContent = dirLabel;
+  // Fonction principale pour mettre à jour la carte d'orientation
+  function updateOrientationPanel() {
+    const card = document.getElementById("orientationCard");
+    const pkValue = document.getElementById("orientPkValue");
+    const dirValue = document.getElementById("orientDirValue");
+    const gareValue = document.getElementById("orientGareValue");
+    const accessValue = document.getElementById("orientAccessValue");
+    const infoPanel = document.getElementById("orientationInfoPanel");
 
-  // Gare la plus proche
-  if (state.nearestStation) {
-    gareLine.textContent =
-      state.nearestStation.name +
-      " (PK " + formatPk(state.nearestStation.pk) + ")";
-  } else {
-    gareLine.textContent = "—";
+    if (!card || !pkValue || !dirValue || !gareValue || !accessValue || !infoPanel) return;
+
+    // Si le bloc est caché, on ne fait rien
+    if (card.style.display === "none") return;
+
+    // Initialiser la carte si nécessaire
+    if (!orientationMap) {
+      initOrientationMap();
+    }
+
+    // Pas encore de GPS
+    if (state.lastPk == null || state.lastLat == null || state.lastLon == null) {
+      pkValue.textContent = "—";
+      dirValue.textContent = "En attente de position…";
+      gareValue.textContent = "—";
+      accessValue.textContent = "—";
+      infoPanel.style.display = "none";
+      return;
+    }
+
+    // Afficher le panneau d'information
+    infoPanel.style.display = "block";
+
+    // Coordonnées GPS actuelles
+    const currentLat = state.lastLat;
+    const currentLon = state.lastLon;
+
+    // PK actuel + cible
+    let txtPk = formatPk(state.lastPk);
+    if (pkTarget) {
+      txtPk += " · cible " + formatPk(pkTarget);
+    }
+    pkValue.textContent = txtPk;
+
+    // Sens
+    let dirLabel = "indéterminé";
+    let directionAngle = null; // Angle en degrés pour la flèche (0 = Nord, 90 = Est, etc.)
+    
+    if (state.direction === "est") {
+      dirLabel = "vers Chessy / Boissy";
+      directionAngle = 90; // Est
+    } else if (state.direction === "ouest") {
+      dirLabel = "vers St-Germain / Paris";
+      directionAngle = 270; // Ouest
+    }
+
+    if (pkTarget && state.lastPk != null) {
+      const delta = pkTarget - state.lastPk;
+      if (delta > 0) {
+        dirLabel = "vers le PK cible (Chessy / Boissy)";
+        directionAngle = 90;
+      } else if (delta < 0) {
+        dirLabel = "vers le PK cible (St-Germain / Paris)";
+        directionAngle = 270;
+      }
+    }
+    dirValue.textContent = dirLabel;
+
+    // Gare la plus proche
+    let gareText = "—";
+    if (state.nearestStation) {
+      gareText = state.nearestStation.name + " (PK " + formatPk(state.nearestStation.pk) + ")";
+      gareValue.textContent = gareText;
+    } else {
+      gareValue.textContent = "—";
+    }
+
+    // 2 accès les plus proches autour de moi
+    const list = getNearestAccessesGeo(state.lastLat, state.lastLon, state.lastPk, 2);
+    let accessText = "—";
+    if (list && list.length) {
+      accessText = list
+        .map(item => item.acc.name + " (PK " + formatPk(item.acc.pk) + ")")
+        .join(" · ");
+      accessValue.textContent = accessText;
+    } else {
+      accessValue.textContent = "—";
+    }
+
+    // Centrer la carte sur la position actuelle
+    orientationMap.setView([currentLat, currentLon], 15);
+
+    // Supprimer les anciens marqueurs dynamiques (PK actuel, gare la plus proche, direction)
+    if (pkActuelMarker) {
+      orientationMap.removeLayer(pkActuelMarker);
+    }
+    if (gareMarker) {
+      orientationMap.removeLayer(gareMarker);
+    }
+    accesMarkers.forEach(marker => {
+      orientationMap.removeLayer(marker);
+    });
+    accesMarkers = [];
+    if (directionMarker) {
+      orientationMap.removeLayer(directionMarker);
+    }
+
+    // Créer tous les marqueurs de gares une seule fois (si pas déjà créés)
+    if (allGareMarkers.length === 0) {
+      const allStations = troncCommun.concat(brancheBoissy, brancheChessy);
+      allStations.forEach(station => {
+        if (station.lat && station.lon) {
+          const gareIcon = L.divIcon({
+            className: "leaflet-marker-gare",
+            html: "🚉",
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+          });
+          const stationMarker = L.marker([station.lat, station.lon], {
+            icon: gareIcon,
+            zIndexOffset: 900,
+          });
+          stationMarker.bindPopup(
+            "Gare : " + station.name + "<br>PK : " + formatPk(station.pk)
+          );
+          allGareMarkers.push(stationMarker);
+        }
+      });
+    }
+
+    // Créer tous les marqueurs d'accès une seule fois (si pas déjà créés)
+    if (allAccesMarkers.length === 0) {
+      accessPoints.forEach(access => {
+        if (access.lat && access.lon) {
+          const accesIcon = L.divIcon({
+            className: "leaflet-marker-acces",
+            html: "🚪",
+            iconSize: [18, 18],
+            iconAnchor: [9, 9],
+          });
+          const accessMarker = L.marker([access.lat, access.lon], {
+            icon: accesIcon,
+            zIndexOffset: 800,
+          });
+          accessMarker.bindPopup(
+            "Accès : " + access.name + "<br>PK : " + (access.pk ? formatPk(access.pk) : "—")
+          );
+          allAccesMarkers.push(accessMarker);
+        }
+      });
+    }
+
+    // Ajouter le marqueur PK actuel (point central) - toujours visible
+    const pkActuelIcon = L.divIcon({
+      className: "leaflet-marker-pk-actuel",
+      html: "",
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+    });
+    pkActuelMarker = L.marker([currentLat, currentLon], {
+      icon: pkActuelIcon,
+      zIndexOffset: 1000,
+    }).addTo(orientationMap);
+    pkActuelMarker.bindPopup("PK actuel : " + formatPk(state.lastPk));
+
+    // Ajouter le marqueur de la gare la plus proche (toujours visible)
+    if (state.nearestStation && state.nearestStation.lat && state.nearestStation.lon) {
+      const gareIcon = L.divIcon({
+        className: "leaflet-marker-gare",
+        html: "🚉",
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+      });
+      gareMarker = L.marker([state.nearestStation.lat, state.nearestStation.lon], {
+        icon: gareIcon,
+        zIndexOffset: 950,
+      }).addTo(orientationMap);
+      gareMarker.bindPopup(
+        "Gare la plus proche : " + state.nearestStation.name + "<br>PK : " + formatPk(state.nearestStation.pk)
+      );
+    }
+
+    // Mettre à jour les marqueurs visibles selon la zone et le zoom
+    updateVisibleMarkers();
+
+    // Ajouter la flèche de direction qui avance en temps réel
+    if (directionAngle !== null) {
+      // Calculer la position de la flèche devant la position actuelle dans la direction du mouvement
+      // Distance approximative : ~50 mètres devant (0.0005 degrés ≈ 50m à cette latitude)
+      const arrowDistance = 0.0005; // Distance en degrés (environ 50m)
+      
+      // Convertir l'angle en radians pour les calculs trigonométriques
+      const angleRad = (directionAngle * Math.PI) / 180;
+      
+      // Calculer le décalage lat/lon pour positionner la flèche devant
+      // Note: directionAngle 90 = Est, 270 = Ouest
+      // Pour Est (90°): décalage vers l'Est (lon augmente)
+      // Pour Ouest (270°): décalage vers l'Ouest (lon diminue)
+      let arrowLat, arrowLon;
+      
+      if (directionAngle === 90) {
+        // Direction Est (vers Chessy/Boissy) - décalage vers l'Est
+        arrowLat = currentLat;
+        arrowLon = currentLon + arrowDistance;
+      } else if (directionAngle === 270) {
+        // Direction Ouest (vers St-Germain/Paris) - décalage vers l'Ouest
+        arrowLat = currentLat;
+        arrowLon = currentLon - arrowDistance;
+      } else {
+        // Direction générale (calcul trigonométrique)
+        arrowLat = currentLat + arrowDistance * Math.cos(angleRad);
+        arrowLon = currentLon + arrowDistance * Math.sin(angleRad);
+      }
+      
+      // Créer une flèche HTML avec rotation et animation de mouvement
+      const arrowHtml = '<div class="direction-arrow direction-arrow-moving" style="transform: rotate(' + directionAngle + 'deg);"></div>';
+      const directionIcon = L.divIcon({
+        className: "leaflet-marker-direction",
+        html: arrowHtml,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+      });
+      
+      // Positionner la flèche devant la position actuelle
+      directionMarker = L.marker([arrowLat, arrowLon], {
+        icon: directionIcon,
+        zIndexOffset: 1100,
+      }).addTo(orientationMap);
+      directionMarker.bindPopup("Sens : " + dirLabel + "<br>Position : " + formatPk(state.lastPk));
+    } else {
+      // Flèche grisée si direction indéterminée (positionnée au-dessus du point)
+      const arrowHtml = '<div class="direction-arrow direction-arrow-indetermine"></div>';
+      const directionIcon = L.divIcon({
+        className: "leaflet-marker-direction",
+        html: arrowHtml,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+      });
+      const arrowLat = currentLat + 0.0003; // Décalage vers le nord si indéterminé
+      directionMarker = L.marker([arrowLat, currentLon], {
+        icon: directionIcon,
+        zIndexOffset: 1100,
+      }).addTo(orientationMap);
+      directionMarker.bindPopup("Sens : indéterminé");
+    }
+
+    // Ajuster la vue pour inclure tous les marqueurs
+    const group = new L.featureGroup([pkActuelMarker]);
+    if (gareMarker) group.addLayer(gareMarker);
+    accesMarkers.forEach(marker => group.addLayer(marker));
+    if (directionMarker) group.addLayer(directionMarker);
+    
+    orientationMap.fitBounds(group.getBounds().pad(0.1), {
+      maxZoom: 16,
+    });
   }
 
-  // 2 accès les plus proches autour de moi
-  const list = getNearestAccessesGeo(state.lastLat, state.lastLon, state.lastPk, 2);
-  if (list && list.length) {
-    const txt = list
-      .map(item => item.acc.name + " (PK " + formatPk(item.acc.pk) + ")")
-      .join(" · ");
-    accessLine.textContent = txt;
-  } else {
-    accessLine.textContent = "—";
+  // Fonction updateOrientation pour rafraîchir la carte (bonus)
+  function updateOrientation(pk, sens) {
+    // Cette fonction peut être appelée manuellement pour rafraîchir la carte
+    // Elle utilise les valeurs actuelles de state
+    updateOrientationPanel();
   }
-}
 
   function updateAccessList(pk) {
     // Pas de PK ou pas encore de GPS → on attend
@@ -2907,6 +3685,7 @@ function detectBranch(lat, lon) {
                      : currentBranch === "chessy" ? "branche Marne-la-Vallée – Chessy"
                      : "branche inconnue";
     let message =
+      "J'ai eu un accident, je suis blessé, venez me secourir.\n\n" +
       "PK : " + pkText + " (" + branchLabel + ")\n" +
       "Gare la plus proche : " + nearestName + "\n";
 
@@ -2992,186 +3771,207 @@ function detectBranch(lat, lon) {
     window.open(url, "_blank");
   }
 
-  selectIncidentType.addEventListener("change", () => {
-    if (selectIncidentType.value === "Autre") {
-      incidentOtherField.style.display = "block";
-    } else {
-      incidentOtherField.style.display = "none";
-    }
-  });
+  if (selectIncidentType) {
+    selectIncidentType.addEventListener("change", () => {
+      if (selectIncidentType.value === "Autre") {
+        if (incidentOtherField) incidentOtherField.style.display = "block";
+      } else {
+        if (incidentOtherField) incidentOtherField.style.display = "none";
+      }
+    });
+  }
 
-  btnGenerateIncident.addEventListener("click", () => {
-    if (state.lastPk == null || state.lastLat == null) {
-      alert("Position GPS non disponible. Lance la géoloc avant de signaler.");
-      return;
-    }
-    let type = selectIncidentType.value;
-    if (!type) {
-      alert("Choisis un type d’incident avant de générer le message.");
-      return;
-    }
-    if (type === "Autre") {
-      const desc = inputIncidentOther.value.trim();
-      if (!desc) {
-        alert("Précise la nature de l’incident.");
+  if (btnGenerateIncident) {
+    btnGenerateIncident.addEventListener("click", () => {
+      if (state.lastPk == null || state.lastLat == null) {
+        alert("Position GPS non disponible. Lance la géoloc avant de signaler.");
         return;
       }
-      type = desc;
-    }
-
-    const pkTxt = "PK " + formatPk(state.lastPk);
-    const station = state.nearestStation ? state.nearestStation.name : "inconnue";
-    const lat = state.lastLat.toFixed(5);
-    const lon = state.lastLon.toFixed(5);
-    const now = new Date();
-    const dateTxt = now.toLocaleDateString("fr-FR");
-    const timeTxt = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-
-    let message =
-      "🚨 Signalement d’avarie / incident\n" +
-      "Type : " + type + "\n" +
-      "PK : " + pkTxt + "\n" +
-      "Branche : " + (currentBranch === "boissy"
-                      ? "Boissy-Saint-Léger"
-                      : currentBranch === "chessy"
-                        ? "Marne-la-Vallée – Chessy"
-                        : "inconnue") + "\n" +
-      "Gare la plus proche : " + station + "\n";
-
-    if (state.nearestAccess) {
-      message +=
-        "Accès le plus proche : " + state.nearestAccess.name +
-        " (" + state.nearestAccess.address + ")\n";
-    }
-
-    message +=
-      "Coordonnées : " + lat + ", " + lon + "\n" +
-      "Date/heure : " + dateTxt + " – " + timeTxt;
-
-    if (incidentPhotoInput && incidentPhotoInput.files && incidentPhotoInput.files.length > 0) {
-      const file = incidentPhotoInput.files[0];
-      if (file && file.name) {
-        message += "\nPhoto jointe : " + file.name;
+      let type = selectIncidentType ? selectIncidentType.value : "";
+      if (!type) {
+        alert("Choisis un type d'incident avant de générer le message.");
+        return;
       }
-    }
+      if (type === "Autre") {
+        const desc = inputIncidentOther ? inputIncidentOther.value.trim() : "";
+        if (!desc) {
+          alert("Précise la nature de l'incident.");
+          return;
+        }
+        type = desc;
+      }
 
-    incidentResultText.value = message;
-    incidentResultField.style.display = "block";
-  });
+      const pkTxt = "PK " + formatPk(state.lastPk);
+      const station = state.nearestStation ? state.nearestStation.name : "inconnue";
+      const lat = state.lastLat.toFixed(5);
+      const lon = state.lastLon.toFixed(5);
+      const now = new Date();
+      const dateTxt = now.toLocaleDateString("fr-FR");
+      const timeTxt = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
-  btnCopyIncident.addEventListener("click", () => {
-    const text = incidentResultText.value;
-    if (!text) {
-      alert("Aucun message à copier.");
-      return;
-    }
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Message copié dans le presse-papiers ✅");
-      }).catch(() => {
+      let message =
+        "🚨 Signalement d'avarie / incident\n" +
+        "Type : " + type + "\n" +
+        "PK : " + pkTxt + "\n" +
+        "Branche : " + (currentBranch === "boissy"
+                        ? "Boissy-Saint-Léger"
+                        : currentBranch === "chessy"
+                          ? "Marne-la-Vallée – Chessy"
+                          : "inconnue") + "\n" +
+        "Gare la plus proche : " + station + "\n";
+
+      if (state.nearestAccess) {
+        message +=
+          "Accès le plus proche : " + state.nearestAccess.name +
+          " (" + state.nearestAccess.address + ")\n";
+      }
+
+      message +=
+        "Coordonnées : " + lat + ", " + lon + "\n" +
+        "Date/heure : " + dateTxt + " – " + timeTxt;
+
+      if (incidentPhotoInput && incidentPhotoInput.files && incidentPhotoInput.files.length > 0) {
+        const file = incidentPhotoInput.files[0];
+        if (file && file.name) {
+          message += "\nPhoto jointe : " + file.name;
+        }
+      }
+
+      if (incidentResultText) incidentResultText.value = message;
+      if (incidentResultField) incidentResultField.style.display = "block";
+    });
+  }
+
+  if (btnCopyIncident) {
+    btnCopyIncident.addEventListener("click", () => {
+      const text = incidentResultText.value;
+      if (!text) {
+        alert("Aucun message à copier.");
+        return;
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert("Message copié dans le presse-papiers ✅");
+        }).catch(() => {
+          incidentResultText.select();
+          document.execCommand("copy");
+          alert("Message copié dans le presse-papiers ✅");
+        });
+      } else {
         incidentResultText.select();
         document.execCommand("copy");
         alert("Message copié dans le presse-papiers ✅");
-      });
-    } else {
-      incidentResultText.select();
-      document.execCommand("copy");
-      alert("Message copié dans le presse-papiers ✅");
-    }
-  });
+      }
+    });
+  }
 
-  btnToggleGeoloc.addEventListener("click", () => {
-    if (geolocActive) stopGeoloc();
-    else startGeoloc();
-  });
+  if (btnToggleGeoloc) {
+    btnToggleGeoloc.addEventListener("click", () => {
+      if (geolocActive) stopGeoloc();
+      else startGeoloc();
+    });
+  }
 
-  btnSettingsToggle.addEventListener("click", () => {
-    const isVisible = settingsPanel.style.display !== "none";
-    settingsPanel.style.display = isVisible ? "none" : "block";
-  });
+  if (btnSettingsToggle && settingsPanel) {
+    btnSettingsToggle.addEventListener("click", () => {
+      const isVisible = settingsPanel.style.display !== "none";
+      settingsPanel.style.display = isVisible ? "none" : "block";
+    });
+  }
 
-  btnSetPkTarget.addEventListener("click", () => {
-    const val = parsePkInput(inputPkTarget.value);
-    if (val == null) {
-      alert("PK cible invalide. Utilise 32400 ou 32+400.");
-      return;
-    }
-    pkTarget = val;
-    updatePkTargetView();
-    updateOrientationPanel();
-  });
-
-  btnSms.addEventListener("click", sendSms);
-
-  btnResetOffset.addEventListener("click", () => {
-    pkOffset = 0;
-    safeSetItem("pkOffset", pkOffset);
-    updateOffsetInfo();
-    if (state.lastRawPk != null) {
-      state.lastPk = state.lastRawPk;
-      state.nearestStation = findNearestStation(state.lastPk, currentBranch);
-      state.nearestAccess = (state.lastLat != null && state.lastLon != null) 
-        ? findNearestAccessGeo(state.lastLat, state.lastLon)
-        : findNearestAccess(state.lastPk);
-      updateNearestStation(state.lastPk, state.nearestStation);
-      updateNextStation(state.lastPk);
+  if (btnSetPkTarget && inputPkTarget) {
+    btnSetPkTarget.addEventListener("click", () => {
+      const val = parsePkInput(inputPkTarget.value);
+      if (val == null) {
+        alert("PK cible invalide. Utilise 32400 ou 32+400.");
+        return;
+      }
+      pkTarget = val;
       updatePkTargetView();
-      updateAccessList(state.lastPk);
+      updateOrientationPanel();
+    });
+  }
+
+  if (btnSms) {
+    btnSms.addEventListener("click", sendSms);
+  }
+
+  if (btnResetOffset) {
+    btnResetOffset.addEventListener("click", () => {
+      pkOffset = 0;
+      safeSetItem("pkOffset", pkOffset);
+      updateOffsetInfo();
+      if (state.lastRawPk != null) {
+        state.lastPk = state.lastRawPk;
+        state.nearestStation = findNearestStation(state.lastPk, currentBranch);
+        state.nearestAccess = (state.lastLat != null && state.lastLon != null) 
+          ? findNearestAccessGeo(state.lastLat, state.lastLon)
+          : findNearestAccess(state.lastPk);
+        updateNearestStation(state.lastPk, state.nearestStation);
+        updateNextStation(state.lastPk);
+        updatePkTargetView();
+        updateAccessList(state.lastPk);
+        updateSmsPreview();
+        updatePkEstimateInSettings();
+      } else {
+        updatePkEstimateInSettings();
+      }
+    });
+  }
+
+  if (btnApplyRecal && inputPkRecal) {
+    btnApplyRecal.addEventListener("click", () => {
+      const exactPk = parsePkInput(inputPkRecal.value);
+      if (exactPk == null) {
+        alert("PK invalide. Utilise 52700 ou 52+700.");
+        return;
+      }
+      if (state.lastRawPk == null) {
+        alert("Pas de position GPS pour recaler. Lance la géoloc d'abord.");
+        return;
+      }
+      pkOffset = exactPk - state.lastRawPk;
+      safeSetItem("pkOffset", pkOffset);
+      updateOffsetInfo();
+      updatePkEstimateInSettings();
+
+      // AJOUT CALIBRAGE : on enregistre ce recalage comme un point de calibration
+      if (state.lastLat != null && state.lastLon != null) {
+        const calib = {
+          // PK exact saisi par toi
+          pkExact: exactPk,
+          // PK brut estimé par l'algorithme avant offset
+          pkRaw: state.lastRawPk,
+          // offset appliqué
+          pkOffset: pkOffset,
+          // coordonnées GPS au moment du recalage
+          lat: state.lastLat,
+          lon: state.lastLon,
+          accuracy: state.lastAccuracy,
+          branch: currentBranch,
+          timestamp: new Date().toISOString()
+        };
+        localCalibrations.push(calib);
+        saveLocalCalibrations();
+        console.log("Nouveau recalage enregistré :", calib);
+      }
+      // FIN AJOUT CALIBRAGE
+    });
+  }
+
+  if (btnSavePhone) {
+    btnSavePhone.addEventListener("click", () => {
+      savePhoneNumber();
       updateSmsPreview();
-      updatePkEstimateInSettings();
-    } else {
-      updatePkEstimateInSettings();
-    }
+    });
+  }
+
+if (selectSensitivity) {
+  selectSensitivity.addEventListener("change", () => {
+    motionSensitivity = selectSensitivity.value;
+    safeSetItem("motionSensitivity", motionSensitivity);
   });
-
-  btnApplyRecal.addEventListener("click", () => {
-    const exactPk = parsePkInput(inputPkRecal.value);
-    if (exactPk == null) {
-      alert("PK invalide. Utilise 52700 ou 52+700.");
-      return;
-    }
-    if (state.lastRawPk == null) {
-      alert("Pas de position GPS pour recaler. Lance la géoloc d’abord.");
-      return;
-    }
-    pkOffset = exactPk - state.lastRawPk;
-    safeSetItem("pkOffset", pkOffset);
-    updateOffsetInfo();
-    updatePkEstimateInSettings();
-
-    // AJOUT CALIBRAGE : on enregistre ce recalage comme un point de calibration
-    if (state.lastLat != null && state.lastLon != null) {
-      const calib = {
-        // PK exact saisi par toi
-        pkExact: exactPk,
-        // PK brut estimé par l’algorithme avant offset
-        pkRaw: state.lastRawPk,
-        // offset appliqué
-        pkOffset: pkOffset,
-        // coordonnées GPS au moment du recalage
-        lat: state.lastLat,
-        lon: state.lastLon,
-        accuracy: state.lastAccuracy,
-        branch: currentBranch,
-        timestamp: new Date().toISOString()
-      };
-      localCalibrations.push(calib);
-      saveLocalCalibrations();
-      console.log("Nouveau recalage enregistré :", calib);
-    }
-    // FIN AJOUT CALIBRAGE
-  });
-
-  btnSaveSettings.addEventListener("click", () => {
-    saveSettings();
-    updateSmsPreview();
-    alert("Paramètres enregistrés ✅");
-  });
-
-selectSensitivity.addEventListener("change", () => {
-  motionSensitivity = selectSensitivity.value;
-  safeSetItem("motionSensitivity", motionSensitivity);
-});
+}
 
 // Gestion de l’affichage du bloc Orientation
 if (toggleOrientation && orientationCard) {
@@ -3185,16 +3985,24 @@ if (toggleOrientation && orientationCard) {
   });
 }
 
-  btnPkLookup.addEventListener("click", handlePkLookup);
-  btnPkLookupOpenMaps.addEventListener("click", openPkLookupInMaps);
-  btnPkLookupOpenWaze.addEventListener("click", openPkLookupInWaze);
+  if (btnPkLookup) {
+    btnPkLookup.addEventListener("click", handlePkLookup);
+  }
+  if (btnPkLookupOpenMaps) {
+    btnPkLookupOpenMaps.addEventListener("click", openPkLookupInMaps);
+  }
+  if (btnPkLookupOpenWaze) {
+    btnPkLookupOpenWaze.addEventListener("click", openPkLookupInWaze);
+  }
 
   // AJOUT CALIBRAGE : clic sur "Exporter mes recalages"
   if (btnExportCalibrations) {
     btnExportCalibrations.addEventListener("click", exportLocalCalibrationsForGitHub);
   }
 
-  selectIncidentType.dispatchEvent(new Event("change"));
+  if (selectIncidentType) {
+    selectIncidentType.dispatchEvent(new Event("change"));
+  }
 
   // Initialisation
     function initAccessGate() {
@@ -3238,6 +4046,47 @@ updateSmsPreview();
 setGpsStatus("off");
 initAccessGate();
 console.log("PK Assistant RER A – script chargé sans erreur ✅");
+
+  // Optimisation batterie : pause les animations quand la page n'est pas visible
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      document.body.setAttribute("data-page-hidden", "true");
+      // Réduire la fréquence GPS quand la page n'est pas visible
+      if (geolocActive && state.watchId) {
+        // Augmenter maximumAge quand la page n'est pas visible
+        navigator.geolocation.clearWatch(state.watchId);
+        state.watchId = navigator.geolocation.watchPosition(
+          handlePosition,
+          handleGeolocError,
+          { 
+            enableHighAccuracy: false, // Réduire la précision quand invisible
+            maximumAge: 10000, // Utiliser le cache jusqu'à 10 secondes
+            timeout: 20000 
+          }
+        );
+      }
+    } else {
+      document.body.removeAttribute("data-page-hidden");
+      // Restaurer la fréquence GPS normale quand la page redevient visible
+      if (geolocActive && state.watchId) {
+        navigator.geolocation.clearWatch(state.watchId);
+        state.watchId = navigator.geolocation.watchPosition(
+          handlePosition,
+          handleGeolocError,
+          { 
+            enableHighAccuracy: true, 
+            maximumAge: 5000,
+            timeout: 15000 
+          }
+        );
+      }
+    }
+  });
   </script>
+
+  <!-- Signature -->
+  <div class="app-footer">
+    KYFUN
+  </div>
 </body>
 </html>
