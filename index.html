@@ -1029,7 +1029,9 @@ function detectBranch(lat, lon) {
   }
 
   // S’assure que les polylignes calibrées sont prêtes
-  buildCalibrationPolylines();
+  if (!linePointsBoissy || !linePointsChessy) {
+    buildCalibrationPolylines();
+  }
 
   let minBoissy = Infinity;
   for (const p of linePointsBoissy) {
