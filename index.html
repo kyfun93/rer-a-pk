@@ -292,6 +292,43 @@
   </style>
 </head>
 <body>
+  <div id="accessOverlay" style="
+  position:fixed;
+  inset:0;
+  background:radial-gradient(circle at top, #251c4a 0%, #050510 60%, #010106 100%);
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+">
+  <div class="card" style="max-width:320px;width:90%;text-align:center;">
+    <div class="card-title" style="width:100%;text-align:center;">Code d'accès</div>
+    <div class="muted" style="margin-top:6px;">
+      Application interne – accès réservé.<br>
+      Saisis le code d'accès.
+    </div>
+
+    <div class="field" style="margin-top:12px;">
+      <input id="accessCodeInput"
+             type="password"
+             inputmode="numeric"
+             maxlength="6"
+             placeholder="Code"
+             style="text-align:center;font-size:1.1rem;letter-spacing:0.2em;">
+    </div>
+
+    <div class="field">
+      <button id="btnAccessCode" class="btn btn-primary btn-icon" type="button">
+        <span>🔓</span><span>Déverrouiller</span>
+      </button>
+    </div>
+
+    <div id="accessError" class="muted" style="color:var(--danger);display:none;">
+      Code incorrect.
+    </div>
+  </div>
+</div>
+
   <div class="app">
     <div class="header">
       <div class="title-pill">
@@ -541,6 +578,11 @@
   </div>
 
   <script>
+
+    const ACCESS_CODE_KEY = "pkAssistantAccessGranted";
+// ⚠️ Mets le code que tu veux ici (4 chiffres par ex.)
+const ACCESS_CODE = "noisy champs";
+
   // === DONNÉES DE LIGNE AVEC BIFURCATION ================================
 
   const troncCommun = [
@@ -2838,11 +2880,47 @@ function detectBranch(lat, lon) {
   selectIncidentType.dispatchEvent(new Event("change"));
 
   // Initialisation
+    function initAccessGate() {
+  const overlay = document.getElementById("accessOverlay");
+  const input   = document.getElementById("accessCodeInput");
+  const btn     = document.getElementById("btnAccessCode");
+  const err     = document.getElementById("accessError");
+
+  if (!overlay || !input || !btn) return;
+
+  const already = safeGetItem(ACCESS_CODE_KEY);
+  if (already === "ok") {
+    // Déjà autorisé sur cet appareil -> on masque l'overlay
+    overlay.style.display = "none";
+    return;
+  }
+
+  function tryCode() {
+    const v = (input.value || "").trim();
+    if (v === ACCESS_CODE) {
+      safeSetItem(ACCESS_CODE_KEY, "ok");
+      err.style.display = "none";
+      overlay.style.transition = "opacity 0.2s ease";
+      overlay.style.opacity = "0";
+      setTimeout(() => { overlay.style.display = "none"; }, 200);
+    } else {
+      err.style.display = "block";
+    }
+  }
+
+  btn.addEventListener("click", tryCode);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") tryCode();
+  });
+}
+
   loadSettings();
   loadLocalCalibrations();
-  loadSharedCalibrations(); // lecture du fichier partagé (pour plus tard)
+  loadSharedCalibrations(); 
   updateSmsPreview();
   setGpsStatus("off");
+  initAccessGate();  
+  console.log("PK Assistant RER A – script chargé sans erreur ✅");
 
  function handlePosition(pos) {
   const lat = pos.coords.latitude;
