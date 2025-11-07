@@ -514,6 +514,58 @@ body[data-page-hidden="true"] .leaflet-marker-pk-actuel {
   box-shadow: 0 0 8px rgba(255, 159, 123, 0.6);
 }
 
+/* Icône PK cible (croix rouge) */
+.leaflet-marker-pk-target {
+  background: transparent;
+  width: 30px !important;
+  height: 30px !important;
+  position: relative;
+}
+
+.leaflet-marker-pk-target::before,
+.leaflet-marker-pk-target::after {
+  content: "";
+  position: absolute;
+  background: #ff0000;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.8), 0 0 15px rgba(255, 0, 0, 0.6);
+}
+
+.leaflet-marker-pk-target::before {
+  width: 3px;
+  height: 100%;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.leaflet-marker-pk-target::after {
+  width: 100%;
+  height: 3px;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+/* Icône SAM (feu rouge) */
+.leaflet-marker-sam {
+  background: #ff0000;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  width: 20px !important;
+  height: 20px !important;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.8), 0 0 20px rgba(255, 0, 0, 0.6);
+}
+
+/* Icône pétard (carré vert) */
+.leaflet-marker-petard {
+  background: #00ff00;
+  border: 2px solid #fff;
+  border-radius: 2px;
+  width: 16px !important;
+  height: 16px !important;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.8), 0 0 15px rgba(0, 255, 0, 0.6);
+}
+
 /* Flèche de direction */
 .leaflet-marker-direction {
   background: transparent;
@@ -801,9 +853,9 @@ body[data-page-hidden="true"] .direction-arrow-moving {
       <!-- Numéro SOS -->
       <div class="field">
         <label for="inputSosPhone">Numéro SOS pour le SMS d'urgence</label>
-        <div style="display: flex; gap: 8px; align-items: flex-start;">
-          <input id="inputSosPhone" type="tel" placeholder="ex : 0612345678 ou +33612345678" style="flex: 1;" />
-          <button id="btnSavePhone" class="btn btn-primary btn-icon" type="button" style="white-space: nowrap;">
+        <input id="inputSosPhone" type="tel" placeholder="ex : 0612345678 ou +33612345678" />
+        <div style="margin-top: 8px;">
+          <button id="btnSavePhone" class="btn btn-primary btn-icon" type="button">
             <span>💾</span><span>Sauvegarder</span>
           </button>
         </div>
@@ -861,6 +913,42 @@ body[data-page-hidden="true"] .direction-arrow-moving {
           </div>
         </div>
         <!-- FIN AJOUT CALIBRAGE -->
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Calcul couverture travaux (feux rouges et pétards) -->
+      <div class="card" style="margin-top: 20px;">
+        <div class="card-header">
+          <div class="card-title">🚦 Calcul couverture travaux</div>
+        </div>
+        <div class="field">
+          <label for="inputCoveragePkStart">PK début chantier (m)</label>
+          <input id="inputCoveragePkStart" type="number" placeholder="ex : 48000" />
+        </div>
+        <div class="field">
+          <label for="inputCoveragePkEnd">PK fin chantier (m)</label>
+          <input id="inputCoveragePkEnd" type="number" placeholder="ex : 49000" />
+        </div>
+        <div class="field">
+          <button id="btnComputeCoverage" class="btn btn-primary btn-icon" type="button">
+            <span>🚦</span><span>Calculer rouges & pétards</span>
+          </button>
+        </div>
+        <div class="field" style="margin-top: 15px;">
+          <label style="font-weight: 600; margin-bottom: 8px;">Résultats du calcul :</label>
+          <div id="coverageResultsLine" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; min-height: 40px; display: flex; align-items: center;">
+            <span style="color: rgba(255, 255, 255, 0.5);">Cliquez sur « Calculer rouges & pétards » pour voir les résultats</span>
+          </div>
+        </div>
+        <div id="coverageResult" class="field" style="display: none; margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+          <div id="coverageResultText" style="color: #fff; line-height: 1.6;"></div>
+        </div>
+        <div class="field">
+          <button id="btnClearCoverage" class="btn btn-secondary" type="button" style="display: none;">
+            Effacer les marqueurs
+          </button>
+        </div>
       </div>
 
       <div class="divider"></div>
@@ -2336,14 +2424,66 @@ async function loadSharedCalibrations() {
 
     const now = new Date();
     const stamp = now.toISOString().replace(/[:.]/g, "-");
+    const filename = "pk-calibrations-local-" + stamp + ".json";
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "pk-calibrations-local-" + stamp + ".json";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Méthode pour mobile et desktop
+    try {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      // Sur mobile, afficher aussi le contenu pour copier
+      setTimeout(() => {
+        const copyText = "📋 Copie le contenu ci-dessous et colle-le dans un fichier .json :\n\n" + dataStr;
+        const shouldCopy = confirm(
+          "Fichier téléchargé : " + filename + "\n\n" +
+          "Sur mobile, tu peux aussi copier le contenu JSON pour le partager.\n\n" +
+          "Clique sur OK pour voir le contenu à copier."
+        );
+        
+        if (shouldCopy) {
+          // Créer une zone de texte pour copier facilement
+          const textarea = document.createElement("textarea");
+          textarea.value = dataStr;
+          textarea.style.position = "fixed";
+          textarea.style.left = "-9999px";
+          document.body.appendChild(textarea);
+          textarea.select();
+          try {
+            document.execCommand("copy");
+            alert("✅ Contenu JSON copié dans le presse-papiers !\n\nTu peux maintenant le coller dans un message ou un fichier.");
+          } catch (err) {
+            // Si la copie échoue, afficher le contenu
+            const displayWindow = window.open("", "_blank");
+            if (displayWindow) {
+              displayWindow.document.write("<pre style='padding: 20px; font-family: monospace; white-space: pre-wrap;'>" + 
+                JSON.stringify(localCalibrations, null, 2) + 
+                "</pre>");
+            } else {
+              alert("Contenu JSON :\n\n" + dataStr.substring(0, 500) + "...\n\n(Contenu tronqué, utilise le téléchargement)");
+            }
+          }
+          document.body.removeChild(textarea);
+        }
+      }, 100);
+      
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Erreur lors de l'export :", error);
+      // Fallback : afficher le JSON dans une alerte ou une nouvelle fenêtre
+      const displayWindow = window.open("", "_blank");
+      if (displayWindow) {
+        displayWindow.document.write("<pre style='padding: 20px; font-family: monospace; white-space: pre-wrap;'>" + 
+          JSON.stringify(localCalibrations, null, 2) + 
+          "</pre>");
+      } else {
+        alert("Erreur lors du téléchargement. Contenu JSON :\n\n" + dataStr.substring(0, 1000));
+      }
+    }
   }
   // === FIN AJOUT CALIBRAGE ===
 
@@ -2709,6 +2849,127 @@ function buildCalibrationPolylines() {
       }
     }
     return best;
+  }
+
+  // Constantes pour le calcul de couverture travaux
+  const PETARD_SPACING = 30; // m
+  const SAM_OFFSET = 100;    // m (SAM à 100m du PK de chantier)
+  const DISTANCE_RULE = 800;   // m (premier pétard à 800m du SAM)
+
+  // Crée les 3 pétards espacés de 30 m
+  function makePetards(basePk, direction) {
+    // direction = "est" (PK augmente) ou "ouest" (PK diminue)
+    const rails = ["gauche", "droite", "gauche"];
+    return [0, 1, 2].map((i) => {
+      const offset = i * PETARD_SPACING;
+      const pk = direction === "est" ? basePk + offset : basePk - offset;
+      return {
+        order: i + 1,
+        railFile: rails[i],
+        pk: pk,
+      };
+    });
+  }
+
+  // Fonction principale pour calculer les marqueurs de couverture
+  function computeCoverageMarkers(pkStart, pkEnd) {
+    const results = [];
+
+    // Côté PK début : SAM à 100m en direction St-Germain (PK diminue)
+    // Exemple : PK chantier 48000 → SAM à 47900
+    const pkSamStart = pkStart - SAM_OFFSET;
+    // Premier pétard à 800m du SAM (donc 800m en amont du SAM)
+    // Exemple : SAM 47900 → premier pétard à 47100 (47900 - 800)
+    const pkPetardsStart = pkSamStart - DISTANCE_RULE;
+    const petardsStart = makePetards(pkPetardsStart, "ouest");
+
+    results.push({
+      side: "pkStart",
+      pkSamRep: pkSamStart,
+      petards: petardsStart,
+      rationale: `SAM à ${SAM_OFFSET} m en direction St-Germain, 3 pétards à ${DISTANCE_RULE} m en amont (espacés de ${PETARD_SPACING} m)`,
+    });
+
+    // Côté PK fin : SAM à 100m en direction Chessy/Boissy (PK augmente)
+    // Exemple : PK chantier 49000 → SAM à 49100
+    const pkSamEnd = pkEnd + SAM_OFFSET;
+    // Premier pétard à 800m du SAM (donc 800m en amont du SAM)
+    // Exemple : SAM 49100 → premier pétard à 49900 (49100 + 800)
+    const pkPetardsEnd = pkSamEnd + DISTANCE_RULE;
+    const petardsEnd = makePetards(pkPetardsEnd, "est");
+
+    results.push({
+      side: "pkEnd",
+      pkSamRep: pkSamEnd,
+      petards: petardsEnd,
+      rationale: `SAM à ${SAM_OFFSET} m en direction Chessy/Boissy, 3 pétards à ${DISTANCE_RULE} m en amont (espacés de ${PETARD_SPACING} m)`,
+    });
+
+    return {
+      lineId: "RERA",
+      bySide: results,
+      distanceRule: DISTANCE_RULE,
+    };
+  }
+
+  // Fonction pour obtenir les coordonnées GPS d'un PK donné
+  function getGpsFromPk(targetPk) {
+    if (targetPk == null || !linePoints || linePoints.length < 2) {
+      return null;
+    }
+
+    // Trouver les deux points les plus proches du PK cible
+    let bestBefore = null;
+    let bestAfter = null;
+    let minDiffBefore = Infinity;
+    let minDiffAfter = Infinity;
+
+    for (let i = 0; i < linePoints.length; i++) {
+      const pt = linePoints[i];
+      if (pt.pk == null || pt.lat == null || pt.lon == null) continue;
+
+      const diff = targetPk - pt.pk;
+      if (diff === 0) {
+        // PK exact trouvé
+        return { lat: pt.lat, lon: pt.lon };
+      } else if (diff > 0 && diff < minDiffAfter) {
+        // Point après le PK cible
+        minDiffAfter = diff;
+        bestAfter = pt;
+      } else if (diff < 0 && Math.abs(diff) < minDiffBefore) {
+        // Point avant le PK cible
+        minDiffBefore = Math.abs(diff);
+        bestBefore = pt;
+      }
+    }
+
+    // Si on a trouvé un point exact
+    if (minDiffAfter === 0 || minDiffBefore === 0) {
+      const exact = bestAfter || bestBefore;
+      return { lat: exact.lat, lon: exact.lon };
+    }
+
+    // Interpolation entre les deux points les plus proches
+    if (bestBefore && bestAfter) {
+      const totalDiff = bestAfter.pk - bestBefore.pk;
+      const targetDiff = targetPk - bestBefore.pk;
+      const ratio = totalDiff > 0 ? targetDiff / totalDiff : 0;
+
+      const lat = bestBefore.lat + (bestAfter.lat - bestBefore.lat) * ratio;
+      const lon = bestBefore.lon + (bestAfter.lon - bestBefore.lon) * ratio;
+
+      return { lat: lat, lon: lon };
+    }
+
+    // Si on n'a qu'un seul point proche, on l'utilise
+    if (bestBefore) {
+      return { lat: bestBefore.lat, lon: bestBefore.lon };
+    }
+    if (bestAfter) {
+      return { lat: bestAfter.lat, lon: bestAfter.lon };
+    }
+
+    return null;
   }
 
   // Nearest access uniquement par PK (utilisé pour la recherche manuelle)
@@ -3262,8 +3523,11 @@ function detectBranch(lat, lon) {
   let gareMarker = null;
   let accesMarkers = [];
   let directionMarker = null;
+  let pkTargetMarker = null; // Marqueur du PK cible
   let allGareMarkers = []; // Tous les marqueurs de gares
   let allAccesMarkers = []; // Tous les marqueurs d'accès
+  let coverageSamMarkers = []; // Marqueurs SAM (feux rouges)
+  let coveragePetardMarkers = []; // Marqueurs pétards (carrés verts)
 
   // Initialisation de la carte Leaflet
   function initOrientationMap() {
@@ -3435,7 +3699,7 @@ function detectBranch(lat, lon) {
     // Centrer la carte sur la position actuelle
     orientationMap.setView([currentLat, currentLon], 15);
 
-    // Supprimer les anciens marqueurs dynamiques (PK actuel, gare la plus proche, direction)
+    // Supprimer les anciens marqueurs dynamiques (PK actuel, gare la plus proche, direction, PK cible)
     if (pkActuelMarker) {
       orientationMap.removeLayer(pkActuelMarker);
     }
@@ -3449,6 +3713,12 @@ function detectBranch(lat, lon) {
     if (directionMarker) {
       orientationMap.removeLayer(directionMarker);
     }
+    if (pkTargetMarker) {
+      orientationMap.removeLayer(pkTargetMarker);
+      pkTargetMarker = null;
+    }
+    // Note: Les marqueurs de couverture (SAM et pétards) ne sont pas supprimés ici
+    // Ils restent visibles jusqu'à ce que l'utilisateur clique sur "Effacer les marqueurs"
 
     // Créer tous les marqueurs de gares une seule fois (si pas déjà créés)
     if (allGareMarkers.length === 0) {
@@ -3589,11 +3859,32 @@ function detectBranch(lat, lon) {
       directionMarker.bindPopup("Sens : indéterminé");
     }
 
+    // Ajouter le marqueur du PK cible (croix rouge) si défini
+    if (pkTarget) {
+      const targetGps = getGpsFromPk(pkTarget);
+      if (targetGps && targetGps.lat && targetGps.lon) {
+        const pkTargetIcon = L.divIcon({
+          className: "leaflet-marker-pk-target",
+          html: "",
+          iconSize: [30, 30],
+          iconAnchor: [15, 15],
+        });
+        pkTargetMarker = L.marker([targetGps.lat, targetGps.lon], {
+          icon: pkTargetIcon,
+          zIndexOffset: 1050,
+        }).addTo(orientationMap);
+        pkTargetMarker.bindPopup("PK cible : " + formatPk(pkTarget));
+      }
+    }
+
     // Ajuster la vue pour inclure tous les marqueurs
     const group = new L.featureGroup([pkActuelMarker]);
     if (gareMarker) group.addLayer(gareMarker);
     accesMarkers.forEach(marker => group.addLayer(marker));
     if (directionMarker) group.addLayer(directionMarker);
+    if (pkTargetMarker) group.addLayer(pkTargetMarker);
+    coverageSamMarkers.forEach(marker => group.addLayer(marker));
+    coveragePetardMarkers.forEach(marker => group.addLayer(marker));
     
     orientationMap.fitBounds(group.getBounds().pad(0.1), {
       maxZoom: 16,
@@ -3998,6 +4289,192 @@ if (toggleOrientation && orientationCard) {
   // AJOUT CALIBRAGE : clic sur "Exporter mes recalages"
   if (btnExportCalibrations) {
     btnExportCalibrations.addEventListener("click", exportLocalCalibrationsForGitHub);
+  }
+
+  // Calcul de couverture travaux (feux rouges et pétards)
+  const inputCoveragePkStart = document.getElementById("inputCoveragePkStart");
+  const inputCoveragePkEnd = document.getElementById("inputCoveragePkEnd");
+  const btnComputeCoverage = document.getElementById("btnComputeCoverage");
+  const btnClearCoverage = document.getElementById("btnClearCoverage");
+  const coverageResult = document.getElementById("coverageResult");
+  const coverageResultText = document.getElementById("coverageResultText");
+  const coverageResultsLine = document.getElementById("coverageResultsLine");
+
+  function clearCoverageMarkers() {
+    coverageSamMarkers.forEach(marker => {
+      if (orientationMap && orientationMap.hasLayer(marker)) {
+        orientationMap.removeLayer(marker);
+      }
+    });
+    coveragePetardMarkers.forEach(marker => {
+      if (orientationMap && orientationMap.hasLayer(marker)) {
+        orientationMap.removeLayer(marker);
+      }
+    });
+    coverageSamMarkers = [];
+    coveragePetardMarkers = [];
+    if (coverageResult) coverageResult.style.display = "none";
+    if (btnClearCoverage) btnClearCoverage.style.display = "none";
+    if (coverageResultsLine) {
+      coverageResultsLine.innerHTML = '<span style="color: rgba(255, 255, 255, 0.5);">Cliquez sur « Calculer rouges & pétards » pour voir les résultats</span>';
+    }
+  }
+
+  function addCoverageMarkersToMap(result) {
+    try {
+      // Supprimer les anciens marqueurs
+      clearCoverageMarkers();
+
+      // Afficher les résultats dans la ligne même si la carte n'est pas activée
+      if (coverageResultsLine) {
+        let lineText = "";
+        for (const sideResult of result.bySide) {
+          const sideLabel = sideResult.side === "pkStart" ? "Début" : "Fin";
+          lineText += `<span style="margin-right: 15px;"><strong>${sideLabel} :</strong> 🔴 PK ${formatPk(sideResult.pkSamRep)}`;
+          if (sideResult.petards.length > 0) {
+            const petardsPk = sideResult.petards.map(p => formatPk(p.pk)).join(", ");
+            lineText += ` | 🟢 Pétards PK ${petardsPk}`;
+          }
+          lineText += `</span>`;
+        }
+        coverageResultsLine.innerHTML = lineText;
+      }
+
+      // Afficher le résultat détaillé
+      if (coverageResultText) {
+        let resultHtml = `<div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; color: #ff9f7b;">📊 Résultat du calcul</div>`;
+        resultHtml += `<div style="margin-bottom: 15px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 6px;">`;
+        resultHtml += `<strong>Distance règle :</strong> ${result.distanceRule} m<br>`;
+        resultHtml += `</div>`;
+        
+        for (const sideResult of result.bySide) {
+          const sideLabel = sideResult.side === "pkStart" ? "Début" : "Fin";
+          const sideColor = sideResult.side === "pkStart" ? "#ff4b6b" : "#3d7bff";
+          
+          resultHtml += `<div style="margin-top: 15px; padding: 12px; background: rgba(255, 255, 255, 0.05); border-left: 3px solid ${sideColor}; border-radius: 4px;">`;
+          resultHtml += `<div style="font-weight: 600; color: ${sideColor}; margin-bottom: 8px;">🚦 Côté ${sideLabel}</div>`;
+          resultHtml += `<div style="margin-bottom: 5px;"><strong>🔴 Feu rouge :</strong> PK ${formatPk(sideResult.pkSamRep)}</div>`;
+          if (sideResult.petards.length > 0) {
+            resultHtml += `<div style="margin-bottom: 5px;"><strong>Pétards (carrés verts) :</strong><br>`;
+            sideResult.petards.forEach((p, idx) => {
+              resultHtml += `&nbsp;&nbsp;• Pétard ${p.order} (${p.railFile}) : PK ${formatPk(p.pk)}<br>`;
+            });
+            resultHtml += `</div>`;
+          }
+          resultHtml += `<div style="margin-top: 8px; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); font-style: italic;">${sideResult.rationale}</div>`;
+          resultHtml += `</div>`;
+        }
+        
+        coverageResultText.innerHTML = resultHtml;
+      }
+      if (coverageResult) {
+        coverageResult.style.display = "block";
+      }
+      if (btnClearCoverage) {
+        btnClearCoverage.style.display = "block";
+      }
+
+      // Ajouter les marqueurs sur la carte seulement si elle est activée
+      if (!orientationMap) {
+        return;
+      }
+
+      // Ajouter les marqueurs SAM (feux rouges) et pétards (carrés verts) sur la carte
+      for (const sideResult of result.bySide) {
+        // Marqueur SAM (feu rouge)
+        const samGps = getGpsFromPk(sideResult.pkSamRep);
+        if (samGps && samGps.lat && samGps.lon) {
+          const samIcon = L.divIcon({
+            className: "leaflet-marker-sam",
+            html: "",
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+          });
+          const samMarker = L.marker([samGps.lat, samGps.lon], {
+            icon: samIcon,
+            zIndexOffset: 1200,
+          }).addTo(orientationMap);
+          samMarker.bindPopup(
+            `🔴 Feu rouge ${sideResult.side === "pkStart" ? "début" : "fin"} : PK ${formatPk(sideResult.pkSamRep)}`
+          );
+          coverageSamMarkers.push(samMarker);
+        }
+
+        // Marqueurs pétards (carrés verts)
+        for (const petard of sideResult.petards) {
+          const petardGps = getGpsFromPk(petard.pk);
+          if (petardGps && petardGps.lat && petardGps.lon) {
+            const petardIcon = L.divIcon({
+              className: "leaflet-marker-petard",
+              html: "",
+              iconSize: [16, 16],
+              iconAnchor: [8, 8],
+            });
+            const petardMarker = L.marker([petardGps.lat, petardGps.lon], {
+              icon: petardIcon,
+              zIndexOffset: 1150,
+            }).addTo(orientationMap);
+            petardMarker.bindPopup(
+              `Pétard ${petard.order} (${petard.railFile}) : PK ${formatPk(petard.pk)}`
+            );
+            coveragePetardMarkers.push(petardMarker);
+          }
+        }
+      }
+
+      // Mettre à jour la vue de la carte
+      if (orientationMap) {
+        updateOrientationPanel();
+      }
+    } catch (error) {
+      console.error("Erreur dans addCoverageMarkersToMap :", error);
+      alert("Erreur lors de l'affichage des résultats : " + error.message);
+    }
+  }
+
+  if (btnComputeCoverage) {
+    btnComputeCoverage.addEventListener("click", () => {
+      try {
+        if (!inputCoveragePkStart || !inputCoveragePkEnd) {
+          alert("Veuillez remplir les PK début et fin.");
+          return;
+        }
+
+        const pkStart = parseFloat(inputCoveragePkStart.value);
+        const pkEnd = parseFloat(inputCoveragePkEnd.value);
+
+        if (isNaN(pkStart) || isNaN(pkEnd)) {
+          alert("Veuillez saisir des valeurs numériques valides.");
+          return;
+        }
+
+        if (pkStart >= pkEnd) {
+          alert("Le PK début doit être inférieur au PK fin.");
+          return;
+        }
+
+        const result = computeCoverageMarkers(pkStart, pkEnd);
+        if (!result || !result.bySide) {
+          console.error("Erreur : computeCoverageMarkers n'a pas retourné un résultat valide", result);
+          alert("Erreur lors du calcul. Veuillez réessayer.");
+          return;
+        }
+        
+        addCoverageMarkersToMap(result);
+      } catch (error) {
+        console.error("Erreur lors du calcul des rouges et pétards :", error);
+        alert("Une erreur est survenue : " + error.message);
+      }
+    });
+  }
+
+  if (btnClearCoverage) {
+    btnClearCoverage.addEventListener("click", () => {
+      clearCoverageMarkers();
+      if (orientationMap) {
+        updateOrientationPanel();
+      }
+    });
   }
 
   if (selectIncidentType) {
