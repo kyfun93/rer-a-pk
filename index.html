@@ -969,10 +969,10 @@ body[data-page-hidden="true"] .direction-arrow-moving {
       <div id="nextStationInfo" class="big-sub">En attente de position GPS…</div>
     </div>
 
-    <!-- ORIENTATION / PK CIBLE / GARES / ACCÈS -->
+    <!-- PLAN / PK CIBLE / GARES / ACCÈS -->
 <div id="orientationCard" class="card orientation-block" style="display:none;">
   <div class="card-header">
-    <div class="card-title">Orientation – PK / gares / accès</div>
+    <div class="card-title">Plan – PK / gares / accès</div>
   </div>
 
   <!-- Carte interactive Leaflet -->
@@ -999,12 +999,12 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   </div>
 </div>
 
-    <!-- Case à cocher Orientation -->
+    <!-- Case à cocher Plan -->
     <div class="card" style="margin-bottom: 12px;">
       <div class="field" style="margin: 0; padding: 12px;">
         <label style="display: flex; align-items: center; cursor: pointer; width: 100%; margin: 0; position: relative;">
           <input id="toggleOrientation" type="checkbox" style="margin: 0; width: 18px; height: 18px; flex-shrink: 0;">
-          <span style="position: absolute; left: 50%; transform: translateX(-50%); text-align: center; width: 100%; pointer-events: none; font-size: 1.1rem; font-weight: 600; color: #fff;">Orientation – PK / gares / accès</span>
+          <span style="position: absolute; left: 50%; transform: translateX(-50%); text-align: center; width: 100%; pointer-events: none; font-size: 1.1rem; font-weight: 600; color: #fff;">Plan – PK / gares / accès</span>
         </label>
       </div>
     </div>
@@ -1019,7 +1019,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
         Saisis un PK puis clique sur « Définir ce PK comme cible ».
       </div>
       <div class="field">
-        <label for="inputPkTarget">Saisis un PK en mètres (ex : 32400) ou au format 32+400.</label>
         <input id="inputPkTarget" type="text" placeholder="ex : 32400 ou 32+400" />
         <button id="btnSetPkTarget" class="btn btn-primary" type="button">Définir ce PK comme cible</button>
       </div>
@@ -1061,7 +1060,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     <!-- PARAMÈTRES -->
     <div id="settingsPanel" class="card card-soft" style="display:none; margin-top:10px;">
       <div class="card-header">
-        <span class="badge">Local au téléphone</span>
       </div>
 
       <div class="divider"></div>
@@ -1172,7 +1170,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
       <!-- Recherche par PK -> accès -->
       <div class="pk-lookup-section">
         <div class="field">
-          <label for="inputPkLookup">Recherche par PK (accès le plus proche)</label>
+          <label for="inputPkLookup">Recherche par PK et GPS (accès le plus proche)</label>
           <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" />
           <button id="btnPkLookup" class="btn btn-secondary btn-icon" type="button">
             <span>🔎</span><span>Rechercher l'accès</span>
@@ -1212,7 +1210,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
         <div class="field">
           <label for="incidentPhoto">Photo (optionnel)</label>
           <input id="incidentPhoto" type="file" accept="image/*" />
-          <div class="muted">Tu peux prendre ou choisir une photo. Son nom sera ajouté au message.</div>
         </div>
 
         <div class="field">
@@ -2730,7 +2727,7 @@ async function loadSharedCalibrations() {
   const pkCurrentDetails = document.getElementById("pkCurrentDetails");
 
   const toggleOrientation = document.getElementById("toggleOrientation");
-const orientationCard   = document.getElementById("orientationCard");
+  const orientationCard   = document.getElementById("orientationCard");
 
   const btnSettingsToggle = document.getElementById("btnSettingsToggle");
   const settingsPanel = document.getElementById("settingsPanel");
@@ -3403,13 +3400,13 @@ function detectBranch(lat, lon) {
     inputSosPhone.value = sosPhone;
     selectSensitivity.value = motionSensitivity;
     updateOffsetInfo();
-    // Orientation : visible ou non
-  if (toggleOrientation && orientationCard) {
-    const stored = safeGetItem(ORIENT_ENABLED_KEY);
-    const enabled = stored === null ? false : (stored === "1");
-    toggleOrientation.checked = enabled;
-    orientationCard.style.display = enabled ? "block" : "none";
-  }
+    // Plan : visible ou non
+    if (toggleOrientation && orientationCard) {
+      const stored = safeGetItem(ORIENT_ENABLED_KEY);
+      const enabled = stored === null ? false : (stored === "1");
+      toggleOrientation.checked = enabled;
+      orientationCard.style.display = enabled ? "block" : "none";
+    }
 }
 
   function updateOffsetInfo() {
@@ -3824,7 +3821,7 @@ function detectBranch(lat, lon) {
     }
   }
 
-  // Fonction principale pour mettre à jour la carte d'orientation
+  // Fonction principale pour mettre à jour la carte du plan
   function updateOrientationPanel() {
     const card = document.getElementById("orientationCard");
     const pkValue = document.getElementById("orientPkValue");
@@ -4107,7 +4104,7 @@ function detectBranch(lat, lon) {
     });
   }
 
-  // Fonction updateOrientation pour rafraîchir la carte (bonus)
+  // Fonction updateOrientation pour rafraîchir la carte du plan (bonus)
   function updateOrientation(pk, sens) {
     // Cette fonction peut être appelée manuellement pour rafraîchir la carte
     // Elle utilise les valeurs actuelles de state
@@ -4480,7 +4477,7 @@ if (selectSensitivity) {
   });
 }
 
-// Gestion de l’affichage du bloc Orientation
+// Gestion de l'affichage du bloc Plan
 if (toggleOrientation && orientationCard) {
   toggleOrientation.addEventListener("change", () => {
     const enabled = toggleOrientation.checked;
