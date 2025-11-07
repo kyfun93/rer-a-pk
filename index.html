@@ -290,6 +290,42 @@
     }
   }
   </style>
+  .orientation-block {
+  margin-top: 10px;
+  padding-top: 4px;
+}
+
+.orientation-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.orientation-picto-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 1.4rem;
+  margin-top: 2px;
+}
+
+.orientation-text-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.orientation-line-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.orientation-line-value {
+  font-size: 0.92rem;
+}
+
 </head>
 <body>
   <div id="accessOverlay" style="
@@ -391,6 +427,43 @@
       <div id="nextStationInfo" class="big-sub">En attente de position GPS…</div>
     </div>
 
+    <!-- ORIENTATION / PK CIBLE / GARES / ACCÈS -->
+<div id="orientationCard" class="card orientation-block" style="display:none;">
+  <div class="card-header">
+    <div class="card-title">Orientation – PK / gares / accès</div>
+  </div>
+
+  <div class="orientation-row">
+    <div class="orientation-picto-col">
+      <div>🎯</div>
+      <div>🧭</div>
+      <div>🚉</div>
+      <div>🚪</div>
+    </div>
+    <div class="orientation-text-col">
+      <div>
+        <div class="orientation-line-label">PK actuel & cible</div>
+        <div id="orientPkLine" class="orientation-line-value">PK actuel : —</div>
+      </div>
+
+      <div>
+        <div class="orientation-line-label">Sens</div>
+        <div id="orientDirLine" class="orientation-line-value">En attente de GPS…</div>
+      </div>
+
+      <div>
+        <div class="orientation-line-label">Gare la plus proche</div>
+        <div id="orientGareLine" class="orientation-line-value">—</div>
+      </div>
+
+      <div>
+        <div class="orientation-line-label">Accès les plus proches</div>
+        <div id="orientAccessLine" class="orientation-line-value">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
     <!-- PK CIBLE -->
     <div class="card">
       <div class="card-header">
@@ -446,6 +519,18 @@
         <div class="card-title">Paramètres</div>
         <span class="badge">Local au téléphone</span>
       </div>
+
+      <div class="divider"></div>
+
+<div class="field">
+  <label>
+    <input id="toggleOrientation" type="checkbox">
+    Afficher le bloc « Orientation – PK / gares / accès »
+  </label>
+  <div class="muted">
+    Si décoché, le bloc d’orientation n’apparaît pas sur la page principale.
+  </div>
+</div>
 
       <!-- Numéro SOS -->
       <div class="field">
@@ -578,6 +663,8 @@
   </div>
 
   <script>
+
+    const ORIENT_ENABLED_KEY = "orientationEnabled";
 
     const ACCESS_CODE_KEY = "pkAssistantAccessGranted";
 // ⚠️ Mets le code que tu veux ici (4 chiffres par ex.)
@@ -2018,6 +2105,9 @@ let linePointsChessy = null;
   const pkCurrentValue = document.getElementById("pkCurrentValue");
   const pkCurrentDetails = document.getElementById("pkCurrentDetails");
 
+  const toggleOrientation = document.getElementById("toggleOrientation");
+const orientationCard   = document.getElementById("orientationCard");
+
   const btnSettingsToggle = document.getElementById("btnSettingsToggle");
   const settingsPanel = document.getElementById("settingsPanel");
 
@@ -2359,7 +2449,14 @@ function detectBranch(lat, lon) {
     inputSosPhone.value = sosPhone;
     selectSensitivity.value = motionSensitivity;
     updateOffsetInfo();
+    // Orientation : visible ou non
+  if (toggleOrientation && orientationCard) {
+    const stored = safeGetItem(ORIENT_ENABLED_KEY);
+    const enabled = stored === null ? false : (stored === "1");
+    toggleOrientation.checked = enabled;
+    orientationCard.style.display = enabled ? "block" : "none";
   }
+}
 
   function updateOffsetInfo() {
     const val = Math.round(pkOffset);
@@ -2516,6 +2613,70 @@ function detectBranch(lat, lon) {
         "Saisis un PK puis clique sur « Définir ce PK comme cible ».";
       return;
     }
+    function updateOrientationPanel() {
+  const card       = document.getElementById("orientationCard");
+  const pkLine     = document.getElementById("orientPkLine");
+  const dirLine    = document.getElementById("orientDirLine");
+  const gareLine   = document.getElementById("orientGareLine");
+  const accessLine = document.getElementById("orientAccessLine");
+
+  if (!card || !pkLine || !dirLine || !gareLine || !accessLine) return;
+
+  // Si le bloc est caché, on ne fait rien
+  if (card.style.display === "none") return;
+
+  // Pas encore de GPS
+  if (state.lastPk == null) {
+    pkLine.textContent     = "PK actuel : —";
+    dirLine.textContent    = "En attente de position…";
+    gareLine.textContent   = "—";
+    accessLine.textContent = "—";
+    return;
+  }
+
+  // PK actuel + cible
+  let txtPk = "PK actuel : " + formatPk(state.lastPk);
+  if (pkTarget) {
+    txtPk += " · cible " + formatPk(pkTarget);
+  }
+  pkLine.textContent = txtPk;
+
+  // Sens
+  let dirLabel = "indéterminé";
+  if (state.direction === "est") {
+    dirLabel = "vers Chessy / Boissy";
+  } else if (state.direction === "ouest") {
+    dirLabel = "vers St-Germain / Paris";
+  }
+
+  if (pkTarget && state.lastPk != null) {
+    const delta = pkTarget - state.lastPk;
+    if (delta > 0) dirLabel = "vers le PK cible (Chessy / Boissy)";
+    else if (delta < 0) dirLabel = "vers le PK cible (St-Germain / Paris)";
+  }
+  dirLine.textContent = dirLabel;
+
+  // Gare la plus proche
+  if (state.nearestStation) {
+    gareLine.textContent =
+      state.nearestStation.name +
+      " (PK " + formatPk(state.nearestStation.pk) + ")";
+  } else {
+    gareLine.textContent = "—";
+  }
+
+  // 2 accès les plus proches autour de moi
+  const list = getNearestAccessesGeo(state.lastLat, state.lastLon, state.lastPk, 2);
+  if (list && list.length) {
+    const txt = list
+      .map(item => item.acc.name + " (PK " + formatPk(item.acc.pk) + ")")
+      .join(" · ");
+    accessLine.textContent = txt;
+  } else {
+    accessLine.textContent = "—";
+  }
+}
+
     pkTargetLabel.textContent = "PK " + formatPk(pkTarget);
     if (state.lastPk == null) {
       pkTargetInfo.textContent = "En attente de position GPS…";
@@ -2796,6 +2957,7 @@ function detectBranch(lat, lon) {
     }
     pkTarget = val;
     updatePkTargetView();
+    updateOrientationPanel();
   });
 
   btnSms.addEventListener("click", sendSms);
@@ -2866,7 +3028,16 @@ function detectBranch(lat, lon) {
   selectSensitivity.addEventListener("change", () => {
     motionSensitivity = selectSensitivity.value;
     safeSetItem("motionSensitivity", motionSensitivity);
+    if (toggleOrientation && orientationCard) {
+  toggleOrientation.addEventListener("change", () => {
+    const enabled = toggleOrientation.checked;
+    orientationCard.style.display = enabled ? "block" : "none";
+    safeSetItem(ORIENT_ENABLED_KEY, enabled ? "1" : "0");
+    if (enabled) {
+      updateOrientationPanel();
+    }
   });
+}
 
   btnPkLookup.addEventListener("click", handlePkLookup);
   btnPkLookupOpenMaps.addEventListener("click", openPkLookupInMaps);
@@ -2984,6 +3155,7 @@ function detectBranch(lat, lon) {
   updateAccessList(correctedPk);
   updateSmsPreview();
   updatePkEstimateInSettings();
+  updateOrientationPanel();
 }
 
 
