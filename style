@@ -10,8 +10,8 @@
   :root {
     color-scheme: dark;
     --bg: #050510;
-    --bg-gradient: radial-gradient(circle at top, #251c4a 0%, #050510 60%, #010106 100%);.
-    --card: #121522;
+    --bg-gradient: radial-gradient(circle at top, #251c4a 0%, #050510 60%, #010106 100%);
+   --card: #121522;
     --card-soft: #16182a;
     --border: #262a3a;
     --text: #f0f2ff;
@@ -264,7 +264,7 @@
     background: rgba(255,255,255,0.04);
   }
 
-  .signalement-block {
+.signalement-block {
     background: linear-gradient(145deg, #221015, #170b0e);
     border: 1px solid rgba(255, 75, 107, 0.4);
     border-radius: 18px;
@@ -289,7 +289,6 @@
       border-radius: 14px;
     }
   }
-  </style>
   .orientation-block {
   margin-top: 10px;
   padding-top: 4px;
@@ -325,6 +324,8 @@
 .orientation-line-value {
   font-size: 0.92rem;
 }
+
+</style>
 
 </head>
 <body>
@@ -2606,13 +2607,25 @@ function detectBranch(lat, lon) {
       "PK " + formatPk(next.pk) + " · ≈ " + delta + " m " + dir;
   }
 
-  function updatePkTargetView() {
-    if (!pkTarget) {
-      pkTargetLabel.textContent = "Aucun";
-      pkTargetInfo.textContent =
-        "Saisis un PK puis clique sur « Définir ce PK comme cible ».";
-      return;
-    }
+ function updatePkTargetView() {
+  if (!pkTarget) {
+    pkTargetLabel.textContent = "Aucun";
+    pkTargetInfo.textContent =
+      "Saisis un PK puis clique sur « Définir ce PK comme cible ».";
+    return;
+  }
+
+  pkTargetLabel.textContent = "PK " + formatPk(pkTarget);
+  if (state.lastPk == null) {
+    pkTargetInfo.textContent = "En attente de position GPS…";
+    return;
+  }
+  const delta = pkTarget - state.lastPk;
+  const dist = Math.round(Math.abs(delta));
+  const dir = delta >= 0 ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
+  pkTargetInfo.textContent = "≈ " + dist + " m " + dir;
+}
+
     function updateOrientationPanel() {
   const card       = document.getElementById("orientationCard");
   const pkLine     = document.getElementById("orientPkLine");
@@ -2676,17 +2689,6 @@ function detectBranch(lat, lon) {
     accessLine.textContent = "—";
   }
 }
-
-    pkTargetLabel.textContent = "PK " + formatPk(pkTarget);
-    if (state.lastPk == null) {
-      pkTargetInfo.textContent = "En attente de position GPS…";
-      return;
-    }
-    const delta = pkTarget - state.lastPk;
-    const dist = Math.round(Math.abs(delta));
-    const dir = delta >= 0 ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
-    pkTargetInfo.textContent = "≈ " + dist + " m " + dir;
-  }
 
   function updateAccessList(pk) {
     // Pas de PK ou pas encore de GPS → on attend
@@ -3025,10 +3027,13 @@ function detectBranch(lat, lon) {
     alert("Paramètres enregistrés ✅");
   });
 
-  selectSensitivity.addEventListener("change", () => {
-    motionSensitivity = selectSensitivity.value;
-    safeSetItem("motionSensitivity", motionSensitivity);
-    if (toggleOrientation && orientationCard) {
+selectSensitivity.addEventListener("change", () => {
+  motionSensitivity = selectSensitivity.value;
+  safeSetItem("motionSensitivity", motionSensitivity);
+});
+
+// Gestion de l’affichage du bloc Orientation
+if (toggleOrientation && orientationCard) {
   toggleOrientation.addEventListener("change", () => {
     const enabled = toggleOrientation.checked;
     orientationCard.style.display = enabled ? "block" : "none";
