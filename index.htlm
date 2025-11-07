@@ -2036,23 +2036,26 @@ let linePointsChessy = null;
     }
   }
 
-  // async function loadSharedCalibrations() { ... }
-
-    try {
-      const resp = await fetch("data/calibrations.json", { cache: "no-store" });
-      if (!resp.ok) {
-        console.log("Aucun calibrage partagé (data/calibrations.json).");
-        return;
-      }
-      const data = await resp.json();
-      if (Array.isArray(data)) {
-        sharedCalibrations = data;
-        console.log("Calibrages partagés chargés :", sharedCalibrations.length);
-      }
-    } catch (e) {
-      console.log("Impossible de charger les calibrages partagés :", e);
+// === AJOUT CALIBRAGE : fichier partagé optionnel =========================
+async function loadSharedCalibrations() {
+  try {
+    const resp = await fetch("data/calibrations.json", { cache: "no-store" });
+    if (!resp.ok) {
+      console.log("Aucun calibrage partagé (data/calibrations.json).");
+      return;
     }
+    const data = await resp.json();
+    if (Array.isArray(data)) {
+      sharedCalibrations = data;
+      console.log("Calibrages partagés chargés :", sharedCalibrations.length);
+    }
+  } catch (e) {
+    console.log("Impossible de charger les calibrages partagés :", e);
   }
+}
+// Laisse l’appel désactivé tant que le fichier n’existe pas :
+// loadSharedCalibrations();
+
 
   function exportLocalCalibrationsForGitHub() {
     if (!localCalibrations.length) {
