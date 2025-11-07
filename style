@@ -1010,7 +1010,7 @@ const accessPoints = [
   {
     name: "1C / 2C (branche Cergy) (2 accès de chaque côté du pont), 83 bvd des Provinces Françaises, Nanterre",
     address: "1C / 2C (branche Cergy) (2 accès de chaque côté du pont), 83 bvd des Provinces Françaises, Nanterre",
-    pk: 111050,
+    pk: 10050,
     lat: 48.89977146,
     lon: 2.21360501
   },
@@ -1351,13 +1351,7 @@ const accessPoints = [
     lon: null
   },
   {
-    name: "50 av. du Maréchal Leclerc La Varenne",
-    address: "50 av. du Maréchal Leclerc La Varenne",
-    pk: 41500,
-    lat: 48.37733533,
-    lon: 2.95645840
-  },
-  {
+ 
     name: "60 av. du Maréchal Leclerc, La Varenne",
     address: "60 av. du Maréchal Leclerc, La Varenne",
     pk: 41700,
