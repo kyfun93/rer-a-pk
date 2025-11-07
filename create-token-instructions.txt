@@ -1,0 +1,42 @@
+═══════════════════════════════════════════════════════════════
+  INSTRUCTIONS POUR CRÉER UN TOKEN GITHUB
+═══════════════════════════════════════════════════════════════
+
+1. Ouvrez votre navigateur et allez sur :
+   https://github.com/settings/tokens
+
+2. Cliquez sur "Generate new token" → "Generate new token (classic)"
+
+3. Donnez un nom au token :
+   Exemple : "Cursor - rer-a-pk"
+
+4. Sélectionnez les permissions :
+   ✅ repo (accès complet aux repositories)
+     - repo:status
+     - repo_deployment
+     - public_repo
+     - repo:invite
+     - security_events
+
+5. Cliquez sur "Generate token" en bas de la page
+
+6. ⚠️ IMPORTANT : COPIEZ LE TOKEN IMMÉDIATEMENT
+   Vous ne pourrez plus le voir après !
+
+7. Collez le token ici quand Git vous le demandera lors du push
+
+═══════════════════════════════════════════════════════════════
+  UTILISATION DU TOKEN
+═══════════════════════════════════════════════════════════════
+
+Lors de votre premier push :
+  git push -u origin main
+
+Git vous demandera :
+  Username: kyfun93
+  Password: [collez votre TOKEN ici, pas votre mot de passe]
+
+Le token sera sauvegardé automatiquement pour les prochaines fois.
+
+═══════════════════════════════════════════════════════════════
+
