@@ -3084,13 +3084,14 @@ if (toggleOrientation && orientationCard) {
   });
 }
 
-  loadSettings();
-  loadLocalCalibrations();
-  loadSharedCalibrations(); 
-  updateSmsPreview();
-  setGpsStatus("off");
-  initAccessGate();  
-  console.log("PK Assistant RER A – script chargé sans erreur ✅");
+loadSettings();
+loadLocalCalibrations();
+// loadSharedCalibrations(); // désactivé pour éviter l'erreur 404
+updateSmsPreview();
+setGpsStatus("off");
+initAccessGate();  
+console.log("PK Assistant RER A – script chargé sans erreur ✅");
+
 
  function handlePosition(pos) {
   const lat = pos.coords.latitude;
