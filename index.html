@@ -1838,23 +1838,24 @@
   }
 
   // Attribue une branche à chaque accès : "boissy", "chessy" ou "both" (tronc commun)
-  for (const acc of accessPoints) {
-    if (acc.pk <= 34000) {
-      // Avant Val de Fontenay : tronc commun → visible des deux côtés
-      acc.branch = "both";
-    } else {
-      // Après la bifurcation : on classe selon la position GPS de l'accès
-      acc.branch = detectBranch(acc.lat, acc.lon); // "boissy" ou "chessy"
-    }
+for (const acc of accessPoints) {
+  if (acc.pk <= 34000 || acc.lat == null || acc.lon == null) {
+    // Avant Val de Fontenay ou sans GPS : on laisse en "both"
+    acc.branch = "both";
+  } else {
+    // Après la bifurcation : on classe selon la position GPS de l'accès
+    acc.branch = detectBranch(acc.lat, acc.lon); // "boissy" ou "chessy"
   }
+}
+
 
   // Ligne courante utilisée pour la projection (tronc + branche selon où tu es)
-  let currentBranch = "chessy";
-  let linePoints = troncCommun.concat(brancheChessy);
-  // Polylignes calibrées (remplies à partir des accessPoints avec GPS)
-  let calibrationReady = false;
-  let linePointsBoissy = null;
-  let linePointsChessy = null;
+let currentBranch = "chessy";
+let linePoints = troncCommun.concat(brancheChessy);
+// Polylignes calibrées (remplies à partir des accessPoints + recalages)
+let linePointsBoissy = null;
+let linePointsChessy = null;
+
 
 
   const sensitivityProfiles = {
@@ -2083,18 +2084,6 @@
     }
     return best;
   }
-  function projectToLine(lat, lon) {
-    let best = { dist: Infinity, pkProj: null, latProj: null, lonProj: null };
-    for (let i = 0; i < linePoints.length - 1; i++) {
-      const a = linePoints[i];
-      const b = linePoints[i+1];
-      const res = projectToSegment(lat, lon, a, b);
-      if (res.dist < best.dist) {
-        best = { dist: res.dist, pkProj: res.pkProj, latProj: res.latProj, lonProj: res.lonProj };
-      }
-    }
-    return best;
-  }
 
   // 👇👇 AJOUTE TOUT CE BLOC ICI 👇👇
   function buildCalibrationPolylines() {
@@ -2105,51 +2094,67 @@
     const calibChessy = [];
 
     // Version "grossière" pour séparer Boissy / Chessy à partir d’un point
-    function roughBranchFromLatLon(lat, lon) {
-      const boissyRef = brancheBoissy[0];
-      const chessyRef = brancheChessy[0];
-      const dBoissy = distanceMeters(lat, lon, boissyRef.lat, boissyRef.lon);
-      const dChessy = distanceMeters(lat, lon, chessyRef.lat, chessyRef.lon);
-      return dBoissy < dChessy ? "boissy" : "chessy";
-    }
+function buildCalibrationPolylines() {
+  const calibTronc = [];
+  const calibBoissy = [];
+  const calibChessy = [];
 
-    // On parcourt tous les accessPoints avec un PK + GPS
-    for (const acc of accessPoints) {
-      if (acc.lat == null || acc.lon == null || acc.pk == null) continue;
-
-      const p = {
-        lat: acc.lat,
-        lon: acc.lon,
-        pk: acc.pk
-      };
-
-      if (acc.pk <= 34000) {
-        // Avant Val de Fontenay : tronc commun
-        calibTronc.push(p);
-      } else {
-        // Après la bifurcation → on range sur la branche la plus proche
-        const b = roughBranchFromLatLon(acc.lat, acc.lon);
-        if (b === "boissy") calibBoissy.push(p);
-        else calibChessy.push(p);
-      }
-    }
-
-    calibTronc.sort((a, b) => a.pk - b.pk);
-    calibBoissy.sort((a, b) => a.pk - b.pk);
-    calibChessy.sort((a, b) => a.pk - b.pk);
-
-    // Poly-ligne calibrée Boissy = tronc commun + branche Boissy + points de calibration
-    linePointsBoissy = troncCommun
-      .concat(calibTronc, brancheBoissy, calibBoissy)
-      .sort((a, b) => a.pk - b.pk);
-
-    // Poly-ligne calibrée Chessy = tronc commun + branche Chessy + points de calibration
-    linePointsChessy = troncCommun
-      .concat(calibTronc, brancheChessy, calibChessy)
-      .sort((a, b) => a.pk - b.pk);
-
-    calibrationReady = true;
+  // Version "grossière" pour séparer Boissy / Chessy à partir d’un point
+  function roughBranchFromLatLon(lat, lon) {
+    const boissyRef = brancheBoissy[0];
+    const chessyRef = brancheChessy[0];
+    const dBoissy = distanceMeters(lat, lon, boissyRef.lat, boissyRef.lon);
+    const dChessy = distanceMeters(lat, lon, chessyRef.lat, chessyRef.lon);
+    return dBoissy < dChessy ? "boissy" : "chessy";
   }
+
+  function addCalibPoint(pk, lat, lon, branchHint) {
+    if (pk == null || lat == null || lon == null) return;
+
+    if (pk <= 34000) {
+      // Avant Val de Fontenay : tronc commun
+      calibTronc.push({ pk, lat, lon });
+    } else {
+      let b = branchHint;
+      if (b !== "boissy" && b !== "chessy") {
+        b = roughBranchFromLatLon(lat, lon);
+      }
+      if (b === "boissy") calibBoissy.push({ pk, lat, lon });
+      else calibChessy.push({ pk, lat, lon });
+    }
+  }
+
+  // 1) Tous les accessPoints avec un PK + GPS
+  for (const acc of accessPoints) {
+    addCalibPoint(acc.pk, acc.lat, acc.lon, acc.branch);
+  }
+
+  // 2) Recalages partagés (GitHub) + locaux (ton téléphone)
+  const allCals = [];
+  if (Array.isArray(sharedCalibrations)) allCals.push(...sharedCalibrations);
+  if (Array.isArray(localCalibrations)) allCals.push(...localCalibrations);
+
+  for (const c of allCals) {
+    if (!c) continue;
+    const pk = c.pkExact != null ? c.pkExact : c.pk;
+    addCalibPoint(pk, c.lat, c.lon, c.branch);
+  }
+
+  calibTronc.sort((a, b) => a.pk - b.pk);
+  calibBoissy.sort((a, b) => a.pk - b.pk);
+  calibChessy.sort((a, b) => a.pk - b.pk);
+
+  // Poly-ligne calibrée Boissy = tronc commun + branche Boissy + points de calibration
+  linePointsBoissy = troncCommun
+    .concat(calibTronc, brancheBoissy, calibBoissy)
+    .sort((a, b) => a.pk - b.pk);
+
+  // Poly-ligne calibrée Chessy = tronc commun + branche Chessy + points de calibration
+  linePointsChessy = troncCommun
+    .concat(calibTronc, brancheChessy, calibChessy)
+    .sort((a, b) => a.pk - b.pk);
+}
+
 
   function findNearestStation(pk, branch) {
     if (pk == null) return null;
@@ -2251,14 +2256,34 @@
   }
 
   function detectBranch(lat, lon) {
-    // S’assure que les polylignes calibrées sont prêtes
-    buildCalibrationPolylines();
+  // Si on n’a pas de GPS (cas de certains accès sans coordonnées),
+  // on reste en "both" = tronc commun / branche inconnue
+  if (lat == null || lon == null) {
+    return "both";
+  }
 
-    let minBoissy = Infinity;
-    for (const p of linePointsBoissy) {
-      const d = distanceMeters(lat, lon, p.lat, p.lon);
-      if (d < minBoissy) minBoissy = d;
-    }
+  buildCalibrationPolylines();
+
+  let minBoissy = Infinity;
+  for (const p of linePointsBoissy) {
+    if (p.lat == null || p.lon == null) continue;
+    const d = distanceMeters(lat, lon, p.lat, p.lon);
+    if (d < minBoissy) minBoissy = d;
+  }
+
+  let minChessy = Infinity;
+  for (const p of linePointsChessy) {
+    if (p.lat == null || p.lon == null) continue;
+    const d = distanceMeters(lat, lon, p.lat, p.lon);
+    if (d < minChessy) minChessy = d;
+  }
+
+  if (!isFinite(minBoissy) && !isFinite(minChessy)) {
+    return "both";
+  }
+  return minBoissy <= minChessy ? "boissy" : "chessy";
+}
+
 
     let minChessy = Infinity;
     for (const p of linePointsChessy) {
@@ -2827,67 +2852,70 @@
   updateSmsPreview();
   setGpsStatus("off");
 
-  function handlePosition(pos) {
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
-    const accuracy = pos.coords.accuracy; // AJOUT CALIBRAGE
+ function handlePosition(pos) {
+  const lat = pos.coords.latitude;
+  const lon = pos.coords.longitude;
+  const accuracy = pos.coords.accuracy; // AJOUT CALIBRAGE
 
-    state.lastAccuracy = accuracy;
+  state.lastAccuracy = accuracy;
 
-    setGpsStatus("on", "Position reçue (lat : " +
-      lat.toFixed(5) + ", lon : " + lon.toFixed(5) + ")");
+  setGpsStatus(
+    "on",
+    "Position reçue (lat : " + lat.toFixed(5) + ", lon : " + lon.toFixed(5) + ")"
+  );
 
-       // Détection de la branche avec les polylignes calibrées
-    currentBranch = detectBranch(lat, lon);
-    buildCalibrationPolylines(); // au cas où ce n’est pas encore fait
+  // Détection de la branche avec la géo + polylignes calibrées
+  currentBranch = detectBranch(lat, lon);
 
-    if (currentBranch === "boissy") {
-      linePoints = linePointsBoissy;
-    } else {
-      linePoints = linePointsChessy;
-    }
-
-    const proj = projectToLine(lat, lon);
-
-
-    const proj = projectToLine(lat, lon);
-    if (proj.pkProj == null) return;
-
-    const rawPk = proj.pkProj;
-    const correctedPk = rawPk + pkOffset;
-    const now = Date.now() / 1000;
-
-    if (state.lastPk != null && state.lastPkTime != null) {
-      const dPk = correctedPk - state.lastPk;
-      const dt = now - state.lastPkTime;
-      if (dt > 1) {
-        updateMovement(dPk, dt);
-      }
-    } else {
-      movementTitle.textContent = "En attente d’un deuxième point…";
-      movementDetails.textContent = "—";
-    }
-
-    state.lastRawPk = rawPk;
-    state.lastPk = correctedPk;
-    state.lastPkTime = now;
-    state.lastLat = lat;
-    state.lastLon = lon;
-    state.lastDist = proj.dist;
-
-    const nearest = findNearestStation(correctedPk, currentBranch);
-    const nearestAccess = findNearestAccessGeo(lat, lon);
-
-    state.nearestStation = nearest;
-    state.nearestAccess = nearestAccess;
-
-    updateNearestStation(correctedPk, nearest);
-    updateNextStation(correctedPk);
-    updatePkTargetView();
-    updateAccessList(correctedPk);
-    updateSmsPreview();
-    updatePkEstimateInSettings();
+  // On choisit la bonne poly-ligne pour la projection PK
+  if (currentBranch === "boissy") {
+    linePoints = linePointsBoissy;
+  } else if (currentBranch === "chessy") {
+    linePoints = linePointsChessy;
+  } else {
+    // Sécurité : si "both" ou autre, on reste sur Chessy par défaut
+    linePoints = troncCommun.concat(brancheChessy);
   }
+
+  const proj = projectToLine(lat, lon);
+  if (proj.pkProj == null) return;
+
+  const rawPk = proj.pkProj;
+  const correctedPk = rawPk + pkOffset;
+  const now = Date.now() / 1000;
+
+  if (state.lastPk != null && state.lastPkTime != null) {
+    const dPk = correctedPk - state.lastPk;
+    const dt = now - state.lastPkTime;
+    if (dt > 1) {
+      updateMovement(dPk, dt);
+    }
+  } else {
+    movementTitle.textContent = "En attente d’un deuxième point…";
+    movementDetails.textContent = "—";
+  }
+
+  state.lastRawPk   = rawPk;
+  state.lastPk      = correctedPk;
+  state.lastPkTime  = now;
+  state.lastLat     = lat;
+  state.lastLon     = lon;
+  state.lastDist    = proj.dist;
+
+  const nearest       = findNearestStation(correctedPk, currentBranch);
+  const nearestAccess = findNearestAccessGeo(lat, lon);
+
+  state.nearestStation = nearest;
+  state.nearestAccess  = nearestAccess;
+
+  updateNearestStation(correctedPk, nearest);
+  updateNextStation(correctedPk);
+  updatePkTargetView();
+  updateAccessList(correctedPk);
+  updateSmsPreview();
+  updatePkEstimateInSettings();
+}
+
 
   console.log("PK Assistant RER A – script chargé sans erreur ✅");
   </script>
