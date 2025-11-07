@@ -589,7 +589,1240 @@
   const stations = troncCommun.concat(brancheBoissy, brancheChessy);
 
   // Pour les accès : un accès par gare pour l’instant
-const accessPoints = [];
+const accessPoints = [
+  {
+    name: "Gare de St Germain en Laye",
+    address: "Gare de St Germain en Laye",
+    pk: 0,
+    lat: 48.90389600,
+    lon: 2.10413400
+  },
+  {
+    name: "« Père Igor », 39 allée de la capitainerie / allée des gas Le Pecq",
+    address: "« Père Igor », 39 allée de la capitainerie / allée des gas Le Pecq",
+    pk: 1050,
+    lat: 48.90389410,
+    lon: 2.10404180
+  },
+  {
+    name: "Entre le 8 et le 10 allée des berceaux, Le Pecq (Accès difficile)",
+    address: "Entre le 8 et le 10 allée des berceaux, Le Pecq (Accès difficile)",
+    pk: 1100,
+    lat: 48.90419444,
+    lon: 2.10502778
+  },
+  {
+    name: "1 allée des Gas (accès difficile), Le Pecq",
+    address: "1 allée des Gas (accès difficile), Le Pecq",
+    pk: 1200,
+    lat: 48.90389890,
+    lon: 2.10613190
+  },
+  {
+    name: "21 bvd Folke Bernadotte, Le Pecq (2 accès chaque côté du pont RER)",
+    address: "21 bvd Folke Bernadotte, Le Pecq (2 accès chaque côté du pont RER)",
+    pk: 1750,
+    lat: 48.90280760,
+    lon: 2.11312440
+  },
+  {
+    name: "47 av. du centre (fin de route, cul-de-sac), Le Pecq",
+    address: "47 av. du centre (fin de route, cul-de-sac), Le Pecq",
+    pk: 1800,
+    lat: 48.90266080,
+    lon: 2.11381940
+  },
+  {
+    name: "63 route de Sartrouville, Le Pecq / 31 rue de Seine, Le Vésinet (de chaque côté du pont)",
+    address: "63 route de Sartrouville, Le Pecq / 31 rue de Seine, Le Vésinet (de chaque côté du pont)",
+    pk: 1855,
+    lat: 48.90248620,
+    lon: 2.11445710
+  },
+  {
+    name: "23 rue de seine, Le Vesinet",
+    address: "23 rue de seine, Le Vesinet",
+    pk: 1950,
+    lat: 48.90208930,
+    lon: 2.11583780
+  },
+  {
+    name: "5 ter rue de seine, Le Vesinet",
+    address: "5 ter rue de seine, Le Vesinet",
+    pk: 2300,
+    lat: 48.90016667,
+    lon: 2.11961111
+  },
+  {
+    name: "Sq. Watteau, Le Vésinet",
+    address: "Sq. Watteau, Le Vésinet",
+    pk: 2365,
+    lat: 48.89975000,
+    lon: 2.12088889
+  },
+  {
+    name: "Gare de Le Vesinet-Le Pecq",
+    address: "Gare de Le Vesinet-Le Pecq",
+    pk: 2505,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Le Vesinet PR, 8 rue Alexandre Dumas, Le Vesinet (grand portail)",
+    address: "Le Vesinet PR, 8 rue Alexandre Dumas, Le Vesinet (grand portail)",
+    pk: 2750,
+    lat: 48.89669444,
+    lon: 2.12341667
+  },
+  {
+    name: "100 av. Gallieni, Le Vésinet",
+    address: "100 av. Gallieni, Le Vésinet",
+    pk: 3100,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "54 av. Galliéni, 77 av. Emile Thiébault, Le Vésinet",
+    address: "54 av. Galliéni, 77 av. Emile Thiébault, Le Vésinet",
+    pk: 3460,
+    lat: 48.89200130,
+    lon: 2.12871240
+  },
+  {
+    name: "32 av. Galliéni, Le Vésinet",
+    address: "32 av. Galliéni, Le Vésinet",
+    pk: 3750,
+    lat: 48.89094210,
+    lon: 2.13186570
+  },
+  {
+    name: "Bout de quai de Vésinet Centre, 61 av. Emile Thiébault, Le Vésinet",
+    address: "Bout de quai de Vésinet Centre, 61 av. Emile Thiébault, Le Vésinet",
+    pk: 3808,
+    lat: 48.89060440,
+    lon: 2.13286440
+  },
+  {
+    name: "Gare de Le Vésinet Centre (côté V2 : 53 av. Maurice Berteaux, Le Vésinet)",
+    address: "Gare de Le Vésinet Centre (côté V2 : 53 av. Maurice Berteaux, Le Vésinet)",
+    pk: 3808,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Parking au croisement de av. Galliéni et rue Du Gal Clavery, Le Vésinet",
+    address: "Parking au croisement de av. Galliéni et rue Du Gal Clavery, Le Vésinet",
+    pk: 4060,
+    lat: 48.88966667,
+    lon: 2.13625000
+  },
+  {
+    name: "27 av. du Gal De Gaulle, Le Vésinet",
+    address: "27 av. du Gal De Gaulle, Le Vésinet",
+    pk: 4150,
+    lat: 48.88910410,
+    lon: 2.13773730
+  },
+  {
+    name: "2 bvd des États-Unis, Le Vésinet",
+    address: "2 bvd des États-Unis, Le Vésinet",
+    pk: 4400,
+    lat: 48.88791667,
+    lon: 2.14166667
+  },
+  {
+    name: "25 av. Maurice Bertaux, Le Vésinet",
+    address: "25 av. Maurice Bertaux, Le Vésinet",
+    pk: 4500,
+    lat: 48.88808333,
+    lon: 2.14105556
+  },
+  {
+    name: "29 avenue Charles Lambert, Châtou",
+    address: "29 avenue Charles Lambert, Châtou",
+    pk: 4890,
+    lat: 48.88650000,
+    lon: 2.14630556
+  },
+  {
+    name: "5 av. Charles Lambert, Châtou",
+    address: "5 av. Charles Lambert, Châtou",
+    pk: 5100,
+    lat: 48.88593117,
+    lon: 2.14874668
+  },
+  {
+    name: "25 av. du Maréchal Joffre, Châtou",
+    address: "25 av. du Maréchal Joffre, Châtou",
+    pk: 5250,
+    lat: 48.88558159,
+    lon: 2.15111261
+  },
+  {
+    name: "Gare de Châtou – Croissy",
+    address: "Gare de Châtou – Croissy",
+    pk: 5502,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Bout de quai V2 côté Paris : 2 av des Tilleuls, Châtou (fond de l’impasse)",
+    address: "Bout de quai V2 côté Paris : 2 av des Tilleuls, Châtou (fond de l’impasse)",
+    pk: 5727,
+    lat: 48.88516352,
+    lon: 2.15757085
+  },
+  {
+    name: "Mail des impressionnistes, Chatou (Île de Chatou,",
+    address: "Mail des impressionnistes, Chatou (Île de Chatou,",
+    pk: 5950,
+    lat: 48.88522222,
+    lon: 2.16013889
+  },
+  {
+    name: "Mail des impressionnistes, Chatou (Île de Chatou,",
+    address: "Mail des impressionnistes, Chatou (Île de Chatou,",
+    pk: 6070,
+    lat: 48.88547222,
+    lon: 2.16219444
+  },
+  {
+    name: "38 rue des Martinets, Rueil-Malmaison / 19 av. de Seine, Rueil-Malmaison",
+    address: "38 rue des Martinets, Rueil-Malmaison / 19 av. de Seine, Rueil-Malmaison",
+    pk: 6250,
+    lat: 48.88586272,
+    lon: 2.16488900
+  },
+  {
+    name: "27 av. de Seine, Rueil Malmaison",
+    address: "27 av. de Seine, Rueil Malmaison",
+    pk: 6430,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "PR de Rueil, Avenue de Colmar, Rueil-Malmaison",
+    address: "PR de Rueil, Avenue de Colmar, Rueil-Malmaison",
+    pk: 6570,
+    lat: 48.88666667,
+    lon: 2.16883333
+  },
+  {
+    name: "Gare de Rueil-Malmaison, 2 rue des 2 gares, Rueil-Malmaison",
+    address: "Gare de Rueil-Malmaison, 2 rue des 2 gares, Rueil-Malmaison",
+    pk: 6758,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Faisceau de Rueil, 143 bvd National, Rueil-Malmaison",
+    address: "Faisceau de Rueil, 143 bvd National, Rueil-Malmaison",
+    pk: 7500,
+    lat: 48.89034072,
+    lon: 2.17954308
+  },
+  {
+    name: "CAT Nanterre (accès par badge), 33 av. Henri Martin, Nanterre",
+    address: "CAT Nanterre (accès par badge), 33 av. Henri Martin, Nanterre",
+    pk: 8250,
+    lat: 48.89291667,
+    lon: 2.18800000
+  },
+  {
+    name: "Croisement 55 rue de Stalingrad / 57 bvd du Couchant, Nanterre",
+    address: "Croisement 55 rue de Stalingrad / 57 bvd du Couchant, Nanterre",
+    pk: 8500,
+    lat: 48.89447222,
+    lon: 2.19358333
+  },
+  {
+    name: "Gare de Nanterre Ville",
+    address: "Gare de Nanterre Ville",
+    pk: 8600,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "10 allée des Parfumeurs (fond de l’impasse), Nanterre (Parking difficile)",
+    address: "10 allée des Parfumeurs (fond de l’impasse), Nanterre (Parking difficile)",
+    pk: 9000,
+    lat: 48.89619076,
+    lon: 2.19848833
+  },
+  {
+    name: "Rd-pt 56 rue Pascal / 1 rue Paul Bert, Nanterre",
+    address: "Rd-pt 56 rue Pascal / 1 rue Paul Bert, Nanterre",
+    pk: 9200,
+    lat: 48.89711102,
+    lon: 2.20139055
+  },
+  {
+    name: "Cabane des signaux, 94 rue Pascal Nanterre",
+    address: "Cabane des signaux, 94 rue Pascal Nanterre",
+    pk: 9400,
+    lat: 48.89805290,
+    lon: 2.20437687
+  },
+  {
+    name: "118 rue Pascal Nanterre",
+    address: "118 rue Pascal Nanterre",
+    pk: 9650,
+    lat: 48.89871930,
+    lon: 2.20627078
+  },
+  {
+    name: "Passerelle Nanterre-Ville (2 accès de chaque côté de la passerelle), bvd Blaise Pascal, face au 1 allée Georges Courteline, Nanterre",
+    address: "Passerelle Nanterre-Ville (2 accès de chaque côté de la passerelle), bvd Blaise Pascal, face au 1 allée Georges Courteline, Nanterre",
+    pk: 9800,
+    lat: 48.89956965,
+    lon: 2.20894508
+  },
+  {
+    name: "1C / 2C (branche Cergy) (2 accès de chaque côté du pont), 83 bvd des Provinces Françaises, Nanterre",
+    address: "1C / 2C (branche Cergy) (2 accès de chaque côté du pont), 83 bvd des Provinces Françaises, Nanterre",
+    pk: 111050,
+    lat: 48.89977146,
+    lon: 2.21360501
+  },
+  {
+    name: "Gare de Nanterre Université",
+    address: "Gare de Nanterre Université",
+    pk: 10111,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Courbe de la Folie, Croisement 521 Bd des Provinces Françaises / allée d’Aquitaine, Nanterre",
+    address: "Courbe de la Folie, Croisement 521 Bd des Provinces Françaises / allée d’Aquitaine, Nanterre",
+    pk: 10450,
+    lat: 48.90204234,
+    lon: 2.21802275
+  },
+  {
+    name: "Gare de Nanterre Préfecture",
+    address: "Gare de Nanterre Préfecture",
+    pk: 11638,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "ADV 710 / 712 : passage par échelle au niveau de la baie de ventilation",
+    address: "ADV 710 / 712 : passage par échelle au niveau de la baie de ventilation",
+    pk: 12100,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Baie de ventilation, 26 rue des Longues Raies, Nanterre (accès avec la PP",
+    address: "Baie de ventilation, 26 rue des Longues Raies, Nanterre (accès avec la PP",
+    pk: 12430,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Bout de VA / VB à Défense",
+    address: "Bout de VA / VB à Défense",
+    pk: 12650,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Passage V2 / VB à Défense",
+    address: "Passage V2 / VB à Défense",
+    pk: 12730,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Gare de La Défense",
+    address: "Gare de La Défense",
+    pk: 12990,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Aire de stockage VA / VB de Défense",
+    address: "Aire de stockage VA / VB de Défense",
+    pk: 13280,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Musoir de Défense >–",
+    address: "Musoir de Défense >–",
+    pk: 13420,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Pont de Neuilly, 191 av. Ch. De Gaulle, Neuilly via la station de métro Pont de Neuilly (milieu de Quai dir. Château de Vincennes)",
+    address: "Pont de Neuilly, 191 av. Ch. De Gaulle, Neuilly via la station de métro Pont de Neuilly (milieu de Quai dir. Château de Vincennes)",
+    pk: 14934,
+    lat: 48.88446330,
+    lon: 2.26128519
+  },
+  {
+    name: "Nordling, Place Nordling, Neuilly sur Seine (entrée face au 5 rue Raoul Nordling)",
+    address: "Nordling, Place Nordling, Neuilly sur Seine (entrée face au 5 rue Raoul Nordling)",
+    pk: 16350,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Gare de Charles De Gaulle - Étoile",
+    address: "Gare de Charles De Gaulle - Étoile",
+    pk: 17563,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Accès pompier « Friedland », 147 bvd Haussmann, Paris 8e (entrée piéton du parking sur la rue)",
+    address: "Accès pompier « Friedland », 147 bvd Haussmann, Paris 8e (entrée piéton du parking sur la rue)",
+    pk: 18895,
+    lat: 48.87495190,
+    lon: 2.31164272
+  },
+  {
+    name: "Gare de Auber, 17 rue Scribe, 5 Rue des Mathurins",
+    address: "Gare de Auber, 17 rue Scribe, 5 Rue des Mathurins",
+    pk: 20201,
+    lat: 48.87290641,
+    lon: 2.32995737
+  },
+  {
+    name: "Musoir de Châtelet –<",
+    address: "Musoir de Châtelet –<",
+    pk: 21626,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Gare de Châtelet les Halles. Via souterrain des Halles (suivre « forum Nord »). Via station Les Halles L4 : 103 rue Rambuteau",
+    address: "Gare de Châtelet les Halles. Via souterrain des Halles (suivre « forum Nord »). Via station Les Halles L4 : 103 rue Rambuteau",
+    pk: 22077,
+    lat: 48.86269354,
+    lon: 2.34661165
+  },
+  {
+    name: "« Nicolas Flamel » (trappe) (À CONFIRMER), Angle 39 rue de Rivoli / 10 rue St Martin À côté du square de la tour St Jacques. Accès commun ligne A et B",
+    address: "« Nicolas Flamel » (trappe) (À CONFIRMER), Angle 39 rue de Rivoli / 10 rue St Martin À côté du square de la tour St Jacques. Accès commun ligne A et B",
+    pk: 22650,
+    lat: 48.85795843,
+    lon: 2.34956165
+  },
+  {
+    name: "← V1 / ← V2 (REDAN À CONFIRMER)",
+    address: "← V1 / ← V2 (REDAN À CONFIRMER)",
+    pk: 23180,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Par escaliers accès pompiers, Nonnains d'Hyères (trappe) 10-12 rue Nonnains d'Hyères, Paris 4e",
+    address: "Par escaliers accès pompiers, Nonnains d'Hyères (trappe) 10-12 rue Nonnains d'Hyères, Paris 4e",
+    pk: 23420,
+    lat: 48.85404139,
+    lon: 2.35854652
+  },
+  {
+    name: "Gare de Lyon, Accès face au 164 rue de Bercy, Paris 12e",
+    address: "Gare de Lyon, Accès face au 164 rue de Bercy, Paris 12e",
+    pk: 24902,
+    lat: 48.84319067,
+    lon: 2.37499372
+  },
+  {
+    name: "Les ruches (entrée du tunnel), 5 av. Gambetta, Saint-Mandé",
+    address: "Les ruches (entrée du tunnel), 5 av. Gambetta, Saint-Mandé",
+    pk: 28900,
+    lat: 48.84430170,
+    lon: 2.42007197
+  },
+  {
+    name: "Rampe en terre, 102 av. Aubert, Vincennes",
+    address: "Rampe en terre, 102 av. Aubert, Vincennes",
+    pk: 29350,
+    lat: 48.84620131,
+    lon: 2.42424566
+  },
+  {
+    name: "Gare de Vincennes",
+    address: "Gare de Vincennes",
+    pk: 29894,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Mairie de St-Mandé, 16 av. Pierre Brossolette, Vincennes",
+    address: "Mairie de St-Mandé, 16 av. Pierre Brossolette, Vincennes",
+    pk: 30660,
+    lat: 48.84694709,
+    lon: 2.44195127
+  },
+  {
+    name: "28 bvd de la libération, Vincennes",
+    address: "28 bvd de la libération, Vincennes",
+    pk: 31250,
+    lat: 48.84663889,
+    lon: 2.44977778
+  },
+  {
+    name: "Accès Pompiers, 1 Place du Maréchal-Lyautey, Vincennes",
+    address: "Accès Pompiers, 1 Place du Maréchal-Lyautey, Vincennes",
+    pk: 31400,
+    lat: 48.84619098,
+    lon: 2.45189408
+  },
+  {
+    name: "49 av. des Charmes, Fontenay sous Bois",
+    address: "49 av. des Charmes, Fontenay sous Bois",
+    pk: 31795,
+    lat: 48.84551317,
+    lon: 2.45553573
+  },
+  {
+    name: "Via la gare de Fontenay",
+    address: "Via la gare de Fontenay",
+    pk: 32460,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Gare de Val de Fontenay",
+    address: "Gare de Val de Fontenay",
+    pk: 34421,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "CAT VDF (accès par badge), 199 rue Carnot, Fontenay sous Bois",
+    address: "CAT VDF (accès par badge), 199 rue Carnot, Fontenay sous Bois",
+    pk: 34660,
+    lat: 48.85463889,
+    lon: 2.48977778
+  },
+  {
+    name: "« Le bateau », Chemin de la Prairie, Neuilly Plaisance",
+    address: "« Le bateau », Chemin de la Prairie, Neuilly Plaisance",
+    pk: 35200,
+    lat: 48.85713889,
+    lon: 2.49594444
+  },
+  {
+    name: "18 rue Pasteur Neuilly Plaisance",
+    address: "18 rue Pasteur Neuilly Plaisance",
+    pk: 35500,
+    lat: 48.85746827,
+    lon: 2.49998451
+  },
+  {
+    name: "Gare de Neuilly Plaisance",
+    address: "Gare de Neuilly Plaisance",
+    pk: 36630,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "PR de Bry (fin du viaduc)",
+    address: "PR de Bry (fin du viaduc)",
+    pk: 37050,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "30 rue du Général Leclerc, Bry-sur-Marne",
+    address: "30 rue du Général Leclerc, Bry-sur-Marne",
+    pk: 37100,
+    lat: 48.83272275,
+    lon: 2.52168104
+  },
+  {
+    name: "145 bvd de la Liberté, Bry-sur-Marne",
+    address: "145 bvd de la Liberté, Bry-sur-Marne",
+    pk: 37300,
+    lat: 48.83562965,
+    lon: 2.49469926
+  },
+  {
+    name: "Gare de Bry-sur-Marne",
+    address: "Gare de Bry-sur-Marne",
+    pk: 37892,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "121 bvd de la Liberté (Accès difficile), Bry-sur-Marne",
+    address: "121 bvd de la Liberté (Accès difficile), Bry-sur-Marne",
+    pk: 38130,
+    lat: 48.84838889,
+    lon: 2.53066667
+  },
+  {
+    name: "Parking 23 bvd G. Clémenceau, Bry-sur-Marne",
+    address: "Parking 23 bvd G. Clémenceau, Bry-sur-Marne",
+    pk: 38500,
+    lat: 48.84262630,
+    lon: 2.52663406
+  },
+  {
+    name: "Rue des Pâtis, Bry-sur-Marne",
+    address: "Rue des Pâtis, Bry-sur-Marne",
+    pk: 38800,
+    lat: 48.84436111,
+    lon: 2.53772222
+  },
+  {
+    name: "Parking du RER (4 accès), 3 av. Jean Kiffer, Champigny-sur-Marne",
+    address: "Parking du RER (4 accès), 3 av. Jean Kiffer, Champigny-sur-Marne",
+    pk: 39400,
+    lat: 48.84175000,
+    lon: 2.54502778
+  },
+  {
+    name: "Gare de Champigny",
+    address: "Gare de Champigny",
+    pk: 39529,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "39 av. J. Baptiste Clément, Champigny-sur-Marne",
+    address: "39 av. J. Baptiste Clément, Champigny-sur-Marne",
+    pk: 39950,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "13 av. Foch, Champigny-sur-Marne",
+    address: "13 av. Foch, Champigny-sur-Marne",
+    pk: 40200,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "19 av. du Maréchal Leclerc, La Varenne",
+    address: "19 av. du Maréchal Leclerc, La Varenne",
+    pk: 40500,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "37 av. Foch, La Varenne",
+    address: "37 av. Foch, La Varenne",
+    pk: 40850,
+    lat: 48.83088889,
+    lon: 2.56069444
+  },
+  {
+    name: "Gare de La Varenne - Chennevières",
+    address: "Gare de La Varenne - Chennevières",
+    pk: 41229,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "50 av. du Maréchal Leclerc La Varenne",
+    address: "50 av. du Maréchal Leclerc La Varenne",
+    pk: 41500,
+    lat: 48.37733533,
+    lon: 2.95645840
+  },
+  {
+    name: "60 av. du Maréchal Leclerc, La Varenne",
+    address: "60 av. du Maréchal Leclerc, La Varenne",
+    pk: 41700,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "118 av. du Maréchal Leclerc, La Varenne",
+    address: "118 av. du Maréchal Leclerc, La Varenne",
+    pk: 42150,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "150 av. du Maréchal Leclerc, La Varenne",
+    address: "150 av. du Maréchal Leclerc, La Varenne",
+    pk: 42600,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "102 av. du Général De Gaulle, Sucy-en-Brie",
+    address: "102 av. du Général De Gaulle, Sucy-en-Brie",
+    pk: 42750,
+    lat: 48.81308333,
+    lon: 2.57508333
+  },
+  {
+    name: "191 av. du Général De Gaulle, Sucy-en-Brie",
+    address: "191 av. du Général De Gaulle, Sucy-en-Brie",
+    pk: 43500,
+    lat: 48.80919444,
+    lon: 2.58255556
+  },
+  {
+    name: "Gare de Sucy-Bonneuil",
+    address: "Gare de Sucy-Bonneuil",
+    pk: 44577,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "« La cantine » 11 chemin vert (accès au niveau du pont), Sucy en Brie",
+    address: "« La cantine » 11 chemin vert (accès au niveau du pont), Sucy en Brie",
+    pk: 45150,
+    lat: 48.76594444,
+    lon: 2.50536111
+  },
+  {
+    name: "Voie Mexico, Rue de Villeneuve, Boissy St Léger",
+    address: "Voie Mexico, Rue de Villeneuve, Boissy St Léger",
+    pk: 45800,
+    lat: 48.75961111,
+    lon: 2.50802778
+  },
+  {
+    name: "Atelier MRF Sucy, 13 chemin vert, Sucy en brie",
+    address: "Atelier MRF Sucy, 13 chemin vert, Sucy en brie",
+    pk: 46200,
+    lat: 48.76529003,
+    lon: 2.50217879
+  },
+  {
+    name: "Gare de Boissy-Saint-Léger",
+    address: "Gare de Boissy-Saint-Léger",
+    pk: 47795,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "PST Sucy",
+    address: "PST Sucy",
+    pk: 47780,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Bvd Georges Clémenceau",
+    address: "Bvd Georges Clémenceau",
+    pk: 47380,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "20 av. de l'hippodrome, La Varenne",
+    address: "20 av. de l'hippodrome, La Varenne",
+    pk: 44050,
+    lat: 48.86168940,
+    lon: 2.21708690
+  },
+  {
+    name: "17 route de Brétigny, Bonneuil sur marne (Portail à droite avant le pont)",
+    address: "17 route de Brétigny, Bonneuil sur marne (Portail à droite avant le pont)",
+    pk: 43160,
+    lat: 48.78379361,
+    lon: 2.50701747
+  },
+  {
+    name: "253 bvd de Créteil, St Maur des fossés",
+    address: "253 bvd de Créteil, St Maur des fossés",
+    pk: 42500,
+    lat: 48.78880556,
+    lon: 2.49950000
+  },
+  {
+    name: "PR de St Maur (3 accès), bvd de Créteil St Maur des fossés",
+    address: "PR de St Maur (3 accès), bvd de Créteil St Maur des fossés",
+    pk: 41500,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "16 allée du Petit Parc, St Maur des fossés",
+    address: "16 allée du Petit Parc, St Maur des fossés",
+    pk: 41200,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "20 bvd de Créteil, St Maur des fossés",
+    address: "20 bvd de Créteil, St Maur des fossés",
+    pk: 40850,
+    lat: 48.80272222,
+    lon: 2.48561111
+  },
+  {
+    name: "Gare de St-Maur - Créteil",
+    address: "Gare de St-Maur - Créteil",
+    pk: 40750,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "50 av. du Bac, St Maur des fossés",
+    address: "50 av. du Bac, St Maur des fossés",
+    pk: 39500,
+    lat: 48.79488373,
+    lon: 2.51269474
+  },
+  {
+    name: "86 av. du Bac, St Maur des fossés",
+    address: "86 av. du Bac, St Maur des fossés",
+    pk: 39150,
+    lat: 48.79407368,
+    lon: 2.51247564
+  },
+  {
+    name: "Gare de Le Parc de St-Maur",
+    address: "Gare de Le Parc de St-Maur",
+    pk: 38623,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "76 av. du Maréchal Lyautey, St Maur des fossés",
+    address: "76 av. du Maréchal Lyautey, St Maur des fossés",
+    pk: 38450,
+    lat: 48.81013889,
+    lon: 2.47586111
+  },
+  {
+    name: "3 av. de la Terrasse, St Maur des fossés",
+    address: "3 av. de la Terrasse, St Maur des fossés",
+    pk: 37950,
+    lat: 48.81394444,
+    lon: 2.46969444
+  },
+  {
+    name: "20 av. de Condé, St Maur des fossés",
+    address: "20 av. de Condé, St Maur des fossés",
+    pk: 37550,
+    lat: 48.81722222,
+    lon: 2.46483333
+  },
+  {
+    name: "Gare de St-Maur - L'Écluse",
+    address: "Gare de St-Maur - L'Écluse",
+    pk: 37476,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "3 av. Jean Brossolette, St Maur des fossés",
+    address: "3 av. Jean Brossolette, St Maur des fossés",
+    pk: 37200,
+    lat: 48.80636689,
+    lon: 2.49329289
+  },
+  {
+    name: "1 av. de Condé, St Maur des fossés",
+    address: "1 av. de Condé, St Maur des fossés",
+    pk: 37050,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Gare de Joinville-le-Pont",
+    address: "Gare de Joinville-le-Pont",
+    pk: 35800,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "32 av. Foch, Joinville-le-Pont",
+    address: "32 av. Foch, Joinville-le-Pont",
+    pk: 35600,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "16 quai de Polangis, Joinville-le-Pont",
+    address: "16 quai de Polangis, Joinville-le-Pont",
+    pk: 35300,
+    lat: 48.82212116,
+    lon: 2.46435795
+  },
+  {
+    name: "47 bvd de l'Europe, Joinville-le-Pont",
+    address: "47 bvd de l'Europe, Joinville-le-Pont",
+    pk: 35150,
+    lat: 48.81500797,
+    lon: 2.46438259
+  },
+  {
+    name: "4 rue de l'Espérance, Joinville-le-Pont",
+    address: "4 rue de l'Espérance, Joinville-le-Pont",
+    pk: 35000,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "6 av. des Tilleuls, Nogent-sur-Marne",
+    address: "6 av. des Tilleuls, Nogent-sur-Marne",
+    pk: 34800,
+    lat: 48.83143509,
+    lon: 2.47019678
+  },
+  {
+    name: "20 bvd de la Marne, Nogent-sur-Marne",
+    address: "20 bvd de la Marne, Nogent-sur-Marne",
+    pk: 34650,
+    lat: 48.83182648,
+    lon: 2.47057077
+  },
+  {
+    name: "Gare de Nogent-sur-Marne",
+    address: "Gare de Nogent-sur-Marne",
+    pk: 34020,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "60 bvd de la République, Nogent-sur-Marne",
+    address: "60 bvd de la République, Nogent-sur-Marne",
+    pk: 33700,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "20 bvd de la Marne, Nogent-sur-Marne",
+    address: "20 bvd de la Marne, Nogent-sur-Marne",
+    pk: 33550,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "155 av. du Général Leclerc, Nogent-sur-Marne",
+    address: "155 av. du Général Leclerc, Nogent-sur-Marne",
+    pk: 33450,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "5 rue des Hautes Plainses, Fontenay (Accès difficile)",
+    address: "5 rue des Hautes Plainses, Fontenay (Accès difficile)",
+    pk: 33200,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Gare de Fontenay",
+    address: "Gare de Fontenay",
+    pk: 32890,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "5 av. Gambetta, Saint-Mandé",
+    address: "5 av. Gambetta, Saint-Mandé",
+    pk: 32200,
+    lat: 48.84437790,
+    lon: 2.42016489
+  },
+  {
+    name: "145 av. du Général Leclerc, St Mandé",
+    address: "145 av. du Général Leclerc, St Mandé",
+    pk: 31950,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "PR de Bry (fin du viaduc) / 8 Rue du Vingt Six Août 1944, Bry-sur-Marne",
+    address: "PR de Bry (fin du viaduc) / 8 Rue du Vingt Six Août 1944, Bry-sur-Marne",
+    pk: 37100,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Sortie du parc de Bry / 86 av. de Rigny, Bry-sur-Marne",
+    address: "Sortie du parc de Bry / 86 av. de Rigny, Bry-sur-Marne",
+    pk: 37700,
+    lat: 48.84683028,
+    lon: 2.52364667
+  },
+  {
+    name: "Gare de Bry-sur-Marne",
+    address: "Gare de Bry-sur-Marne",
+    pk: 37835,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Parc de Bry / 127 bvd Gallieni, Bry-sur-Marne",
+    address: "Parc de Bry / 127 bvd Gallieni, Bry-sur-Marne",
+    pk: 38050,
+    lat: 48.84528599,
+    lon: 2.52629374
+  },
+  {
+    name: "66 av Georges Clémenceau, Bry-sur-Marne",
+    address: "66 av Georges Clémenceau, Bry-sur-Marne",
+    pk: 38200,
+    lat: 48.84301133,
+    lon: 2.52677550
+  },
+  {
+    name: "11 rue des Templiers / 14 rue de la Croix aux Biches, Bry-sur-Marne",
+    address: "11 rue des Templiers / 14 rue de la Croix aux Biches, Bry-sur-Marne",
+    pk: 38380,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "« Razel » / 1 rue des Vignes, Bry-sur-Marne",
+    address: "« Razel » / 1 rue des Vignes, Bry-sur-Marne",
+    pk: 38600,
+    lat: 48.84108994,
+    lon: 2.53137569
+  },
+  {
+    name: "Gare de Noisy le Gd – Mt d'Est (Accès ascenseur bout de quai 2)",
+    address: "Gare de Noisy le Gd – Mt d'Est (Accès ascenseur bout de quai 2)",
+    pk: 39749,
+    lat: 48.84177778,
+    lon: 2.54927778
+  },
+  {
+    name: "Escalier métallique / Face au 14 av. du Pavé Neuf, Noisy-le-Grand",
+    address: "Escalier métallique / Face au 14 av. du Pavé Neuf, Noisy-le-Grand",
+    pk: 40200,
+    lat: 48.84055556,
+    lon: 2.55380556
+  },
+  {
+    name: "1 Rue du Marnois Noisy-le-Grand",
+    address: "1 Rue du Marnois Noisy-le-Grand",
+    pk: 40680,
+    lat: 48.84092116,
+    lon: 2.56042493
+  },
+  {
+    name: "A proximité du 120 rue Malnoue, Noisy-le-Grand",
+    address: "A proximité du 120 rue Malnoue, Noisy-le-Grand",
+    pk: 41350,
+    lat: 48.84144444,
+    lon: 2.56930556
+  },
+  {
+    name: "(Accès à confirmer) / A proximité du 21 rue du Maréchal Juin (Accès difficile), Noisy-le-Grand",
+    address: "(Accès à confirmer) / A proximité du 21 rue du Maréchal Juin (Accès difficile), Noisy-le-Grand",
+    pk: 41530,
+    lat: 48.84204558,
+    lon: 2.57206337
+  },
+  {
+    name: "Rue des Hauts Châteaux / Noisy-le-Grand",
+    address: "Rue des Hauts Châteaux / Noisy-le-Grand",
+    pk: 41725,
+    lat: 48.84252778,
+    lon: 2.57372222
+  },
+  {
+    name: "Gare de Noisy-Champs",
+    address: "Gare de Noisy-Champs",
+    pk: 42058,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Fin de quai / Avant le 1 bvd Archimède, Champs-sur-Marne",
+    address: "Fin de quai / Avant le 1 bvd Archimède, Champs-sur-Marne",
+    pk: 42340,
+    lat: 48.84309131,
+    lon: 2.58204106
+  },
+  {
+    name: "« Les sangliers » / Route de Malnoue (PR Noisiel), Champs-sur-Marne",
+    address: "« Les sangliers » / Route de Malnoue (PR Noisiel), Champs-sur-Marne",
+    pk: 43750,
+    lat: 48.84188889,
+    lon: 2.60125000
+  },
+  {
+    name: "42 cours du Luzard (accès de chaque côté du pont), Champs-sur-Marne",
+    address: "42 cours du Luzard (accès de chaque côté du pont), Champs-sur-Marne",
+    pk: 44050,
+    lat: 48.84247222,
+    lon: 2.60525000
+  },
+  {
+    name: "Gare de Noisiel (Le Luzard)",
+    address: "Gare de Noisiel (Le Luzard)",
+    pk: 44754,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "2 allée Jean Paul Sartre / Cours du Buisson (2 accès Rdpt Bvd Salvador Allendé), Noisiel",
+    address: "2 allée Jean Paul Sartre / Cours du Buisson (2 accès Rdpt Bvd Salvador Allendé), Noisiel",
+    pk: 45080,
+    lat: 48.84366667,
+    lon: 2.61972222
+  },
+  {
+    name: "« Chocolaterie » / 111 grande allée du 12 février 1934, Noisiel",
+    address: "« Chocolaterie » / 111 grande allée du 12 février 1934, Noisiel",
+    pk: 45490,
+    lat: 48.84213889,
+    lon: 2.62422222
+  },
+  {
+    name: "Bv de la Malvoisine, Lognes",
+    address: "Bv de la Malvoisine, Lognes",
+    pk: 45900,
+    lat: 48.84027778,
+    lon: 2.62963889
+  },
+  {
+    name: "Gare de Lognes / Accès parking 18 rue Nicolas Appert",
+    address: "Gare de Lognes / Accès parking 18 rue Nicolas Appert",
+    pk: 46107,
+    lat: 48.83947222,
+    lon: 2.63150000
+  },
+  {
+    name: "« Les paraboles » / Vers le 11 Bvd Frédéric Chopin, Lognes",
+    address: "« Les paraboles » / Vers le 11 Bvd Frédéric Chopin, Lognes",
+    pk: 47100,
+    lat: 48.83830556,
+    lon: 2.64500000
+  },
+  {
+    name: "Gare de Torcy (2 accès : 2 av. Jean Moulin / 2 Rue Léon Blum)",
+    address: "Gare de Torcy (2 accès : 2 av. Jean Moulin / 2 Rue Léon Blum)",
+    pk: 47757,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Parking parc (côté Torcy) / D128, Bussy-Saint-Martin",
+    address: "Parking parc (côté Torcy) / D128, Bussy-Saint-Martin",
+    pk: 48150,
+    lat: 48.84038889,
+    lon: 2.65830556
+  },
+  {
+    name: "MRF V19 (côté Chessy) / Rd-pt de la grille noire, Bussy-Saint-Martin",
+    address: "MRF V19 (côté Chessy) / Rd-pt de la grille noire, Bussy-Saint-Martin",
+    pk: 48700,
+    lat: 48.84186111,
+    lon: 2.66744444
+  },
+  {
+    name: "1 Av. Michel Chartier, Bussy-Saint-Martin",
+    address: "1 Av. Michel Chartier, Bussy-Saint-Martin",
+    pk: 48850,
+    lat: 48.84116667,
+    lon: 2.66863889
+  },
+  {
+    name: "« Croix Blanche » (Accès difficile) / Entrée parking à côté du 3 All. du Parc, Collégien",
+    address: "« Croix Blanche » (Accès difficile) / Entrée parking à côté du 3 All. du Parc, Collégien",
+    pk: 49550,
+    lat: 48.83922222,
+    lon: 2.67655556
+  },
+  {
+    name: "« Les Bordes » (Accès difficile) / 41 rue de la brosse, Collégien",
+    address: "« Les Bordes » (Accès difficile) / 41 rue de la brosse, Collégien",
+    pk: 50250,
+    lat: 48.83558333,
+    lon: 2.68463889
+  },
+  {
+    name: "« Les gitans » / Rue de la Butte de Vaux, Collégien",
+    address: "« Les gitans » / Rue de la Butte de Vaux, Collégien",
+    pk: 51150,
+    lat: 48.83513889,
+    lon: 2.69605556
+  },
+  {
+    name: "Bvd de Lagny, Bussy-Saint-Georges",
+    address: "Bvd de Lagny, Bussy-Saint-Georges",
+    pk: 51850,
+    lat: 48.83600000,
+    lon: 2.70575000
+  },
+  {
+    name: "Gare de Bussy-Saint-Georges",
+    address: "Gare de Bussy-Saint-Georges",
+    pk: 52099,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "« La ferme » (Accès piéton et véhicule) / 7 allée Madame de Montespan, Bussy-Saint-Georges",
+    address: "« La ferme » (Accès piéton et véhicule) / 7 allée Madame de Montespan, Bussy-Saint-Georges",
+    pk: 53350,
+    lat: 48.83874883,
+    lon: 2.72748201
+  },
+  {
+    name: "Croisement av. du Général de Gaulle / 17 Bd des 100 Arpents, Bussy-Saint-Georges",
+    address: "Croisement av. du Général de Gaulle / 17 Bd des 100 Arpents, Bussy-Saint-Georges",
+    pk: 54100,
+    lat: 48.84200000,
+    lon: 2.73833333
+  },
+  {
+    name: "« PER Jossigny » (Accès piéton et véhicule) / Rd-pt sur av. de l'europe (D10), Jossigny",
+    address: "« PER Jossigny » (Accès piéton et véhicule) / Rd-pt sur av. de l'europe (D10), Jossigny",
+    pk: 55100,
+    lat: 48.84519444,
+    lon: 2.74533333
+  },
+  {
+    name: "(Accès à confirmer) / 77 Rue de la Charbonnière (derrière le pont), Montévrain",
+    address: "(Accès à confirmer) / 77 Rue de la Charbonnière (derrière le pont), Montévrain",
+    pk: 56560,
+    lat: 48.85341667,
+    lon: 2.76950000
+  },
+  {
+    name: "« Les lapins » (Accès piéton et véhicule) / D231, Jossigny",
+    address: "« Les lapins » (Accès piéton et véhicule) / D231, Jossigny",
+    pk: 56650,
+    lat: 48.85063889,
+    lon: 2.76561111
+  },
+  {
+    name: "Gare de Val d'Europe",
+    address: "Gare de Val d'Europe",
+    pk: 57150,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "PER Chessy (Accès piéton et véhicule) / Av. Hergé, Chessy",
+    address: "PER Chessy (Accès piéton et véhicule) / Av. Hergé, Chessy",
+    pk: 58500,
+    lat: 48.86172222,
+    lon: 2.78038889
+  },
+  {
+    name: "Disney / Rue Morris, Chessy",
+    address: "Disney / Rue Morris, Chessy",
+    pk: 58800,
+    lat: 48.86652778,
+    lon: 2.78127778
+  },
+  {
+    name: "Gare de Chessy / Via hôtel Disney's New York, Rue de la Marnière",
+    address: "Gare de Chessy / Via hôtel Disney's New York, Rue de la Marnière",
+    pk: 59078,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "(Accès à confirmer) Arrière gare de Chessy / Zone de service, Coupvray (parking)",
+    address: "(Accès à confirmer) Arrière gare de Chessy / Zone de service, Coupvray (parking)",
+    pk: 59700,
+    lat: null,
+    lon: null
+  },
+];
 
   // On ajoute automatiquement chaque gare comme un "accès" supplémentaire
   for (const st of stations) {
