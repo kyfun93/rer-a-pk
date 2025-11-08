@@ -449,6 +449,24 @@
     box-shadow: 0 2px 8px rgba(255, 75, 107, 0.3);
   }
 
+  .btn-good {
+    background: linear-gradient(135deg, var(--good), #6dd88a);
+    color: white;
+    box-shadow: 0 4px 12px rgba(75, 214, 122, 0.3);
+  }
+
+  .btn-good:hover {
+    background: linear-gradient(135deg, #5dd67a, #7de89a);
+    box-shadow: 0 6px 16px rgba(75, 214, 122, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-good:active {
+    background: linear-gradient(135deg, #3dd66a, #5dd87a);
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(75, 214, 122, 0.3);
+  }
+
   .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -571,7 +589,7 @@
   }
 
   .settings-footer {
-    margin-top: 8px;
+    margin-top: 8px; 
     font-size: 0.8rem;
     color: var(--muted);
   }
@@ -594,12 +612,12 @@
   }
 
 .signalement-block {
-    background: linear-gradient(145deg, #221015, #170b0e);
-    border: 1px solid rgba(255, 75, 107, 0.4);
+    background: transparent;
+    border: 1px solid var(--border);
     border-radius: 18px;
     padding: 16px;
     margin: 14px 0 6px;
-    box-shadow: 0 0 20px rgba(255, 75, 107, 0.12);
+    box-shadow: none;
   }
 
   /* États de chargement */
@@ -636,6 +654,11 @@
     0% { transform: scale(1); }
     50% { transform: scale(1.05); background-color: var(--good-soft); }
     100% { transform: scale(1); }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
   }
 
   @media (max-width: 640px) {
@@ -1047,8 +1070,16 @@ body[data-page-hidden="true"] .direction-arrow-moving {
         En attente de position GPS pour préparer le SMS.
       </div>
       <div class="field">
+        <button id="btnCouvreurSeul" class="btn btn-warning btn-icon" type="button">
+          <span>🚶</span><span>Couvreur cheminant seul</span>
+        </button>
+        <div id="couvreurStatus" class="muted" style="margin-top: 8px; font-size: 0.9em; display: none;">
+          Mode actif : surveillance en cours...
+        </div>
+      </div>
+      <div class="field">
         <button id="btnSms" class="btn btn-danger btn-icon" type="button">
-          <span>✉️</span><span>SMS d’urgence</span>
+          <span>✉️</span><span>SMS d'urgence</span>
         </button>
       </div>
     </div>
@@ -1067,16 +1098,40 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 
       <div class="divider"></div>
 
-      <!-- Numéro SOS -->
-      <div class="field">
-        <label for="inputSosPhone">Numéro SOS pour le SMS d'urgence</label>
-        <input id="inputSosPhone" type="tel" placeholder="ex : 0612345678 ou +33612345678" />
-        <div style="margin-top: 8px;">
-          <button id="btnSavePhone" class="btn btn-primary btn-icon" type="button">
-            <span>💾</span><span>Sauvegarder</span>
+      <!-- Signalement d'avarie -->
+      <div class="signalement-block">
+        <label for="selectIncidentType" style="font-weight: 700;">🚨 Signalement d'avarie / incident</label>
+        <select id="selectIncidentType">
+          <option value="">-- Choisir un type d'incident --</option>
+          <option value="Cheminement endommagé">Cheminement endommagé</option>
+          <option value="Rail cassé">Rail cassé</option>
+          <option value="Animal mort">Animal mort</option>
+          <option value="Autre">Autre (saisir ci-dessous)</option>
+        </select>
+
+        <div class="field" id="incidentOtherField" style="display:none;">
+          <label for="inputIncidentOther">Précisez l'incident :</label>
+          <input id="inputIncidentOther" type="text" placeholder="ex : câble arraché, signal détérioré..." />
+        </div>
+
+        <div class="field">
+          <label for="incidentPhoto">Photo (optionnel)</label>
+          <input id="incidentPhoto" type="file" accept="image/*" />
+        </div>
+
+        <div class="field">
+          <button id="btnGenerateIncident" class="btn btn-good btn-icon" type="button">
+            <span>📣</span><span>Générer le message de signalement</span>
           </button>
         </div>
-        <div class="muted">Ce numéro sera utilisé par le bouton « SMS d'urgence ».</div>
+
+        <div class="field" id="incidentResultField" style="display:none;">
+          <label>Message généré :</label>
+          <textarea id="incidentResultText" rows="4" readonly></textarea>
+          <button id="btnCopyIncident" class="btn btn-secondary btn-icon" type="button">
+            <span>📋</span><span>Copier le texte</span>
+          </button>
+        </div>
       </div>
 
       <div class="divider"></div>
@@ -1194,45 +1249,46 @@ body[data-page-hidden="true"] .direction-arrow-moving {
         </div>
       </div>
 
-      <!-- Signalement d’avarie -->
-      <div class="signalement-block">
-        <label for="selectIncidentType" style="font-weight: 700;">🚨 Signalement d'avarie / incident</label>
-        <select id="selectIncidentType">
-          <option value="">-- Choisir un type d’incident --</option>
-          <option value="Cheminement endommagé">Cheminement endommagé</option>
-          <option value="Rail cassé">Rail cassé</option>
-          <option value="Animal mort">Animal mort</option>
-          <option value="Autre">Autre (saisir ci-dessous)</option>
-        </select>
+      <div class="divider"></div>
 
-        <div class="field" id="incidentOtherField" style="display:none;">
-          <label for="inputIncidentOther">Précisez l’incident :</label>
-          <input id="inputIncidentOther" type="text" placeholder="ex : câble arraché, signal détérioré..." />
-        </div>
-
-        <div class="field">
-          <label for="incidentPhoto">Photo (optionnel)</label>
-          <input id="incidentPhoto" type="file" accept="image/*" />
-        </div>
-
-        <div class="field">
-          <button id="btnGenerateIncident" class="btn btn-danger btn-icon" type="button">
-            <span>📣</span><span>Générer le message de signalement</span>
+      <!-- Numéro SOS -->
+      <div class="field">
+        <label for="inputSosPhone">Numéro SOS pour le SMS d'urgence</label>
+        <input id="inputSosPhone" type="tel" placeholder="ex : 0612345678 ou +33612345678" />
+        <div style="margin-top: 8px;">
+          <button id="btnSavePhone" class="btn btn-primary btn-icon" type="button">
+            <span>💾</span><span>Sauvegarder</span>
           </button>
         </div>
+        <div class="muted">Ce numéro sera utilisé par le bouton « SMS d'urgence ».</div>
+      </div>
 
-        <div class="field" id="incidentResultField" style="display:none;">
-          <label>Message généré :</label>
-          <textarea id="incidentResultText" rows="4" readonly></textarea>
-          <button id="btnCopyIncident" class="btn btn-secondary btn-icon" type="button">
-            <span>📋</span><span>Copier le texte</span>
+      <div class="divider"></div>
+
+      <!-- Tutoriel -->
+      <div class="field">
+        <button id="btnReadme" class="btn btn-secondary btn-icon" type="button">
+          <span>📖</span><span>Tutoriel</span>
+        </button>
+      </div>
+
+      <div id="readmePanel" class="card" style="display: none; margin-top: 15px;">
+        <div class="card-header">
+          <div class="card-title">📖 Tutoriel - Guide d'utilisation</div>
+        </div>
+        <div id="readmeContent" style="padding: 16px; line-height: 1.8; color: var(--text);">
+          <!-- Le contenu sera généré par JavaScript -->
+        </div>
+        <div class="field" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+          <button id="btnCloseReadme" class="btn btn-secondary" type="button">
+            Fermer
           </button>
         </div>
       </div>
 
       <div class="settings-footer">
         Ces réglages restent stockés dans ton navigateur (localStorage).  
-        Ils ne sont pas effacés quand on met à jour l’application.
+        Ils ne sont pas effacés quand on met à jour l'application.
       </div>
     </div>
   </div>
@@ -2550,6 +2606,8 @@ let linePoints = troncCommun.concat(brancheChessy);
 // Polylignes calibrées (remplies à partir des accessPoints + recalages)
 let linePointsBoissy = null;
 let linePointsChessy = null;
+let lastCalibrationBuildTime = 0; // Cache pour éviter de reconstruire les polylignes à chaque fois
+const CALIBRATION_CACHE_MS = 5000; // Reconstruire les polylignes toutes les 5 secondes max
 
 
 
@@ -2578,6 +2636,27 @@ let linePointsChessy = null;
   let motionSensitivity = "normal";
   let pkTarget = null;
   let lastPkLookupAccess = null;
+  
+  // === MODE COUVREUR CHEMINANT SEUL ===
+  let couvreurSeulActive = false;
+  let couvreurLastMovementTime = null; // Timestamp du dernier mouvement significatif (> 3m)
+  let couvreurLastPosition = null; // Dernière position avec mouvement significatif {lat, lon, time}
+  let couvreurCheckInterval = null; // Intervalle de vérification
+  const COUVREUR_NO_MOVEMENT_THRESHOLD = 3; // mètres (large de 3m)
+  const COUVREUR_ALERT_DELAY = 10 * 60 * 1000; // 10 minutes en millisecondes
+  const COUVREUR_CHECK_INTERVAL = 30 * 1000; // Vérifier toutes les 30 secondes
+  
+  // Timer et sonnerie pour le SMS
+  let smsTimerStartTime = null; // Timestamp du début du timer SMS
+  let smsTimerEndTime = null; // Timestamp de la fin du timer SMS (quand le SMS est envoyé)
+  let smsTimerInterval = null; // Intervalle pour mettre à jour l'affichage du timer
+  let smsAlarmInterval = null; // Intervalle pour la sonnerie
+  let audioContext = null; // Contexte audio pour la sonnerie
+  let alarmOscillator = null; // Oscillateur pour la sonnerie
+  let smsSent = false; // Indique si le SMS a été envoyé
+  const SMS_TIMER_DELAY = 30 * 1000; // 30 secondes avant de déclencher la sonnerie
+  const ALARM_FREQUENCY = 800; // Fréquence de la sonnerie (Hz)
+  
 
   // === AJOUT CALIBRAGE : stockage des recalages locaux + fichier partagé ===
   const LOCAL_CAL_KEY = "pkCalibrations";
@@ -2725,6 +2804,8 @@ async function loadSharedCalibrations() {
 
   const smsPreview = document.getElementById("smsPreview");
   const btnSms = document.getElementById("btnSms");
+  const btnCouvreurSeul = document.getElementById("btnCouvreurSeul");
+  const couvreurStatus = document.getElementById("couvreurStatus");
 
   const pkCurrentValue = document.getElementById("pkCurrentValue");
   const pkCurrentDetails = document.getElementById("pkCurrentDetails");
@@ -2734,6 +2815,10 @@ async function loadSharedCalibrations() {
 
   const btnSettingsToggle = document.getElementById("btnSettingsToggle");
   const settingsPanel = document.getElementById("settingsPanel");
+  const btnReadme = document.getElementById("btnReadme");
+  const readmePanel = document.getElementById("readmePanel");
+  const readmeContent = document.getElementById("readmeContent");
+  const btnCloseReadme = document.getElementById("btnCloseReadme");
 
   const inputSosPhone = document.getElementById("inputSosPhone");
   const btnSavePhone = document.getElementById("btnSavePhone");
@@ -2855,8 +2940,8 @@ async function loadSharedCalibrations() {
     for (const acc of accessPoints) {
       if (acc.lat == null || acc.lon == null || acc.pk == null) continue;
       const d = distanceMeters(lat, lon, acc.lat, acc.lon);
-      // On garde les points dans un rayon de 500m pour l'interpolation
-      if (d < 500) {
+      // On garde les points dans un rayon de 1000m pour l'interpolation (augmenté de 500m)
+      if (d < 1000) {
         nearbyPoints.push({ pk: acc.pk, lat: acc.lat, lon: acc.lon, dist: d, weight: 1.0 });
       }
     }
@@ -2871,21 +2956,31 @@ async function loadSharedCalibrations() {
       const pk = c.pkExact != null ? c.pkExact : c.pk;
       if (pk == null) continue;
       const d = distanceMeters(lat, lon, c.lat, c.lon);
-      // Les points de calibration sont plus précis, on les garde dans un rayon de 1000m
-      // et on leur donne un poids plus élevé (1.5) car ce sont des mesures calibrées
-      if (d < 1000) {
-        nearbyPoints.push({ pk: pk, lat: c.lat, lon: c.lon, dist: d, weight: 1.5 });
+      // Les points de calibration sont plus précis, on les garde dans un rayon de 3000m (augmenté de 1000m)
+      // et on leur donne un poids plus élevé (2.0 au lieu de 1.5) car ce sont des mesures calibrées
+      if (d < 3000) {
+        // Ajuster le poids selon l'accuracy GPS du point de calibration (si disponible)
+        // Plus l'accuracy est bonne (faible valeur), plus le poids est élevé
+        let calibWeight = 2.0;
+        if (c.accuracy != null && c.accuracy > 0) {
+          // Si accuracy < 10m, poids maximal (2.5), sinon dégressif
+          if (c.accuracy < 10) calibWeight = 2.5;
+          else if (c.accuracy < 20) calibWeight = 2.2;
+          else if (c.accuracy < 50) calibWeight = 2.0;
+          else calibWeight = 1.8;
+        }
+        nearbyPoints.push({ pk: pk, lat: c.lat, lon: c.lon, dist: d, weight: calibWeight });
       }
     }
     
     // Si on a des points GPS proches, on affine le calcul
-    if (nearbyPoints.length >= 2) {
+    if (nearbyPoints.length >= 1) {
       // Tri par distance
       nearbyPoints.sort((a, b) => a.dist - b.dist);
       
-      // Interpolation pondérée : on utilise jusqu'à 5 points les plus proches
+      // Interpolation pondérée : on utilise jusqu'à 10 points les plus proches (augmenté de 5)
       // Plus on a de points GPS, plus la précision est grande
-      const maxPoints = Math.min(5, nearbyPoints.length);
+      const maxPoints = Math.min(10, nearbyPoints.length);
       const topPoints = nearbyPoints.slice(0, maxPoints);
       
       // Calcul du poids inverse de la distance (plus proche = plus de poids)
@@ -2893,9 +2988,10 @@ async function loadSharedCalibrations() {
       let weightedPk = 0;
       
       for (const pt of topPoints) {
-        // Poids = (weight * 1) / (distance + 1) pour éviter division par zéro
-        // Les points de calibration ont un poids plus élevé (1.5 vs 1.0)
-        const weight = (pt.weight || 1.0) / (pt.dist + 1);
+        // Poids = (weight * 1) / (distance + 1)^0.8 pour éviter division par zéro
+        // Utilisation d'une fonction exponentielle pour donner plus de poids aux points proches
+        // Les points de calibration ont un poids plus élevé (2.0 vs 1.0)
+        const weight = (pt.weight || 1.0) / Math.pow(pt.dist + 1, 0.8);
         totalWeight += weight;
         weightedPk += pt.pk * weight;
       }
@@ -2904,27 +3000,35 @@ async function loadSharedCalibrations() {
         const interpolatedPk = weightedPk / totalWeight;
         
         // On combine la projection sur la ligne (méthode 1) avec l'interpolation GPS (méthode 2)
-        // Si on est très proche d'un point GPS connu (< 50m), on privilégie l'interpolation
-        // Sinon, on fait une moyenne pondérée
         const minDist = topPoints[0].dist;
         
         if (minDist < 50) {
-          // Très proche d'un point GPS connu : on utilise l'interpolation
+          // Très proche d'un point GPS connu (< 50m) : on privilégie fortement l'interpolation
           best.pkProj = interpolatedPk;
-        } else if (best.dist < 200 && best.pkProj != null) {
-          // On combine les deux méthodes avec un poids selon la distance
-          const projectionWeight = best.dist < 100 ? 0.7 : 0.5;
+          best.dist = minDist;
+        } else if (minDist < 200) {
+          // Proche d'un point GPS connu (< 200m) : on privilégie l'interpolation
+          if (best.pkProj != null) {
+            best.pkProj = best.pkProj * 0.3 + interpolatedPk * 0.7;
+          } else {
+            best.pkProj = interpolatedPk;
+          }
+        } else if (minDist < 500 && best.pkProj != null) {
+          // Moyennement proche (< 500m) : on combine les deux méthodes
+          const projectionWeight = best.dist < 100 ? 0.5 : 0.4;
           const interpolationWeight = 1 - projectionWeight;
           best.pkProj = best.pkProj * projectionWeight + interpolatedPk * interpolationWeight;
+        } else if (minDist < 1000 && best.pkProj != null) {
+          // Assez proche (< 1000m) : on utilise l'interpolation comme correction
+          const projectionWeight = 0.7;
+          const interpolationWeight = 0.3;
+          best.pkProj = best.pkProj * projectionWeight + interpolatedPk * interpolationWeight;
+        } else if (minDist < 2000 && best.pkProj != null) {
+          // Loin mais dans le rayon (< 2000m) : on utilise l'interpolation comme correction légère
+          const projectionWeight = 0.85;
+          const interpolationWeight = 0.15;
+          best.pkProj = best.pkProj * projectionWeight + interpolatedPk * interpolationWeight;
         }
-      }
-    } else if (nearbyPoints.length === 1) {
-      // Un seul point proche : on l'utilise comme référence si on est très proche
-      const closest = nearbyPoints[0];
-      if (closest.dist < 30) {
-        // Très proche d'un point GPS connu : on utilise son PK directement
-        best.pkProj = closest.pk;
-        best.dist = closest.dist;
       }
     }
     
@@ -2933,6 +3037,13 @@ async function loadSharedCalibrations() {
 
   // 👇👇 AJOUTE TOUT CE BLOC ICI 👇👇
 function buildCalibrationPolylines() {
+  // Cache : ne reconstruire que si nécessaire (nouveau recalage ou cache expiré)
+  const now = Date.now();
+  if (now - lastCalibrationBuildTime < CALIBRATION_CACHE_MS && linePointsBoissy && linePointsChessy) {
+    return; // Utiliser le cache
+  }
+  lastCalibrationBuildTime = now;
+  
   const calibTronc  = [];
   const calibBoissy = [];
   const calibChessy = [];
@@ -3415,7 +3526,8 @@ function detectBranch(lat, lon) {
   function updateOffsetInfo() {
     const val = Math.round(pkOffset);
     const sign = val === 0 ? "0" : (val > 0 ? "+"+val : ""+val);
-    pkOffsetInfo.textContent = "Offset actuel : " + sign + " m appliqués à tous les PK.";
+    const calibCount = localCalibrations ? localCalibrations.length : 0;
+    pkOffsetInfo.textContent = "Offset actuel : " + sign + " m appliqués à tous les PK. | " + calibCount + " recalage(s) enregistré(s).";
   }
 
   function savePhoneNumber() {
@@ -3570,6 +3682,11 @@ function detectBranch(lat, lon) {
     geolocActive = false;
     btnToggleGeoloc.innerHTML = "Démarrer la géoloc";
     setGpsStatus("off");
+    
+    // Désactiver le mode "couvreur cheminant seul" si actif
+    if (couvreurSeulActive) {
+      stopCouvreurSeul();
+    }
   }
 
   function handleGeolocError(err) {
@@ -3641,6 +3758,11 @@ function detectBranch(lat, lon) {
     state.lastLat     = lat;
     state.lastLon     = lon;
     state.lastDist    = proj.dist;
+    
+    // Vérifier le mouvement pour le mode "couvreur cheminant seul"
+    if (couvreurSeulActive) {
+      checkCouvreurMovement();
+    }
 
     const nearest       = findNearestStation(correctedPk, currentBranch);
     const nearestAccess = findNearestAccessGeo(lat, lon);
@@ -4214,6 +4336,403 @@ function detectBranch(lat, lon) {
     window.location.href = url;
   }
 
+  // === MODE COUVREUR CHEMINANT SEUL ===
+  // Fonction pour ouvrir automatiquement l'application SMS avec le message pré-rempli
+  // Note : Pour un envoi vraiment automatique sans action, il faudrait un backend/service SMS
+  // Cette solution ouvre l'app SMS automatiquement, mais nécessite un appui sur "Envoyer"
+  function sendSmsAuto() {
+    if (state.lastPk == null || state.lastLat == null) {
+      console.warn("Impossible d'envoyer le SMS automatique : position GPS insuffisante.");
+      return;
+    }
+    
+    if (!sosPhone) {
+      console.warn("Impossible d'envoyer le SMS automatique : numéro SOS non configuré.");
+      if (couvreurStatus) {
+        couvreurStatus.textContent = '⚠️ Numéro SOS non configuré';
+        couvreurStatus.style.color = '#f44336';
+      }
+      return;
+    }
+    
+    const pkText = "PK " + formatPk(state.lastPk);
+    const nearestName = state.nearestStation ? state.nearestStation.name : "inconnue";
+    const branchLabel = currentBranch === "boissy" ? "branche Boissy-Saint-Léger"
+                     : currentBranch === "chessy" ? "branche Marne-la-Vallée – Chessy"
+                     : "branche inconnue";
+    let message =
+      "J'ai eu un accident, je suis blessé, venez me secourir.\n\n" +
+      "PK : " + pkText + " (" + branchLabel + ")\n" +
+      "Gare la plus proche : " + nearestName + "\n";
+
+    if (state.nearestAccess) {
+      message +=
+        "Accès le plus proche : " + state.nearestAccess.name +
+        " (" + state.nearestAccess.address + ")\n";
+    }
+
+    message +=
+      "Coordonnées : " + state.lastLat.toFixed(5) + ", " + state.lastLon.toFixed(5) + "\n";
+
+    // Ouvrir automatiquement l'application SMS avec le message pré-rempli
+    // L'utilisateur devra appuyer sur "Envoyer" (ou quelqu'un d'autre peut le faire)
+    const body = encodeURIComponent(message);
+    const url = "sms:" + encodeURIComponent(sosPhone) + "?&body=" + body;
+    window.location.href = url;
+    
+    // Démarrer le timer pour mesurer le temps avant envoi du SMS
+    startSmsTimer();
+    
+    // Mettre à jour le statut
+    if (couvreurStatus) {
+      couvreurStatus.textContent = '⚠️ Application SMS ouverte - Appuyez sur "Envoyer"';
+      couvreurStatus.style.color = '#ff9800';
+    }
+  }
+
+  // Fonction pour démarrer le timer SMS
+  function startSmsTimer() {
+    smsTimerStartTime = Date.now();
+    smsTimerEndTime = null;
+    smsSent = false;
+    
+    // Mettre à jour l'affichage du timer toutes les secondes
+    if (smsTimerInterval) {
+      clearInterval(smsTimerInterval);
+    }
+    
+    // Variables pour détecter le retour de l'utilisateur
+    let lastBlurTime = Date.now();
+    let blurListener = null;
+    let focusListener = null;
+    
+    // Écouter le blur (quand l'utilisateur quitte la page)
+    blurListener = () => {
+      lastBlurTime = Date.now();
+    };
+    window.addEventListener('blur', blurListener);
+    
+    // Écouter le focus (quand l'utilisateur revient sur la page)
+    focusListener = () => {
+      // Si l'utilisateur revient après avoir été absent, on peut supposer qu'il a envoyé le SMS
+      const timeAway = Date.now() - lastBlurTime;
+      if (timeAway > 3000 && !smsSent) { // S'il a été absent plus de 3 secondes et le SMS n'a pas encore été marqué comme envoyé
+        markSmsAsSent();
+        // Nettoyer les listeners
+        if (blurListener) window.removeEventListener('blur', blurListener);
+        if (focusListener) window.removeEventListener('focus', focusListener);
+      }
+    };
+    window.addEventListener('focus', focusListener);
+    
+    smsTimerInterval = setInterval(() => {
+      if (!smsTimerStartTime || smsSent) return;
+      
+      const elapsed = Date.now() - smsTimerStartTime;
+      const seconds = Math.floor(elapsed / 1000);
+      
+      // Mettre à jour le statut avec le temps écoulé
+      if (couvreurStatus) {
+        if (elapsed < SMS_TIMER_DELAY) {
+          const remaining = Math.ceil((SMS_TIMER_DELAY - elapsed) / 1000);
+          couvreurStatus.textContent = `⚠️ SMS ouvert - ${seconds}s écoulées - Sonnerie dans ${remaining}s`;
+          couvreurStatus.style.color = '#ff9800';
+        } else {
+          // Déclencher la sonnerie si le SMS n'a pas été envoyé après 30 secondes
+          if (!alarmOscillator) {
+            startAlarm();
+          }
+          couvreurStatus.textContent = `🚨 SONNERIE ACTIVE - ${seconds}s écoulées - Envoyez le SMS pour arrêter`;
+          couvreurStatus.style.color = '#f44336';
+        }
+      }
+    }, 1000); // Mise à jour toutes les secondes
+  }
+
+  // Fonction pour marquer le SMS comme envoyé et arrêter le timer
+  function markSmsAsSent() {
+    if (smsSent) return; // Déjà marqué comme envoyé
+    
+    smsSent = true;
+    smsTimerEndTime = Date.now();
+    
+    // Arrêter le timer et la sonnerie
+    stopSmsTimer();
+    stopAlarm();
+    
+    // Calculer le temps total qu'il a fallu pour envoyer le SMS
+    const totalTime = smsTimerEndTime - smsTimerStartTime;
+    const totalSeconds = Math.floor(totalTime / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    
+    // Afficher l'information et la garder affichée
+    if (couvreurStatus) {
+      let timeText = '';
+      if (minutes > 0) {
+        timeText = `${minutes} min ${seconds} s`;
+      } else {
+        timeText = `${seconds} s`;
+      }
+      couvreurStatus.textContent = `✅ SMS envoyé en ${timeText} - Mode désactivé`;
+      couvreurStatus.style.color = '#4caf50';
+    }
+    
+    // Désactiver le mode couvreur après un court délai
+    setTimeout(() => {
+      stopCouvreurSeul();
+    }, 5000); // Garder l'info affichée pendant 5 secondes avant de désactiver
+  }
+
+  // Fonction pour arrêter le timer SMS
+  function stopSmsTimer() {
+    if (smsTimerInterval) {
+      clearInterval(smsTimerInterval);
+      smsTimerInterval = null;
+    }
+    // Ne pas réinitialiser smsTimerStartTime et smsTimerEndTime pour garder l'information
+  }
+
+  // Fonction pour démarrer la sonnerie forte
+  function startAlarm() {
+    try {
+      // Créer un contexte audio
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Créer un oscillateur pour générer un son
+      alarmOscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      // Configurer l'oscillateur (son aigu et fort)
+      alarmOscillator.type = 'sine';
+      alarmOscillator.frequency.setValueAtTime(ALARM_FREQUENCY, audioContext.currentTime);
+      
+      // Volume maximum (1.0 = 100%)
+      gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
+      
+      // Connecter les nœuds
+      alarmOscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Démarrer la sonnerie
+      alarmOscillator.start();
+      
+      // Faire varier la fréquence pour un son plus perçant (bip-bip)
+      let frequency = ALARM_FREQUENCY;
+      const frequencyVariation = 200; // Variation de fréquence
+      
+      if (smsAlarmInterval) {
+        clearInterval(smsAlarmInterval);
+      }
+      
+      smsAlarmInterval = setInterval(() => {
+        if (alarmOscillator && audioContext) {
+          // Alterner entre deux fréquences pour un effet bip-bip
+          frequency = frequency === ALARM_FREQUENCY 
+            ? ALARM_FREQUENCY + frequencyVariation 
+            : ALARM_FREQUENCY;
+          alarmOscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+        }
+      }, 500); // Changer de fréquence toutes les 500ms
+      
+      // Vibration si disponible (pour mobile)
+      if (navigator.vibrate) {
+        // Vibration continue : 200ms ON, 100ms OFF, répété
+        navigator.vibrate([200, 100, 200, 100, 200, 100, 200, 100, 200]);
+      }
+      
+      console.log('🚨 Sonnerie d\'alarme activée');
+    } catch (error) {
+      console.error('Erreur lors du démarrage de la sonnerie:', error);
+      // En cas d'erreur, essayer une méthode alternative (alerte visuelle)
+      if (couvreurStatus) {
+        couvreurStatus.style.animation = 'blink 0.5s infinite';
+      }
+    }
+  }
+
+  // Fonction pour arrêter la sonnerie
+  function stopAlarm() {
+    if (alarmOscillator) {
+      try {
+        alarmOscillator.stop();
+        alarmOscillator.disconnect();
+        alarmOscillator = null;
+      } catch (e) {
+        console.warn('Erreur lors de l\'arrêt de la sonnerie:', e);
+      }
+    }
+    
+    if (audioContext) {
+      try {
+        audioContext.close();
+        audioContext = null;
+      } catch (e) {
+        console.warn('Erreur lors de la fermeture du contexte audio:', e);
+      }
+    }
+    
+    if (smsAlarmInterval) {
+      clearInterval(smsAlarmInterval);
+      smsAlarmInterval = null;
+    }
+    
+    // Arrêter la vibration
+    if (navigator.vibrate) {
+      navigator.vibrate(0);
+    }
+    
+    // Arrêter l'animation de clignotement
+    if (couvreurStatus) {
+      couvreurStatus.style.animation = '';
+    }
+    
+    console.log('🔇 Sonnerie d\'alarme arrêtée');
+  }
+
+  // Fonction pour vérifier le mouvement et déclencher l'alerte si nécessaire
+  function checkCouvreurMovement() {
+    if (!couvreurSeulActive) return;
+    
+    if (state.lastLat == null || state.lastLon == null) {
+      // Pas de position GPS, on ne peut pas vérifier
+      return;
+    }
+
+    const now = Date.now();
+    
+    // Si on a une dernière position avec mouvement, vérifier la distance
+    if (couvreurLastPosition != null) {
+      const dist = distanceMeters(
+        state.lastLat, state.lastLon,
+        couvreurLastPosition.lat, couvreurLastPosition.lon
+      );
+      
+      // Si on a bougé de plus de 3m, mettre à jour la dernière position avec mouvement
+      if (dist > COUVREUR_NO_MOVEMENT_THRESHOLD) {
+        couvreurLastPosition = {
+          lat: state.lastLat,
+          lon: state.lastLon,
+          time: now
+        };
+        couvreurLastMovementTime = now;
+        updateCouvreurStatus();
+        return;
+      }
+    } else {
+      // Première position : initialiser
+      couvreurLastPosition = {
+        lat: state.lastLat,
+        lon: state.lastLon,
+        time: now
+      };
+      couvreurLastMovementTime = now;
+      updateCouvreurStatus();
+      return;
+    }
+
+    // Si on est ici, on n'a pas bougé de plus de 3m
+    // Vérifier si on est resté immobile pendant 10 minutes
+    if (couvreurLastMovementTime != null) {
+      const timeSinceLastMovement = now - couvreurLastMovementTime;
+      if (timeSinceLastMovement >= COUVREUR_ALERT_DELAY) {
+        // 10 minutes sans mouvement : envoyer le SMS automatiquement
+        console.log("Alerte couvreur cheminant seul : pas de mouvement depuis 10 minutes, envoi du SMS automatique.");
+        sendSmsAuto();
+        // Désactiver le mode après l'envoi
+        stopCouvreurSeul();
+      } else {
+        // Mettre à jour le statut avec le temps restant
+        updateCouvreurStatus();
+      }
+    }
+  }
+
+  // Fonction pour mettre à jour l'affichage du statut
+  function updateCouvreurStatus() {
+    if (!couvreurStatus) return;
+    
+    if (!couvreurSeulActive) {
+      couvreurStatus.style.display = "none";
+      return;
+    }
+
+    couvreurStatus.style.display = "block";
+    
+    if (couvreurLastMovementTime == null) {
+      couvreurStatus.textContent = "Mode actif : en attente de position GPS...";
+      return;
+    }
+
+    const now = Date.now();
+    const timeSinceLastMovement = now - couvreurLastMovementTime;
+    const timeRemaining = COUVREUR_ALERT_DELAY - timeSinceLastMovement;
+    
+    if (timeRemaining <= 0) {
+      couvreurStatus.textContent = "⚠️ Alerte : envoi du SMS en cours...";
+    } else {
+      const minutes = Math.floor(timeRemaining / 60000);
+      const seconds = Math.floor((timeRemaining % 60000) / 1000);
+      couvreurStatus.textContent = `Mode actif : ${minutes} min ${seconds} s avant alerte automatique`;
+    }
+  }
+
+  // Fonction pour démarrer le mode "couvreur cheminant seul"
+  function startCouvreurSeul() {
+    if (!geolocActive) {
+      alert("⚠️ Active d'abord la géolocalisation pour utiliser le mode 'Couvreur cheminant seul'.");
+      return;
+    }
+    
+    couvreurSeulActive = true;
+    couvreurLastMovementTime = Date.now();
+    couvreurLastPosition = state.lastLat != null && state.lastLon != null ? {
+      lat: state.lastLat,
+      lon: state.lastLon,
+      time: Date.now()
+    } : null;
+    
+    // Démarrer la vérification périodique
+    if (couvreurCheckInterval) {
+      clearInterval(couvreurCheckInterval);
+    }
+    couvreurCheckInterval = setInterval(checkCouvreurMovement, COUVREUR_CHECK_INTERVAL);
+    
+    // Vérifier immédiatement
+    checkCouvreurMovement();
+    updateCouvreurStatus();
+    
+    if (btnCouvreurSeul) {
+      btnCouvreurSeul.innerHTML = "<span>🚶</span><span>Désactiver couvreur cheminant seul</span>";
+      btnCouvreurSeul.classList.remove("btn-warning");
+      btnCouvreurSeul.classList.add("btn-secondary");
+    }
+  }
+
+  // Fonction pour arrêter le mode "couvreur cheminant seul"
+  function stopCouvreurSeul() {
+    couvreurSeulActive = false;
+    couvreurLastMovementTime = null;
+    couvreurLastPosition = null;
+    
+    if (couvreurCheckInterval) {
+      clearInterval(couvreurCheckInterval);
+      couvreurCheckInterval = null;
+    }
+    
+    // Arrêter le timer SMS et la sonnerie
+    stopSmsTimer();
+    stopAlarm();
+    
+    updateCouvreurStatus();
+    
+    if (btnCouvreurSeul) {
+      btnCouvreurSeul.innerHTML = "<span>🚶</span><span>Couvreur cheminant seul</span>";
+      btnCouvreurSeul.classList.remove("btn-secondary");
+      btnCouvreurSeul.classList.add("btn-warning");
+    }
+  }
+
   function handlePkLookup() {
     const val = parsePkInput(inputPkLookup.value);
     if (val == null) {
@@ -4386,6 +4905,144 @@ function detectBranch(lat, lon) {
     });
   }
 
+  // === README / TUTORIEL ===
+  function generateReadmeContent() {
+    if (!readmeContent) return;
+    
+    const content = `
+      <div style="max-width: 100%;">
+        <h2 style="color: var(--accent); margin-top: 0; margin-bottom: 20px; font-size: 1.3rem;">📖 Guide d'utilisation - PK Assistant RER A</h2>
+        
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">📍 Géolocalisation et calcul du PK</h3>
+        <p><strong>1. Démarrer la géolocalisation</strong></p>
+        <p>Cliquez sur "Démarrer la géoloc" pour activer le GPS. L'application calcule automatiquement votre PK actuel à partir de votre position GPS.</p>
+        <p><strong>2. PK actuel</strong></p>
+        <p>Votre PK actuel s'affiche en temps réel. L'application détecte automatiquement si vous êtes sur la branche Boissy-Saint-Léger ou Marne-la-Vallée – Chessy.</p>
+        <p><strong>3. Gare la plus proche</strong></p>
+        <p>La gare la plus proche en PK est affichée automatiquement.</p>
+        
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🎯 PK cible</h3>
+        <p><strong>Définir un PK cible</strong></p>
+        <p>Saisissez un PK (ex: 32400 ou 32+400) et cliquez sur "Définir ce PK comme cible". L'application calcule la distance entre votre position actuelle et le PK cible. Une croix rouge apparaît sur la carte d'orientation.</p>
+        
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🗺️ Plan – PK / gares / accès</h3>
+        <p><strong>Activer la carte d'orientation</strong></p>
+        <p>Cochez "Plan – PK / gares / accès" pour afficher une carte interactive avec :
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>Votre position actuelle (marqueur bleu)</li>
+          <li>Les gares (marqueurs verts)</li>
+          <li>Les accès (marqueurs jaunes)</li>
+          <li>Le PK cible (croix rouge si défini)</li>
+          <li>Les SAM et pétards (si calculés)</li>
+        </ul>
+        </p>
+        
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🚨 Urgence / SMS</h3>
+        <p><strong>SMS d'urgence</strong></p>
+        <p>Cliquez sur "SMS d'urgence" pour ouvrir l'application SMS avec un message pré-rempli contenant votre position GPS, PK, gare la plus proche et accès le plus proche.</p>
+        <p><strong>Couvreur cheminant seul</strong></p>
+        <p>Activez ce mode pour une surveillance automatique :
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>L'application surveille votre mouvement</li>
+          <li>Si vous restez immobile (dans un rayon de 3m) pendant 10 minutes, l'application ouvre automatiquement le SMS d'urgence</li>
+          <li>Un timer démarre pour mesurer le temps d'envoi du SMS</li>
+          <li>Si le SMS n'est pas envoyé après 30 secondes, une sonnerie forte se déclenche pour vous réveiller</li>
+          <li>Le temps total qu'il a fallu pour envoyer le SMS est affiché et reste visible</li>
+        </ul>
+        </p>
+        
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ Paramètres</h3>
+        
+        <p><strong>🚨 Signalement d'avarie / incident</strong></p>
+        <p>Générez un message de signalement d'incident :
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>Choisissez le type d'incident</li>
+          <li>Ajoutez une photo si nécessaire</li>
+          <li>Cliquez sur "Générer le message de signalement"</li>
+          <li>Copiez le message généré</li>
+        </ul>
+        </p>
+        
+        <p><strong>🎚️ Sensibilité au mouvement</strong></p>
+        <p>Ajustez la sensibilité selon votre mode de déplacement :
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li><strong>Marche lente</strong> : Détecte plus facilement un déplacement à pied</li>
+          <li><strong>Normal</strong> : Sensibilité standard</li>
+          <li><strong>Train</strong> : Adapté pour les déplacements en train</li>
+        </ul>
+        </p>
+        
+        <p><strong>🔧 Recalage PK</strong></p>
+        <p>Si le PK calculé n'est pas précis, vous pouvez le recaler :
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>Saisissez le PK exact à votre position</li>
+          <li>Cliquez sur "Recaler l'appli sur ce PK"</li>
+          <li>L'application applique un offset pour corriger tous les PK</li>
+          <li>Les recalages sont enregistrés et utilisés pour améliorer la précision</li>
+          <li>Vous pouvez exporter vos recalages en JSON</li>
+        </ul>
+        </p>
+        
+        <p><strong>🚦 Calcul couverture travaux</strong></p>
+        <p>Calculez automatiquement où placer les feux rouges (SAM) et les pétards :
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>Saisissez le PK début et PK fin du chantier</li>
+          <li>Cliquez sur "Calculer rouges & pétards"</li>
+          <li>Les résultats s'affichent avec les positions des SAM (points rouges) et pétards (carrés verts)</li>
+          <li>Les marqueurs apparaissent sur la carte d'orientation si elle est activée</li>
+        </ul>
+        </p>
+        
+        <p><strong>🔎 Recherche par PK et GPS</strong></p>
+        <p>Trouvez l'accès le plus proche d'un PK donné :
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>Saisissez un PK (ex: 32400 ou 32+400)</li>
+          <li>Cliquez sur "Rechercher l'accès"</li>
+          <li>L'application trouve l'accès le plus proche (par PK et GPS)</li>
+          <li>Vous pouvez ouvrir Google Maps ou Waze pour la navigation</li>
+        </ul>
+        </p>
+        
+        <p><strong>📱 Numéro SOS</strong></p>
+        <p>Configurez le numéro de téléphone pour les SMS d'urgence :
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>Saisissez le numéro (ex: 0612345678 ou +33612345678)</li>
+          <li>Cliquez sur "Sauvegarder"</li>
+          <li>Ce numéro sera utilisé par le bouton "SMS d'urgence" et le mode "Couvreur cheminant seul"</li>
+        </ul>
+        </p>
+        
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">💡 Conseils</h3>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li><strong>Précision GPS</strong> : La précision dépend de votre environnement. En extérieur, la précision est meilleure.</li>
+          <li><strong>Recalage</strong> : Si vous constatez une erreur de PK, faites un recalage. Plus vous enregistrez de recalages, plus la précision s'améliore.</li>
+          <li><strong>Mode couvreur</strong> : Activez le mode "Couvreur cheminant seul" avant de commencer votre travail. Il surveillera automatiquement votre mouvement.</li>
+          <li><strong>Carte d'orientation</strong> : Activez la carte pour visualiser votre position, les gares, accès et marqueurs sur une carte interactive.</li>
+        </ul>
+        
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🔒 Sécurité</h3>
+        <p>Tous vos paramètres (numéro SOS, recalages, etc.) sont stockés localement dans votre navigateur. Ils ne sont pas effacés lors des mises à jour de l'application.</p>
+      </div>
+    `;
+    
+    readmeContent.innerHTML = content;
+  }
+
+  // Event listeners pour le README
+  if (btnReadme && readmePanel) {
+    btnReadme.addEventListener("click", () => {
+      generateReadmeContent();
+      const isVisible = readmePanel.style.display !== "none";
+      readmePanel.style.display = isVisible ? "none" : "block";
+    });
+  }
+
+  if (btnCloseReadme && readmePanel) {
+    btnCloseReadme.addEventListener("click", () => {
+      readmePanel.style.display = "none";
+    });
+  }
+
   if (btnSetPkTarget && inputPkTarget) {
     btnSetPkTarget.addEventListener("click", () => {
       const val = parsePkInput(inputPkTarget.value);
@@ -4401,6 +5058,17 @@ function detectBranch(lat, lon) {
 
   if (btnSms) {
     btnSms.addEventListener("click", sendSms);
+  }
+
+  // === MODE COUVREUR CHEMINANT SEUL ===
+  if (btnCouvreurSeul) {
+    btnCouvreurSeul.addEventListener("click", () => {
+      if (couvreurSeulActive) {
+        stopCouvreurSeul();
+      } else {
+        startCouvreurSeul();
+      }
+    });
   }
 
   if (btnResetOffset) {
@@ -4461,6 +5129,32 @@ function detectBranch(lat, lon) {
         localCalibrations.push(calib);
         saveLocalCalibrations();
         console.log("Nouveau recalage enregistré :", calib);
+        
+        // Forcer la reconstruction des polylignes calibrées avec le nouveau point
+        lastCalibrationBuildTime = 0; // Invalider le cache
+        buildCalibrationPolylines();
+        
+        // Vérification que le recalage a bien été enregistré
+        const saved = safeGetItem("pkCalibrations");
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            const found = parsed.some(c => 
+              c.pkExact === exactPk && 
+              Math.abs(c.lat - state.lastLat) < 0.0001 && 
+              Math.abs(c.lon - state.lastLon) < 0.0001
+            );
+            if (found) {
+              alert("✅ Recalage enregistré avec succès !\n\nPK exact : " + exactPk + " m\nOffset appliqué : " + Math.round(pkOffset) + " m\nTotal recalages : " + localCalibrations.length);
+            } else {
+              console.warn("Le recalage n'a pas été trouvé dans le localStorage après sauvegarde.");
+            }
+          } catch (e) {
+            console.warn("Erreur lors de la vérification du recalage :", e);
+          }
+        }
+      } else {
+        alert("⚠️ Attention : Impossible d'enregistrer le recalage car les coordonnées GPS ne sont pas disponibles.");
       }
       // FIN AJOUT CALIBRAGE
     });
