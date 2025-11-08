@@ -1357,6 +1357,25 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 
       <div class="divider"></div>
 
+      <!-- Fermetures nocturnes -->
+      <div class="card" style="margin-bottom: 12px;">
+        <div class="field" style="margin: 0; padding: 12px;">
+          <label style="display: flex; align-items: center; cursor: pointer; width: 100%; margin: 0; position: relative;">
+            <input id="toggleFermeturesNocturnes" type="checkbox" style="margin: 0; width: 18px; height: 18px; flex-shrink: 0;">
+            <span style="position: absolute; left: 50%; transform: translateX(-50%); text-align: center; width: 100%; pointer-events: none; font-size: 1.1rem; font-weight: 600; color: #fff;">Fermetures nocturnes</span>
+          </label>
+        </div>
+      </div>
+
+      <div id="fermeturesNocturnesCard" class="card" style="display: none; margin-bottom: 15px;">
+        <div class="card-header">
+          <div class="card-title">Fermetures nocturnes</div>
+        </div>
+        <div id="fermeturesNocturnesContent" style="padding: 16px; line-height: 1.8; color: var(--text);">
+          <!-- Le contenu sera généré par JavaScript -->
+        </div>
+      </div>
+
       <!-- Tutoriel -->
       <div class="field">
         <button id="btnReadme" class="btn btn-secondary btn-icon" type="button">
@@ -3019,6 +3038,10 @@ async function loadSharedCalibrations() {
 
   const toggleOrientation = document.getElementById("toggleOrientation");
   const orientationCard   = document.getElementById("orientationCard");
+
+  const toggleFermeturesNocturnes = document.getElementById("toggleFermeturesNocturnes");
+  const fermeturesNocturnesCard = document.getElementById("fermeturesNocturnesCard");
+  const fermeturesNocturnesContent = document.getElementById("fermeturesNocturnesContent");
 
   const btnSettingsToggle = document.getElementById("btnSettingsToggle");
   const settingsPanel = document.getElementById("settingsPanel");
@@ -5231,6 +5254,15 @@ function detectBranch(lat, lon) {
         </ul>
         </p>
         
+        <p><strong>🌙 Fermetures nocturnes</strong></p>
+        <p>Consultez les informations sur les fermetures nocturnes des routes en Île-de-France :
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>Cochez "Fermetures nocturnes" dans les paramètres pour afficher les informations</li>
+          <li>Les informations affichent les fermetures nocturnes de 21h à 6h pour aujourd'hui</li>
+          <li>Vous trouverez les fermetures sur les autoroutes et grands axes, les voies sur berges dans Paris, et les quais, tunnels et viaducs dans Paris</li>
+        </ul>
+        </p>
+        
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">💡 Conseils</h3>
         <ul style="margin-left: 20px; margin-top: 8px;">
           <li><strong>Précision GPS</strong> : La précision dépend de votre environnement. En extérieur, la précision est meilleure.</li>
@@ -5401,6 +5433,64 @@ if (toggleOrientation && orientationCard) {
     safeSetItem(ORIENT_ENABLED_KEY, enabled ? "1" : "0");
     if (enabled) {
       updateOrientationPanel();
+    }
+  });
+}
+
+// Fonction pour générer le contenu des fermetures nocturnes
+function generateFermeturesNocturnesContent() {
+  const today = new Date();
+  const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+  const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const dayName = days[today.getDay()];
+  const day = today.getDate();
+  const month = months[today.getMonth()];
+  const year = today.getFullYear();
+  const dateStr = `${dayName} ${day} ${month} ${year}`;
+
+  const content = `
+    <div style="margin-bottom: 20px;">
+      <div style="font-weight: 600; margin-bottom: 12px; color: var(--text);">Aujourd'hui (${dateStr})</div>
+      
+      <div style="font-weight: 600; margin-top: 20px; margin-bottom: 12px; color: var(--text); text-decoration: underline;">Fermetures nocturnes de 21h à 6h</div>
+      
+      <div style="margin-top: 15px;">
+        <div style="font-weight: 600; margin-bottom: 10px; color: var(--text);">Autoroutes et grands axes</div>
+        <div style="line-height: 1.6; color: var(--muted);">
+          • A15 VERS PARIS : Sortie 6 Pierrelaye (24h/24)<br>
+          • A3 VERS PARIS : Sortie 3 Romainville (24h/24)<br>
+          • BP INTERIEUR : Sortie Porte de La Chapelle (24h/24)
+        </div>
+      </div>
+      
+      <div style="margin-top: 15px;">
+        <div style="font-weight: 600; margin-bottom: 10px; color: var(--text);">Voies sur berges dans Paris</div>
+        <div style="line-height: 1.6; color: var(--muted);">
+          Pas de fermeture nocturne prévue sur les Voies sur berges dans Paris
+        </div>
+      </div>
+      
+      <div style="margin-top: 15px;">
+        <div style="font-weight: 600; margin-bottom: 10px; color: var(--text);">Quais, tunnels, viaducs dans Paris</div>
+        <div style="line-height: 1.6; color: var(--muted);">
+          Pas de fermeture nocturne prévue sur les Quais, tunnels, viaducs dans Paris
+        </div>
+      </div>
+    </div>
+  `;
+  
+  if (fermeturesNocturnesContent) {
+    fermeturesNocturnesContent.innerHTML = content;
+  }
+}
+
+// Gestion de l'affichage du bloc Fermetures nocturnes
+if (toggleFermeturesNocturnes && fermeturesNocturnesCard) {
+  toggleFermeturesNocturnes.addEventListener("change", () => {
+    const enabled = toggleFermeturesNocturnes.checked;
+    fermeturesNocturnesCard.style.display = enabled ? "block" : "none";
+    if (enabled) {
+      generateFermeturesNocturnesContent();
     }
   });
 }
