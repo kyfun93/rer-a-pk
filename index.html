@@ -1203,6 +1203,37 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 
       <div class="divider"></div>
 
+      <!-- Points de carte -->
+      <div class="pk-calibration-section">
+        <div class="field">
+          <label>Points de carte</label>
+          <div id="mapPointsInfo" class="muted">Aucun point enregistré.</div>
+        </div>
+
+        <div class="field">
+          <label for="inputMapPointDescription">Description du point</label>
+          <textarea id="inputMapPointDescription" rows="3" placeholder="Ex: Passage à niveau, Signal, clef VCC, etc."></textarea>
+        </div>
+
+        <div class="field">
+          <button id="btnNoteLocation" class="btn btn-primary" type="button">Enregistrer l'emplacement</button>
+          <div class="muted">
+            Enregistre ta position GPS actuelle avec la description et le PK.
+          </div>
+        </div>
+
+        <div class="field">
+          <button id="btnExportMapPoints" class="btn btn-secondary btn-icon" type="button">
+            <span>📤</span><span>Exporter les points (JSON)</span>
+          </button>
+          <div class="muted">
+            Exporte tous les points enregistrés pour les déposer dans GitHub.
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
       <!-- Calcul couverture travaux (feux rouges et pétards) -->
       <div class="card" style="margin-top: 20px;">
         <div class="card-header">
@@ -2700,6 +2731,121 @@ const CALIBRATION_CACHE_MS = 5000; // Reconstruire les polylignes toutes les 5 s
     }
   }
 
+  // === POINTS DE CARTE : stockage des points enregistrés ===
+  const MAP_POINTS_KEY = "mapPoints";
+  let mapPoints = [];
+
+  function loadMapPoints() {
+    const raw = safeGetItem(MAP_POINTS_KEY);
+    if (!raw) {
+      mapPoints = [];
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      mapPoints = Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      console.warn("Erreur de parsing mapPoints :", e);
+      mapPoints = [];
+    }
+    updateMapPointsInfo();
+  }
+
+  function saveMapPoints() {
+    try {
+      safeSetItem(MAP_POINTS_KEY, JSON.stringify(mapPoints));
+      updateMapPointsInfo();
+    } catch (e) {
+      console.warn("Erreur lors de la sauvegarde mapPoints :", e);
+    }
+  }
+
+  function updateMapPointsInfo() {
+    const mapPointsInfo = document.getElementById("mapPointsInfo");
+    if (!mapPointsInfo) return;
+    const count = mapPoints.length;
+    if (count === 0) {
+      mapPointsInfo.textContent = "Aucun point enregistré.";
+    } else {
+      mapPointsInfo.textContent = count + " point(s) enregistré(s).";
+    }
+  }
+
+  function noteLocation() {
+    if (state.lastLat == null || state.lastLon == null) {
+      alert("Pas de position GPS disponible. Lance la géolocalisation d'abord.");
+      return;
+    }
+
+    const description = document.getElementById("inputMapPointDescription");
+    if (!description) return;
+
+    const descText = description.value.trim();
+    if (!descText) {
+      alert("Veuillez saisir une description pour ce point.");
+      return;
+    }
+
+    // Calculer le PK actuel si disponible
+    const currentPk = state.lastRawPk != null ? state.lastRawPk + pkOffset : null;
+
+    const point = {
+      lat: state.lastLat,
+      lon: state.lastLon,
+      description: descText,
+      pk: currentPk,
+      accuracy: state.lastAccuracy,
+      branch: currentBranch,
+      timestamp: new Date().toISOString()
+    };
+
+    mapPoints.push(point);
+    saveMapPoints();
+
+    // Vider le champ description
+    description.value = "";
+
+    alert("✅ Point enregistré avec succès !\n\nDescription : " + descText + "\nPosition : " + state.lastLat.toFixed(6) + ", " + state.lastLon.toFixed(6) + (currentPk != null ? "\nPK : " + Math.round(currentPk) + " m" : ""));
+  }
+
+  function exportMapPointsForGitHub() {
+    if (!mapPoints.length) {
+      alert("Tu n'as encore enregistré aucun point de carte.");
+      return;
+    }
+
+    const dataStr = JSON.stringify(mapPoints, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const now = new Date();
+    const stamp = now.toISOString().replace(/[:.]/g, "-");
+    const filename = "map-points-" + stamp + ".json";
+
+    // Méthode pour mobile et desktop
+    try {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      // Fallback : copier dans le presse-papiers (mobile)
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(dataStr).then(() => {
+          alert("✅ Données copiées dans le presse-papiers !\n\nColle-les dans un fichier .json et dépose-le sur GitHub.\n\nNombre de points : " + mapPoints.length);
+        }).catch(() => {
+          alert("❌ Erreur lors de la copie dans le presse-papiers.");
+        });
+      } else {
+        alert("❌ Impossible d'exporter. Essaie sur un ordinateur ou vérifie les permissions du navigateur.");
+      }
+    }
+  }
+
 // === AJOUT CALIBRAGE : fichier partagé optionnel =========================
 async function loadSharedCalibrations() {
   try {
@@ -2842,6 +2988,8 @@ async function loadSharedCalibrations() {
   const inputPkRecal = document.getElementById("inputPkRecal");
   const btnApplyRecal = document.getElementById("btnApplyRecal");
   const btnResetOffset = document.getElementById("btnResetOffset");
+  const btnNoteLocation = document.getElementById("btnNoteLocation");
+  const btnExportMapPoints = document.getElementById("btnExportMapPoints");
   const inputPkLookup = document.getElementById("inputPkLookup");
   const btnPkLookup = document.getElementById("btnPkLookup");
   const pkLookupResultField = document.getElementById("pkLookupResultField");
@@ -4997,6 +5145,16 @@ function detectBranch(lat, lon) {
         </ul>
         </p>
         
+        <p><strong>📍 Points de carte</strong></p>
+        <p>Enregistrez des points d'intérêt sur la carte avec leur description :
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>Saisissez une description du point (ex: Passage à niveau, Signal, clef VCC, etc.)</li>
+          <li>Cliquez sur "Enregistrer l'emplacement"</li>
+          <li>L'application enregistre votre position GPS actuelle, le PK et la description</li>
+          <li>Vous pouvez exporter tous les points enregistrés en JSON pour les déposer sur GitHub</li>
+        </ul>
+        </p>
+        
         <p><strong>🚦 Calcul couverture travaux</strong></p>
         <p>Calculez automatiquement où placer les feux rouges (SAM) et les pétards :
         <ul style="margin-left: 20px; margin-top: 8px;">
@@ -5213,6 +5371,15 @@ if (toggleOrientation && orientationCard) {
   // AJOUT CALIBRAGE : clic sur "Exporter mes recalages"
   if (btnExportCalibrations) {
     btnExportCalibrations.addEventListener("click", exportLocalCalibrationsForGitHub);
+  }
+
+  // Points de carte
+  if (btnNoteLocation) {
+    btnNoteLocation.addEventListener("click", noteLocation);
+  }
+
+  if (btnExportMapPoints) {
+    btnExportMapPoints.addEventListener("click", exportMapPointsForGitHub);
   }
 
   // Calcul de couverture travaux (feux rouges et pétards)
@@ -5442,6 +5609,7 @@ if (toggleOrientation && orientationCard) {
 
 loadSettings();
 loadLocalCalibrations();
+loadMapPoints();
 // loadSharedCalibrations(); // désactivé pour éviter tout fetch
 updateSmsPreview();
 setGpsStatus("off");
