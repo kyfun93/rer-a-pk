@@ -4,8 +4,22 @@
   <meta charset="UTF-8" />
   <title>PK Assistant – RER A</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-<!-- Empêche la 404 sur /favicon.ico -->
-  <link rel="icon" href="data:,">
+  
+  <!-- PWA Configuration -->
+  <meta name="description" content="Assistant de calcul de PK pour la ligne RER A" />
+  <meta name="theme-color" content="#3d7bff" />
+  
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PK-A" />
+  
+  <!-- Manifest -->
+  <link rel="manifest" href="manifest.json" />
+  
+  <!-- Icônes -->
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon.svg" />
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <!-- Leaflet JS -->
