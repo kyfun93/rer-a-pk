@@ -2,27 +2,27 @@
   "name": "PK Assistant",
   "short_name": "PK Assistant",
   "description": "Assistant de calcul de PK pour la ligne RER A",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/rer-a-pk/index.html",
+  "scope": "/rer-a-pk/",
   "display": "standalone",
   "background_color": "#050510",
   "theme_color": "#3d7bff",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "/rer-a-pk/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "icon.svg",
+      "src": "/rer-a-pk/icon.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "icon.svg",
+      "src": "/rer-a-pk/icon.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
