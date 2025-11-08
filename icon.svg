@@ -8,6 +8,6 @@
     </radialGradient>
   </defs>
   <rect width="512" height="512" fill="url(#titleGradient)" rx="100"/>
-  <text x="256" y="256" font-size="480" text-anchor="middle" fill="white">🚇</text>
+  <text x="256" y="256" font-size="490" text-anchor="middle" fill="white">🚇</text>
 </svg>
 
