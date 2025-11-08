@@ -1,6 +1,6 @@
 {
-  "name": "PK-A",
-  "short_name": "PK-A",
+  "name": "PK Assistant",
+  "short_name": "PK Assistant",
   "description": "Assistant de calcul de PK pour la ligne RER A",
   "start_url": "/",
   "display": "standalone",
@@ -11,6 +11,18 @@
     {
       "src": "icon.svg",
       "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
