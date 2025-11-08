@@ -2,7 +2,7 @@
   "name": "PK Assistant",
   "short_name": "PK Assistant",
   "description": "Assistant de calcul de PK pour la ligne RER A",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#050510",
   "theme_color": "#3d7bff",
