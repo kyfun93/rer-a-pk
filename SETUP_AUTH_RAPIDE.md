@@ -68,3 +68,13 @@ Pour plus de détails, consultez :
 - **Guide complet** : [`AUTHENTIFICATION_GITHUB.md`](AUTHENTIFICATION_GITHUB.md)
 - **Script automatique** : `./setup-github-auth.sh`
 
+
+
+
+
+
+
+
+
+
+

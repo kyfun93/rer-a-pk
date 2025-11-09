@@ -245,3 +245,13 @@ Pour la plupart des utilisateurs, je recommande :
 2. **Utilisateurs réguliers** : SSH avec clé (Option 2)
 3. **Développeurs avancés** : GitHub CLI (Option 3)
 
+
+
+
+
+
+
+
+
+
+

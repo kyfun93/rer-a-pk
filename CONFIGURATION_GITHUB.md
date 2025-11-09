@@ -234,3 +234,13 @@ git commit
 - [ ] Premier push effectué (à faire)
 - [ ] Cursor détecte le repo Git (à vérifier après rechargement)
 
+
+
+
+
+
+
+
+
+
+

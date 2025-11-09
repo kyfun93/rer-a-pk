@@ -78,8 +78,8 @@
     color-scheme: dark;
     --bg: #0b101f;
     --bg-gradient: radial-gradient(circle at 0% -20%, rgba(117, 92, 255, 0.45), transparent 55%), radial-gradient(circle at 100% 0%, rgba(255, 108, 163, 0.35), transparent 60%), linear-gradient(180deg, #070913 0%, #02030a 100%);
-    --card: rgba(19, 23, 36, 0.58);
-    --card-soft: rgba(26, 30, 45, 0.6);
+    --card: rgba(19, 23, 36, 0.72);
+    --card-soft: rgba(26, 30, 45, 0.76);
     --card-border: rgba(200, 206, 236, 0.14);
     --border: rgba(200, 206, 236, 0.14);
     --text: rgba(240, 244, 255, 0.94);
@@ -237,10 +237,41 @@
   }
 
   .hero-gyro {
-    width: 54px;
-    height: 54px;
-    object-fit: contain;
-    filter: drop-shadow(0 0 12px rgba(255, 102, 153, 0.45));
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+    background: radial-gradient(circle at 50% 35%, rgba(255, 233, 240, 0.95) 0%, rgba(255, 125, 158, 0.8) 55%, rgba(104, 140, 255, 0.75) 100%);
+    box-shadow: 0 0 30px rgba(255, 120, 170, 0.55), 0 0 45px rgba(120, 160, 255, 0.45);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-gyro::before {
+    content: "";
+    position: absolute;
+    inset: 11px 13px;
+    border-radius: 11px;
+    background: linear-gradient(180deg, rgba(28, 30, 48, 0.95), rgba(12, 14, 28, 0.98));
+    box-shadow: inset 0 -6px 14px rgba(0, 0, 0, 0.45);
+  }
+
+  .hero-gyro::after {
+    content: "";
+    position: absolute;
+    top: 9px;
+    left: 50%;
+    width: 14px;
+    height: 24px;
+    background: linear-gradient(180deg, rgba(255, 190, 210, 0.95), rgba(255, 110, 160, 0.35));
+    border-radius: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 12px rgba(255, 150, 196, 0.5);
+    animation: heroGyroPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes heroGyroPulse {
+    0%, 100% { transform: translateX(-50%) scale(0.9); opacity: 0.8; }
+    50% { transform: translateX(-50%) scale(1.08); opacity: 1; }
   }
 
   .title-pill {
@@ -605,6 +636,131 @@
   .btn-warning.btn-icon span:first-child {
     background: rgba(255, 215, 145, 0.22);
     box-shadow: inset 0 0 0 1px rgba(255, 200, 120, 0.3);
+  }
+
+  .status-card {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .status-heading {
+    font-size: 0.95rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(214, 223, 255, 0.78);
+  }
+
+  .status-helper {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: rgba(28, 32, 46, 0.75);
+    border: 1px solid rgba(200, 206, 236, 0.18);
+    color: rgba(236, 239, 255, 0.92);
+    min-width: 88px;
+  }
+
+  .status-badge--danger {
+    background: rgba(255, 135, 160, 0.18);
+    border-color: rgba(255, 135, 160, 0.38);
+    color: #ff94aa;
+  }
+
+  .status-badge--warning {
+    background: rgba(255, 215, 145, 0.18);
+    border-color: rgba(255, 215, 145, 0.35);
+    color: #ffd27f;
+  }
+
+  .status-badge--success {
+    background: rgba(157, 226, 176, 0.18);
+    border-color: rgba(157, 226, 176, 0.35);
+    color: #b6f0c6;
+  }
+
+  .status-cta {
+    width: 100%;
+    justify-content: center;
+    margin-top: -4px;
+  }
+
+  .status-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .status-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .status-label {
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(198, 207, 246, 0.7);
+    flex: 0 0 auto;
+  }
+
+  .status-values {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    text-align: right;
+    flex: 1 1 auto;
+  }
+
+  .status-value {
+    font-size: 1.3rem;
+    font-weight: 650;
+    color: rgba(244, 247, 255, 0.96);
+  }
+
+  .status-detail {
+    font-size: 0.78rem;
+    color: var(--muted);
+    max-width: 220px;
+  }
+
+  .status-detail:empty {
+    display: none;
+  }
+
+  @media (max-width: 480px) {
+    .status-line {
+      gap: 12px;
+    }
+    .status-value {
+      font-size: 1.2rem;
+    }
+    .status-detail {
+      max-width: 100%;
+    }
   }
 
   .field {
@@ -992,7 +1148,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     opacity: 0.4;
   }
   .title-pill::before,
-.hero-gyro { animation: none; }
+.hero-gyro::after { animation: none; }
   .direction-arrow-moving,
   .leaflet-marker-pk-actuel,
   .orientation-info-panel,
@@ -1396,12 +1552,12 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   <div class="app">
     <div class="header">
       <div class="title-wrapper">
-        <img src="https://www.gifsgratuits.fr/gyrophares/g%20%2831%29.gif" alt="Gyrophare" class="hero-gyro" />
+        <span class="hero-gyro" aria-hidden="true"></span>
         <div class="title-pill">
           <div class="title-main">PK ASSISTANT</div>
           <div class="title-sub">RER A</div>
         </div>
-        <img src="https://www.gifsgratuits.fr/gyrophares/g%20%2831%29.gif" alt="Gyrophare" class="hero-gyro" />
+        <span class="hero-gyro" aria-hidden="true"></span>
       </div>
       <div class="subtitle">Estimation du PK en temps réel à partir de la géolocalisation.</div>
       <div class="note">
@@ -1411,55 +1567,48 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 
     <div class="section-title">Statut en temps réel</div>
     <div class="app-content">
-    <!-- GÉOLOCALISATION -->
-    <div class="card full-width">
-      <div class="card-header">
-        <div class="card-title">Géolocalisation</div>
-        <span id="gpsStatusBadge" class="badge badge-danger">GPS inactif</span>
-      </div>
-      <div id="geolocText" class="muted">Position non encore reçue.</div>
-      <div class="field">
-        <button id="btnToggleGeoloc" class="btn btn-primary btn-icon" type="button">
-          <span>📍</span><span>Démarrer la géoloc</span>
+      <div class="card full-width status-card">
+        <div class="status-header">
+          <div>
+            <div class="status-heading">Géolocalisation</div>
+            <div id="geolocText" class="status-helper">Prêt à démarrer.</div>
+          </div>
+          <span id="gpsStatusBadge" class="status-badge status-badge--danger">GPS OFF</span>
+        </div>
+        <button id="btnToggleGeoloc" class="btn btn-primary btn-icon status-cta" type="button">
+          <span>📍</span><span>Lancer la géoloc</span>
         </button>
+        <div class="status-list">
+          <div class="status-line">
+            <span class="status-label">PK actuel</span>
+            <div class="status-values">
+              <span id="pkCurrentValue" class="status-value">—</span>
+              <span id="pkCurrentDetails" class="status-detail"></span>
+            </div>
+          </div>
+          <div class="status-line">
+            <span class="status-label">Sens / mouvement</span>
+            <div class="status-values">
+              <span id="movementTitle" class="status-value">Détection en attente</span>
+              <span id="movementDetails" class="status-detail"></span>
+            </div>
+          </div>
+          <div class="status-line">
+            <span class="status-label">Gare la plus proche</span>
+            <div class="status-values">
+              <span id="nearestStationName" class="status-value">—</span>
+              <span id="nearestStationInfo" class="status-detail"></span>
+            </div>
+          </div>
+          <div class="status-line">
+            <span class="status-label">Prochaine gare</span>
+            <div class="status-values">
+              <span id="nextStationName" class="status-value">—</span>
+              <span id="nextStationInfo" class="status-detail"></span>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <!-- PK ACTUEL -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">PK actuel</div>
-      </div>
-      <div id="pkCurrentValue" class="big-value">—</div>
-      <div id="pkCurrentDetails" class="big-sub">En attente de position GPS…</div>
-    </div>
-
-    <!-- GARE LA PLUS PROCHE -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Gare la plus proche (en PK)</div>
-      </div>
-      <div id="nearestStationName" class="big-value">Aucune</div>
-      <div id="nearestStationInfo" class="big-sub">En attente de position GPS…</div>
-    </div>
-
-    <!-- SENS / MOUVEMENT -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Sens / mouvement</div>
-      </div>
-      <div id="movementTitle" class="big-value">En attente d’un deuxième point…</div>
-      <div id="movementDetails" class="big-sub">—</div>
-    </div>
-
-    <!-- PROCHAINE GARE -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Prochaine gare (en PK)</div>
-      </div>
-      <div id="nextStationName" class="big-value">Aucune</div>
-      <div id="nextStationInfo" class="big-sub">En attente de position GPS…</div>
-    </div>
     </div>
 
     <div class="section-title">Navigation & plan</div>
@@ -1520,17 +1669,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
       <div class="field">
         <input id="inputPkTarget" type="text" placeholder="ex : 32400 ou 32+400" />
         <button id="btnSetPkTarget" class="btn btn-primary" type="button">Définir ce PK comme cible</button>
-      </div>
-    </div>
-
-    <!-- ACCÈS / GARes LES PLUS PROCHES -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Accès / gares les plus proches (en PK)</div>
-      </div>
-      <div class="big-sub">Accès les plus proches</div>
-      <div id="accessList" class="muted" style="margin-top:8px;">
-        En attente de position GPS…
       </div>
     </div>
 
@@ -3445,8 +3583,6 @@ async function loadSharedCalibrations() {
   const inputPkTarget = document.getElementById("inputPkTarget");
   const btnSetPkTarget = document.getElementById("btnSetPkTarget");
 
-  const accessList = document.getElementById("accessList");
-
   const smsPreview = document.getElementById("smsPreview");
   const btnSms = document.getElementById("btnSms");
   const btnCouvreurSeul = document.getElementById("btnCouvreurSeul");
@@ -4377,14 +4513,14 @@ function detectBranch(lat, lon) {
     if (state.lastRawPk == null) {
       pkEstimateText.textContent = "En attente de position GPS…";
       if (pkCurrentValue) pkCurrentValue.textContent = "—";
-      if (pkCurrentDetails) pkCurrentDetails.textContent = "En attente de position GPS…";
+      if (pkCurrentDetails) pkCurrentDetails.textContent = "";
       return;
     }
 
     const corrected = state.lastRawPk + pkOffset;
     const pkText = "PK " + formatPk(corrected);
     const distText = state.lastDist != null
-      ? "· ~" + Math.round(state.lastDist) + " m de la voie"
+      ? "±" + Math.round(state.lastDist) + " m de la voie"
       : "";
 
     // Mise à jour du texte dans les paramètres
@@ -4397,22 +4533,49 @@ function detectBranch(lat, lon) {
 
   let geolocActive = false;
 
-  function setGpsStatus(status, message) {
-    if (status === "off") {
-      gpsStatusBadge.className = "badge badge-danger";
-      gpsStatusBadge.textContent = "GPS inactif";
-      geolocText.textContent = message || "Position non encore reçue.";
-    } else if (status === "on") {
-      gpsStatusBadge.className = "badge badge-good";
-      gpsStatusBadge.textContent = "GPS actif";
-      if (message) geolocText.textContent = message;
-    } else if (status === "error") {
-      gpsStatusBadge.className = "badge badge-danger";
-      gpsStatusBadge.textContent = "Erreur GPS";
-      geolocText.textContent = message ||
-        "Impossible d’obtenir la position. Vérifie que la géolocalisation est autorisée pour ce site.";
+  function updateGeolocButton() {
+    if (!btnToggleGeoloc) return;
+    if (geolocActive) {
+      btnToggleGeoloc.innerHTML = '<span>🛑</span><span>Arrêter la géoloc</span>';
+    } else {
+      btnToggleGeoloc.innerHTML = '<span>📍</span><span>Lancer la géoloc</span>';
     }
   }
+
+  function setGpsStatus(status, message) {
+    if (!gpsStatusBadge || !geolocText) return;
+
+    const defaults = {
+      off: {
+        className: "status-badge status-badge--danger",
+        label: "GPS OFF",
+        message: "Prêt à démarrer."
+      },
+      search: {
+        className: "status-badge status-badge--warning",
+        label: "GPS…",
+        message: "Recherche du signal GPS…"
+      },
+      ok: {
+        className: "status-badge status-badge--success",
+        label: "GPS OK",
+        message: "Signal GPS verrouillé."
+      },
+      error: {
+        className: "status-badge status-badge--danger",
+        label: "GPS KO",
+        message: "Impossible d’obtenir la position. Vérifie les autorisations."
+      }
+    };
+
+    const conf = defaults[status] || defaults.off;
+    gpsStatusBadge.className = conf.className;
+    gpsStatusBadge.textContent = conf.label;
+    geolocText.textContent = message || conf.message;
+  }
+
+  updateGeolocButton();
+  setGpsStatus("off");
 
   function startGeoloc() {
     if (!navigator.geolocation) {
@@ -4422,8 +4585,8 @@ function detectBranch(lat, lon) {
     if (geolocActive) return;
 
     geolocActive = true;
-    btnToggleGeoloc.innerHTML = "Arrêter la géoloc";
-    setGpsStatus("on", "En attente d’un premier point…");
+    updateGeolocButton();
+    setGpsStatus("search", "Recherche du signal GPS…");
 
     // Optimisation batterie : augmenter maximumAge pour utiliser le cache GPS
     // et réduire la fréquence des mises à jour
@@ -4444,7 +4607,7 @@ function detectBranch(lat, lon) {
       state.watchId = null;
     }
     geolocActive = false;
-    btnToggleGeoloc.innerHTML = "Démarrer la géoloc";
+    updateGeolocButton();
     setGpsStatus("off");
     
     // Désactiver le mode "couvreur cheminant seul" si actif
@@ -4454,7 +4617,7 @@ function detectBranch(lat, lon) {
   }
 
   function handleGeolocError(err) {
-    setGpsStatus("error");
+    setGpsStatus("error", err && err.message ? err.message : undefined);
     console.error(err);
   }
 
@@ -4474,10 +4637,10 @@ function detectBranch(lat, lon) {
     const timeSinceLastUpdate = now - lastUpdateTime;
     
     // Toujours mettre à jour le statut GPS (léger)
-    setGpsStatus(
-      "on",
-      "Position reçue (lat : " + lat.toFixed(5) + ", lon : " + lon.toFixed(5) + ")"
-    );
+    const accuracyText = accuracy != null
+      ? "Précision ±" + Math.round(accuracy) + " m"
+      : undefined;
+    setGpsStatus("ok", accuracyText);
 
     // Si moins de 1 seconde depuis la dernière mise à jour, ignorer (sauf première position)
     if (timeSinceLastUpdate < UPDATE_THROTTLE_MS && state.lastPk != null) {
@@ -4512,8 +4675,8 @@ function detectBranch(lat, lon) {
         updateMovement(dPk, dt);
       }
     } else {
-      movementTitle.textContent = "En attente d'un deuxième point…";
-      movementDetails.textContent = "—";
+      movementTitle.textContent = "Détection en cours";
+      movementDetails.textContent = "";
     }
 
     state.lastRawPk   = rawPk;
@@ -4537,7 +4700,6 @@ function detectBranch(lat, lon) {
     updateNearestStation(correctedPk, nearest);
     updateNextStation(correctedPk);
     updatePkTargetView();
-    updateAccessList(correctedPk);
     updateSmsPreview();
     updatePkEstimateInSettings();
     updateOrientationPanel();
@@ -4554,25 +4716,25 @@ function detectBranch(lat, lon) {
                     : state.direction === "ouest" ? "vers St-Germain / Paris"
                     : "";
 
-    const distText = "ΔPK ≈ " + Math.round(Math.abs(dPk)) +
-      " m sur ~" + Math.round(dt) + " s.";
+    const distText = "ΔPK " + Math.round(Math.abs(dPk)) +
+      " m en " + Math.round(dt) + " s";
 
     if (speed < profile.idle) {
       movementTitle.textContent = "Quasi immobile";
       movementDetails.textContent = distText;
     } else if (speed < profile.walk) {
       movementTitle.textContent = "À pied " + dirLabel;
-      movementDetails.textContent = distText + " (≈ " + speed.toFixed(1) + " m/s)";
+      movementDetails.textContent = distText + " · " + speed.toFixed(1) + " m/s";
     } else {
       movementTitle.textContent = "Train " + dirLabel;
-      movementDetails.textContent = distText + " (≈ " + speed.toFixed(1) + " m/s)";
+      movementDetails.textContent = distText + " · " + speed.toFixed(1) + " m/s";
     }
   }
 
   function updateNearestStation(pk, nearest) {
     if (!nearest || pk == null) {
-      nearestStationName.textContent = "Aucune";
-      nearestStationInfo.textContent = "En attente de position GPS…";
+      nearestStationName.textContent = "—";
+      nearestStationInfo.textContent = "";
       return;
     }
     nearestStationName.textContent = nearest.name;
@@ -4583,14 +4745,14 @@ function detectBranch(lat, lon) {
 
   function updateNextStation(pk) {
     if (pk == null) {
-      nextStationName.textContent = "Aucune";
-      nextStationInfo.textContent = "En attente de position GPS…";
+      nextStationName.textContent = "—";
+      nextStationInfo.textContent = "";
       return;
     }
     const next = findNextStation(pk, state.direction, currentBranch);
     if (!next) {
-      nextStationName.textContent = "Aucune";
-      nextStationInfo.textContent = "—";
+      nextStationName.textContent = "—";
+      nextStationInfo.textContent = "";
       return;
     }
     nextStationName.textContent = next.name;
@@ -5068,47 +5230,6 @@ function detectBranch(lat, lon) {
     // Cette fonction peut être appelée manuellement pour rafraîchir la carte
     // Elle utilise les valeurs actuelles de state
     updateOrientationPanel();
-  }
-
-  function updateAccessList(pk) {
-    // Pas de PK ou pas encore de GPS → on attend
-    if (pk == null || state.lastLat == null || state.lastLon == null) {
-      accessList.textContent = "En attente de position GPS…";
-      return;
-    }
-
-    // Top 2 accès les plus proches en distance GPS
-    const nearestList = getNearestAccessesGeo(state.lastLat, state.lastLon, pk, 2);
-
-    if (!nearestList.length) {
-      accessList.textContent = "Aucun accès disponible.";
-      return;
-    }
-
-    const lines = nearestList.map(item => {
-      const acc = item.acc;
-      const dGeo = Math.round(item.dGeo); // m "à vol d’oiseau"
-      const dPk  = (item.dPk != null) ? Math.round(item.dPk) : null;
-      const dir  = (acc.pk != null && pk != null && acc.pk >= pk)
-        ? "vers Chessy / Boissy"
-        : "vers St-Germain / Paris";
-
-      let pkLine = "PK " + formatPk(acc.pk) + " – " + acc.name;
-      let sub = "≈ " + dGeo + " m en distance GPS";
-
-      if (dPk != null) {
-        sub = "ΔPK ≈ " + dPk + " m " + dir + " · " + sub;
-      }
-
-      return (
-        '<div class="access-item">' +
-          '<div><strong>' + pkLine + "</strong></div>" +
-          '<div class="muted">' + sub + "</div>" +
-        "</div>"
-      );
-    });
-
-    accessList.innerHTML = lines.join("");
   }
 
   function updateSmsPreview() {
@@ -5742,142 +5863,70 @@ function detectBranch(lat, lon) {
   // === README / TUTORIEL ===
   function generateReadmeContent() {
     if (!readmeContent) return;
-    
+
     const content = `
       <div style="max-width: 100%;">
         <h2 style="color: var(--accent); margin-top: 0; margin-bottom: 20px; font-size: 1.3rem;">📖 Guide d'utilisation - PK Assistant RER A</h2>
-        
-        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">📍 Géolocalisation et calcul du PK</h3>
-        <p><strong>1. Démarrer la géolocalisation</strong></p>
-        <p>Cliquez sur "Démarrer la géoloc" pour activer le GPS. L'application calcule automatiquement votre PK actuel à partir de votre position GPS.</p>
-        <p><strong>2. PK actuel</strong></p>
-        <p>Votre PK actuel s'affiche en temps réel. L'application détecte automatiquement si vous êtes sur la branche Boissy-Saint-Léger ou Marne-la-Vallée – Chessy.</p>
-        <p><strong>3. Gare la plus proche</strong></p>
-        <p>La gare la plus proche en PK est affichée automatiquement.</p>
-        
+
+        <p><strong>🚀 Vue d'ensemble</strong></p>
+        <p>L'interface est organisée en trois blocs&nbsp;: <em>Statut en temps réel</em> (PK, sens, gares), <em>Navigation & plan</em> (carte interactive, légende, PK cible) et <em>Alertes & interventions</em> (SMS d'urgence, mode couvreur). Les réglages avancés sont regroupés dans la section «&nbsp;Paramètres & outils&nbsp;».</p>
+
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">📍 Géolocalisation & calcul du PK</h3>
+        <p>Surveille ta position en temps réel :</p>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>Clique sur <strong>Démarrer la géoloc</strong> pour activer le GPS.</li>
+          <li>Le PK actuel apparaît dans le panneau statut (la branche est détectée automatiquement).</li>
+          <li>La gare la plus proche, la prochaine et les accès autour de toi s’actualisent en direct.</li>
+        </ul>
+
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🎯 PK cible</h3>
-        <p><strong>Définir un PK cible</strong></p>
-        <p>Saisissez un PK (ex: 32400 ou 32+400) et cliquez sur "Définir ce PK comme cible". L'application calcule la distance entre votre position actuelle et le PK cible. Une croix rouge apparaît sur la carte d'orientation.</p>
-        
-        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🗺️ Plan – PK / gares / accès</h3>
-        <p><strong>Activer la carte d'orientation</strong></p>
-        <p>Cochez "Plan – PK / gares / accès" pour afficher une carte interactive avec :
+        <p>Définis un objectif pour t’orienter :</p>
         <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>Votre position actuelle (marqueur bleu)</li>
-          <li>Les gares (marqueurs verts)</li>
-          <li>Les accès (marqueurs jaunes)</li>
-          <li>Le PK cible (croix rouge si défini)</li>
-          <li>Les SAM et pétards (si calculés)</li>
+          <li>Saisis un PK (ex&nbsp;: <code>32400</code> ou <code>32+400</code>) puis clique sur <strong>Définir ce PK comme cible</strong>.</li>
+          <li>La carte affiche une croix rouge et le panneau statut indique l’écart par rapport à ta position.</li>
         </ul>
-        </p>
-        
+
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🗺️ Navigation & plan</h3>
+        <p>Active la carte interactive pour visualiser ta progression :</p>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>Coche <strong>Plan – PK / gares / accès</strong> pour afficher la carte Leaflet.</li>
+          <li>Le halo bleu représente ta position. Les gares et accès apparaissent selon le niveau de zoom.</li>
+          <li>La légende pastel permet de centrer immédiatement sur un feu rouge ou un pétard (les popups intègrent des boutons Waze/Maps).</li>
+          <li>Les puces interactives du panneau statut (gare et accès) permettent également d’ouvrir la carte sur ces repères.</li>
+        </ul>
+
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🚨 Urgence / SMS</h3>
-        <p><strong>SMS d'urgence</strong></p>
-        <p>Cliquez sur "SMS d'urgence" pour ouvrir l'application SMS avec un message pré-rempli contenant votre position GPS, PK, gare la plus proche et accès le plus proche.</p>
-        <p><strong>Couvreur cheminant seul</strong></p>
-        <p>Activez ce mode pour une surveillance automatique :
+        <p><strong>SMS d'urgence</strong> : ouvre ton application SMS avec un message pré-rempli (PK, branche, gare, accès, coordonnées).</p>
+        <p><strong>Mode «&nbsp;Couvreur cheminant seul&nbsp;»</strong> :</p>
         <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>L'application surveille votre mouvement</li>
-          <li>Si vous restez immobile (dans un rayon de 3m) pendant 10 minutes, l'application ouvre automatiquement le SMS d'urgence</li>
-          <li>Un timer démarre pour mesurer le temps d'envoi du SMS</li>
-          <li>Si le SMS n'est pas envoyé après 30 secondes, une sonnerie forte se déclenche pour vous réveiller</li>
-          <li>Le temps total qu'il a fallu pour envoyer le SMS est affiché et reste visible</li>
+          <li>Active la surveillance automatique. Après 10&nbsp;minutes sans mouvement (&plusmn; 3&nbsp;m), le SMS d'urgence est préparé sans confirmation.</li>
+          <li>Un timer de suivi s'affiche ; une alarme retentit si le SMS reste non envoyé au-delà de 30&nbsp;secondes.</li>
         </ul>
-        </p>
-        
-        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ Paramètres</h3>
-        
-        <p><strong>🚨 Signalement d'avarie / incident</strong></p>
-        <p>Générez un message de signalement d'incident :
+
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ Paramètres & outils</h3>
         <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>Choisissez le type d'incident</li>
-          <li>Ajoutez une photo si nécessaire</li>
-          <li>Cliquez sur "Générer le message de signalement"</li>
-          <li>Copiez le message généré</li>
+          <li><strong>Signalement d'avarie</strong> : génère un message complet (type, PK, coordonnées, accès) avec possibilité d’ajouter une photo.</li>
+          <li><strong>Sensibilité au mouvement</strong> : choisis entre <em>Marche lente</em>, <em>Normal</em> ou <em>Train</em>.</li>
+          <li><strong>Recalage PK</strong> : saisis un PK exact pour corriger l’offset et enrichir la base (export JSON).</li>
+          <li><strong>Points de carte</strong> : enregistre ta position actuelle avec une description (accès, clef VCC, etc.).</li>
+          <li><strong>Calcul couverture travaux</strong> : calcule les SAM/pétards et affiche leurs popups (navigation Waze/Maps incluse).</li>
+          <li><strong>Recherche par PK</strong> : retrouve l’accès le plus proche et ouvre Google Maps ou Waze en un clic.</li>
+          <li><strong>Numéro SOS</strong> : stocke le numéro utilisé par les SMS d’urgence et le mode couvreur.</li>
+          <li><strong>Fermetures nocturnes</strong> : charge les fermetures proposées par Sytadin pour la date du jour.</li>
         </ul>
-        </p>
-        
-        <p><strong>🎚️ Sensibilité au mouvement</strong></p>
-        <p>Ajustez la sensibilité selon votre mode de déplacement :
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li><strong>Marche lente</strong> : Détecte plus facilement un déplacement à pied</li>
-          <li><strong>Normal</strong> : Sensibilité standard</li>
-          <li><strong>Train</strong> : Adapté pour les déplacements en train</li>
-        </ul>
-        </p>
-        
-        <p><strong>🔧 Recalage PK</strong></p>
-        <p>Si le PK calculé n'est pas précis, vous pouvez le recaler :
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>Saisissez le PK exact à votre position</li>
-          <li>Cliquez sur "Recaler l'appli sur ce PK"</li>
-          <li>L'application applique un offset pour corriger tous les PK</li>
-          <li>Les recalages sont enregistrés et utilisés pour améliorer la précision</li>
-          <li>Vous pouvez exporter vos recalages en JSON</li>
-        </ul>
-        </p>
-        
-        <p><strong>📍 Points de carte</strong></p>
-        <p>Enregistrez des points d'intérêt sur la carte avec leur description :
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>Saisissez une description du point (ex: Accès, clef VCC, etc.)</li>
-          <li>Cliquez sur "Enregistrer l'emplacement"</li>
-          <li>L'application enregistre votre position GPS actuelle, le PK et la description</li>
-          <li>Vous pouvez exporter tous les points enregistrés en JSON pour les déposer sur GitHub</li>
-        </ul>
-        </p>
-        
-        <p><strong>🚦 Calcul couverture travaux</strong></p>
-        <p>Calculez automatiquement où placer les feux rouges (SAM) et les pétards :
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>Saisissez le PK début et PK fin du chantier</li>
-          <li>Cliquez sur "Calculer rouges & pétards"</li>
-          <li>Les résultats s'affichent avec les positions des SAM (points rouges) et pétards (carrés verts)</li>
-          <li>Les marqueurs apparaissent sur la carte d'orientation si elle est activée</li>
-        </ul>
-        </p>
-        
-        <p><strong>🔎 Recherche par PK et GPS</strong></p>
-        <p>Trouvez l'accès le plus proche d'un PK donné :
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>Saisissez un PK (ex: 32400 ou 32+400)</li>
-          <li>Cliquez sur "Rechercher l'accès"</li>
-          <li>L'application trouve l'accès le plus proche (par PK et GPS)</li>
-          <li>Vous pouvez ouvrir Google Maps ou Waze pour la navigation</li>
-        </ul>
-        </p>
-        
-        <p><strong>📱 Numéro SOS</strong></p>
-        <p>Configurez le numéro de téléphone pour les SMS d'urgence :
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>Saisissez le numéro (ex: 0612345678 ou +33612345678)</li>
-          <li>Cliquez sur "Sauvegarder"</li>
-          <li>Ce numéro sera utilisé par le bouton "SMS d'urgence" et le mode "Couvreur cheminant seul"</li>
-        </ul>
-        </p>
-        
-        <p><strong>🌙 Fermetures nocturnes</strong></p>
-        <p>Consultez les informations sur les fermetures nocturnes des routes en Île-de-France :
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>Cochez "Fermetures nocturnes" dans les paramètres pour afficher les informations</li>
-          <li>Les informations affichent les fermetures nocturnes de 21h à 6h pour aujourd'hui</li>
-          <li>Vous trouverez les fermetures sur les autoroutes et grands axes, les voies sur berges dans Paris, et les quais, tunnels et viaducs dans Paris</li>
-        </ul>
-        </p>
-        
+
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">💡 Conseils</h3>
         <ul style="margin-left: 20px; margin-top: 8px;">
-          <li><strong>Précision GPS</strong> : La précision dépend de votre environnement. En extérieur, la précision est meilleure.</li>
-          <li><strong>Recalage</strong> : Si vous constatez une erreur de PK, faites un recalage. Plus vous enregistrez de recalages, plus la précision s'améliore.</li>
-          <li><strong>Mode couvreur</strong> : Activez le mode "Couvreur cheminant seul" avant de commencer votre travail. Il surveillera automatiquement votre mouvement.</li>
-          <li><strong>Carte d'orientation</strong> : Activez la carte pour visualiser votre position, les gares, accès et marqueurs sur une carte interactive.</li>
+          <li><strong>Précision GPS</strong> : meilleure en extérieur ; l’animation de fond se met en pause quand l’appli est masquée pour économiser la batterie.</li>
+          <li><strong>Recalages réguliers</strong> : plus tu en enregistres, plus le calcul PK gagne en précision.</li>
+          <li><strong>Carte</strong> : la légende et les puces d’accès sont pensées pour un usage mobile (touch cible élargie).</li>
         </ul>
-        
+
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🔒 Sécurité</h3>
-        <p>Tous vos paramètres (numéro SOS, recalages, etc.) sont stockés localement dans votre navigateur. Ils ne sont pas effacés lors des mises à jour de l'application.</p>
+        <p>Tous les réglages (numéro SOS, recalages, points de carte, préférences de carte) sont stockés en local dans ton navigateur. Ils ne sont pas perdus lors des mises à jour de l’application.</p>
       </div>
     `;
-    
+
     readmeContent.innerHTML = content;
   }
 
@@ -6247,6 +6296,7 @@ if (toggleFermeturesNocturnes && fermeturesNocturnesCard) {
     if (marker && typeof marker.getLatLng === "function") {
       const latLng = marker.getLatLng();
       orientationMap.setView(latLng, Math.max(16, orientationMap.getZoom() || 16));
+      manualMapFocusUntil = Date.now() + 6000;
       setTimeout(() => {
         if (marker && typeof marker.openPopup === "function") {
           marker.openPopup();

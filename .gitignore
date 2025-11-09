@@ -22,4 +22,14 @@ npm-debug.log*
 *.tmp
 *.temp
 
+# Variables d'environnement (contient des secrets)
+.env
+.env.local
+.env.production
+
+
+
+
+
+
 

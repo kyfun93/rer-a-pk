@@ -103,3 +103,13 @@ Cursor devrait maintenant détecter le repository Git. Vous pouvez :
 - Faire des commits directement depuis Cursor
 - Push/Pull depuis l'interface ou le terminal
 
+
+
+
+
+
+
+
+
+
+

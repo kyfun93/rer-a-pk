@@ -72,3 +72,13 @@ Une fois le token configuré, vous pourrez :
 - **Script automatique** : `./setup-github-auth.sh`
 - **Instructions token** : `create-token-instructions.txt`
 
+
+
+
+
+
+
+
+
+
+

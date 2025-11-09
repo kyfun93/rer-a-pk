@@ -95,3 +95,8 @@
 - Utilise l'API Web Audio pour la sonnerie
 - Utilise l'API Vibration pour mobile (si disponible)
 
+
+
+
+
+
