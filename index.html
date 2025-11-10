@@ -73,7 +73,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
- 
+
   :root {
     color-scheme: dark;
     --bg: #0b101f;
@@ -649,7 +649,6 @@
     border-color: rgba(200, 208, 232, 0.6);
     box-shadow: 0 10px 24px rgba(12, 14, 26, 0.34);
   }
-
   .btn-toggle[data-active="true"] {
     background: linear-gradient(135deg, rgba(110, 120, 158, 0.78), rgba(142, 152, 186, 0.72));
     border-color: rgba(206, 214, 238, 0.75);
@@ -779,16 +778,118 @@
   .status-detail:empty {
     display: none;
   }
-
-  @media (max-width: 480px) {
-    .status-line {
-      gap: 12px;
+  @media (max-width: 640px) {
+    .app {
+      padding: 0 12px 24px;
     }
-    .status-value {
-      font-size: 1.2rem;
+    .card {
+      padding: 16px 16px 14px;
+      border-radius: 18px;
     }
-    .status-detail {
-      max-width: 100%;
+    .big-value {
+      font-size: 1.5rem;
+    }
+    .btn {
+      width: 100%;
+      border-radius: 14px;
+      padding: 14px 20px;
+    }
+    .title-pill {
+      padding: 10px 18px;
+    }
+    .card-header {
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+    }
+    .section-title {
+      margin: 34px 0 16px;
+    }
+    .app-content {
+      grid-template-columns: 1fr;
+      gap: 20px;
+      margin: 16px 0;
+    }
+    #orientationMap {
+      height: 180px;
+      border-radius: 10px;
+      margin-top: 6px;
+    }
+    .coverage-legend {
+      padding: 8px;
+      border-radius: 10px;
+    }
+    .coverage-legend-helper {
+      font-size: 0.7rem;
+      margin-bottom: 6px;
+    }
+    .coverage-legend-items {
+      flex-direction: column;
+      gap: 5px;
+    }
+    .coverage-legend-item {
+      width: 100%;
+      justify-content: flex-start;
+      padding: 7px 9px;
+      font-size: 0.74rem;
+    }
+    .orientation-info-panel {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 14px;
+    }
+    .orientation-info-item {
+      gap: 6px;
+    }
+    .orientation-info-label {
+      font-size: 0.74rem;
+    }
+    .orientation-info-value {
+      font-size: 0.9rem;
+    }
+    .orientation-block.is-live #orientationMap {
+      height: 160px;
+    }
+    .orientation-block.is-live .orientation-info-panel {
+      padding: 8px;
+      gap: 4px;
+    }
+    .orientation-block.is-live .orientation-info-item {
+      padding: 2px 0;
+    }
+    .orientation-block.is-live .orientation-info-label {
+      font-size: 0.68rem;
+    }
+    .orientation-block.is-live .orientation-info-value {
+      font-size: 0.82rem;
+    }
+    .orientation-target-controls {
+      gap: 6px;
+      align-items: stretch;
+    }
+    .orientation-target-input {
+      font-size: 0.82rem;
+      padding: 9px 10px;
+      flex: 1 1 70%;
+    }
+    .orientation-target-button {
+      flex: 0 0 auto;
+      padding: 8px 10px;
+      font-size: 0.7rem;
+      border-radius: 10px;
+      width: auto;
+    }
+    .orientation-target-button.btn-icon {
+      gap: 6px;
+    }
+    .orientation-target-button.btn-icon span:first-child {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+    .orientation-target-info {
+      font-size: 0.72rem;
+      padding-left: 4px;
     }
   }
 
@@ -798,7 +899,6 @@
     flex-direction: column;
     gap: 8px;
   }
-
   .field:first-child {
     margin-top: 0;
   }
@@ -1001,104 +1101,6 @@
     50% { opacity: 0.3; }
   }
 
-  @media (max-width: 640px) {
-    .app {
-      padding: 0 12px 24px;
-    }
-    .card {
-      padding: 16px 16px 14px;
-      border-radius: 18px;
-    }
-    .big-value {
-      font-size: 1.5rem;
-    }
-    .btn {
-      width: 100%;
-      border-radius: 14px;
-      padding: 14px 20px;
-    }
-    .title-pill {
-      padding: 10px 18px;
-    }
-    .card-header {
-      margin-bottom: 10px;
-      padding-bottom: 6px;
-    }
-    .section-title {
-      margin: 34px 0 16px;
-    }
-    .app-content {
-      grid-template-columns: 1fr;
-      gap: 20px;
-      margin: 16px 0;
-    }
-    #orientationMap {
-      height: 180px;
-      border-radius: 10px;
-      margin-top: 6px;
-    }
-    .coverage-legend {
-      padding: 8px;
-      border-radius: 10px;
-    }
-    .coverage-legend-helper {
-      font-size: 0.7rem;
-      margin-bottom: 6px;
-    }
-    .coverage-legend-items {
-      flex-direction: column;
-      gap: 5px;
-    }
-    .coverage-legend-item {
-      width: 100%;
-      justify-content: flex-start;
-      padding: 7px 9px;
-      font-size: 0.74rem;
-    }
-    .orientation-info-panel {
-      margin-top: 10px;
-      padding: 10px;
-      border-radius: 14px;
-    }
-    .orientation-info-item {
-      gap: 6px;
-    }
-    .orientation-info-label {
-      font-size: 0.74rem;
-    }
-    .orientation-info-value {
-      font-size: 0.9rem;
-    }
-    .orientation-target-controls {
-      gap: 6px;
-      align-items: stretch;
-    }
-    .orientation-target-input {
-      font-size: 0.82rem;
-      padding: 9px 10px;
-      flex: 1 1 70%;
-    }
-    .orientation-target-button {
-      flex: 0 0 auto;
-      padding: 8px 10px;
-      font-size: 0.7rem;
-      border-radius: 10px;
-      width: auto;
-    }
-    .orientation-target-button.btn-icon {
-      gap: 6px;
-    }
-    .orientation-target-button.btn-icon span:first-child {
-      width: 26px;
-      height: 26px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-    }
-    .orientation-target-info {
-      font-size: 0.72rem;
-      padding-left: 4px;
-    }
-  }
   .orientation-block {
   margin-top: 10px;
   padding-top: 4px;
@@ -1238,22 +1240,39 @@ body[data-page-hidden="true"] .leaflet-marker-pk-actuel {
 .leaflet-marker-direction {
   background: transparent;
   border: none;
-  width: 40px !important;
-  height: 40px !important;
+  width: 44px !important;
+  height: 44px !important;
 }
 
 .direction-arrow {
-  width: 0;
-  height: 0;
-  border-left: 15px solid transparent;
-  border-right: 15px solid transparent;
-  border-bottom: 25px solid #3d7bff;
-  filter: drop-shadow(0 0 8px rgba(61, 123, 255, 0.8));
+  position: relative;
+  width: 34px;
+  height: 34px;
+  transform-origin: 50% 50%;
+  transform: rotate(var(--arrow-rotation, 0deg));
+  filter: drop-shadow(0 0 10px rgba(21, 120, 255, 0.55));
+}
+
+.direction-arrow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(50% 0%, 100% 50%, 58% 64%, 50% 100%, 42% 64%, 0% 50%);
+  background: linear-gradient(135deg, #29c0ff 0%, #1579ff 55%, #0b2f8f 100%);
+  box-shadow: 0 0 12px rgba(21, 120, 255, 0.45), 0 6px 14px rgba(4, 10, 24, 0.6);
+}
+
+.direction-arrow::after {
+  content: "";
+  position: absolute;
+  inset: 6px 8px 10px 16px;
+  clip-path: polygon(50% 0%, 100% 50%, 55% 58%, 50% 94%, 45% 58%, 0% 50%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.12));
+  opacity: 0.85;
 }
 
 .direction-arrow-moving {
-  animation: arrowMoveForward 2s ease-in-out infinite;
-  /* Optimisation batterie : pause les animations quand la page n'est pas visible */
+  animation: arrowMoveForward 1.8s ease-in-out infinite;
   animation-play-state: running;
 }
 
@@ -1263,9 +1282,17 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 }
 
 .direction-arrow-indetermine {
-  border-bottom-color: #666;
-  filter: drop-shadow(0 0 4px rgba(102, 102, 102, 0.4));
-  animation: none;
+  filter: drop-shadow(0 0 6px rgba(80, 86, 110, 0.6));
+}
+
+.direction-arrow-indetermine::before {
+  background: linear-gradient(135deg, #7a7f92 0%, #424a60 100%);
+  box-shadow: 0 0 8px rgba(82, 88, 110, 0.4), 0 6px 12px rgba(6, 8, 16, 0.55);
+}
+
+.direction-arrow-indetermine::after {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.08));
+  opacity: 0.6;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1544,14 +1571,57 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   transform: translateY(0);
 }
 
+.coverage-guide-toggle {
+  margin-top: 6px;
+}
+.coverage-guide-toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: rgba(236, 239, 255, 0.85);
+  cursor: pointer;
+  user-select: none;
+}
+
+.coverage-guide-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.coverage-guide {
+  display: none;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(200, 206, 236, 0.14);
+  background: rgba(18, 20, 30, 0.85);
+  color: rgba(236, 239, 255, 0.9);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+.coverage-guide.is-visible {
+  display: block;
+}
+
+.coverage-guide ol {
+  margin: 0 0 0 18px;
+  padding: 0;
+}
+
+.coverage-guide ul {
+  margin: 8px 0 0 18px;
+  padding: 0;
+}
+
+.coverage-guide li + li {
+  margin-top: 6px;
+}
+
 .orientation-target-group {
   gap: 10px;
 }
-
-.orientation-target-item {
-  align-items: flex-start;
-}
-
 .orientation-target-controls {
   display: flex;
   gap: 8px;
@@ -1627,15 +1697,15 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 /* Animation de la flèche qui avance en temps réel */
 @keyframes arrowMoveForward {
   0% {
-    transform: translateY(0) scale(1);
+    transform: rotate(var(--arrow-rotation, 0deg)) translateY(0) scale(1);
     opacity: 1;
   }
   50% {
-    transform: translateY(-8px) scale(1.1);
+    transform: rotate(var(--arrow-rotation, 0deg)) translateY(-6px) scale(1.08);
     opacity: 0.9;
   }
   100% {
-    transform: translateY(0) scale(1);
+    transform: rotate(var(--arrow-rotation, 0deg)) translateY(0) scale(1);
     opacity: 1;
   }
 }
@@ -1677,6 +1747,25 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 
 .orientation-info-group + .orientation-info-group {
   margin-top: 12px;
+}
+
+.orientation-block.is-live .orientation-info-panel {
+  border: 1px solid rgba(200, 206, 236, 0.08);
+}
+
+@media (max-width: 768px) {
+  /* bloc supprimé */
+}
+
+.orientation-info-label {
+  font-size: 0.74rem;
+}
+.orientation-info-value {
+  font-size: 0.9rem;
+}
+.orientation-target-controls {
+  gap: 6px;
+  align-items: stretch;
 }
 
 </style>
@@ -1728,15 +1817,15 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     <div class="header">
       <div class="title-wrapper">
         <span class="hero-gyro" aria-hidden="true"></span>
-        <div class="title-pill">
-          <div class="title-main">PK ASSISTANT</div>
-          <div class="title-sub">RER A</div>
+      <div class="title-pill">
+        <div class="title-main">PK ASSISTANT</div>
+        <div class="title-sub">RER A</div>
         </div>
         <span class="hero-gyro" aria-hidden="true"></span>
       </div>
       <div class="subtitle">Estimation du PK en temps réel à partir de la géolocalisation.</div>
       <div class="note">
-        Toujours vérifier une borne quand c’est critique.
+        Toujours vérifier une borne quand c'est critique.
       </div>
     </div>
 
@@ -1747,7 +1836,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
           <div>
             <div class="status-heading">Géolocalisation</div>
             <div id="geolocText" class="status-helper">Prêt à démarrer.</div>
-          </div>
+      </div>
           <span id="gpsStatusBadge" class="status-badge status-badge--danger">GPS OFF</span>
         </div>
         <button id="btnToggleGeoloc" class="btn btn-primary btn-icon status-cta" type="button">
@@ -1759,30 +1848,30 @@ body[data-page-hidden="true"] .direction-arrow-moving {
             <div class="status-values">
               <span id="pkCurrentValue" class="status-value">—</span>
               <span id="pkCurrentDetails" class="status-detail"></span>
-            </div>
-          </div>
+      </div>
+    </div>
           <div class="status-line">
             <span class="status-label">Sens / mouvement</span>
             <div class="status-values">
               <span id="movementTitle" class="status-value">Détection en attente</span>
               <span id="movementDetails" class="status-detail"></span>
-            </div>
-          </div>
+      </div>
+    </div>
           <div class="status-line">
             <span class="status-label">Gare la plus proche</span>
             <div class="status-values">
               <span id="nearestStationName" class="status-value">—</span>
               <span id="nearestStationInfo" class="status-detail"></span>
-            </div>
-          </div>
+      </div>
+    </div>
           <div class="status-line">
             <span class="status-label">Prochaine gare</span>
             <div class="status-values">
               <span id="nextStationName" class="status-value">—</span>
               <span id="nextStationInfo" class="status-detail"></span>
-            </div>
-          </div>
-        </div>
+      </div>
+    </div>
+      </div>
       </div>
     </div>
 
@@ -1806,13 +1895,13 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     <div class="orientation-info-item">
       <span class="orientation-info-label">Sens :</span>
       <span id="orientDirValue" class="orientation-info-value">En attente de GPS…</span>
-    </div>
+      </div>
     <div class="orientation-info-group">
       <div class="orientation-info-item">
         <span class="orientation-info-label">Gare la plus proche :</span>
         <span id="orientGareValue" class="orientation-info-value">—</span>
       </div>
-    </div>
+      </div>
     <div class="orientation-info-group">
       <div class="orientation-info-item">
         <span class="orientation-info-label">Accès les plus proches :</span>
@@ -1827,21 +1916,21 @@ body[data-page-hidden="true"] .direction-arrow-moving {
           <button id="btnSetPkTarget" class="btn btn-secondary btn-icon orientation-target-button" type="button">
             <span>🎯</span><span>Définir</span>
           </button>
-        </div>
-      </div>
+  </div>
+</div>
       <div id="pkTargetInfo" class="orientation-target-info">
         Aucun PK cible défini pour le moment.
       </div>
-    </div>
-  </div>
+      </div>
+      </div>
   <div id="coverageLegend" class="coverage-legend">
     <div class="coverage-legend-title">Repères calculés</div>
     <div class="coverage-legend-helper">
       Les repères listés sont cliquables : la carte se centre dessus et affiche le détail.
     </div>
     <div class="coverage-legend-items" id="coverageLegendItems"></div>
-  </div>
-</div>
+      </div>
+      </div>
 
     <div class="card full-width toggle-card">
       <button id="btnOrientationToggle" class="btn btn-toggle btn-icon" type="button" data-active="false">
@@ -1874,14 +1963,14 @@ body[data-page-hidden="true"] .direction-arrow-moving {
           <span>✉️</span><span>SMS d'urgence</span>
         </button>
       </div>
-    </div>
+      </div>
     </div>
 
     <div class="section-title">Recherche par PK & GPS</div>
     <div class="app-content">
       <div class="card full-width">
         <div class="card-header">
-          <div class="card-title">Recherche par PK & GPS</div>
+          <div class="card-title">Recherche par PK & GPS (accès le plus proche)</div>
         </div>
 
         <div class="field">
@@ -1889,8 +1978,8 @@ body[data-page-hidden="true"] .direction-arrow-moving {
           <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" />
           <button id="btnPkLookup" class="btn btn-secondary btn-icon" type="button">
             <span>🔎</span><span>Rechercher l'accès</span>
-          </button>
-        </div>
+      </button>
+    </div>
 
         <div class="field" id="pkLookupResultField" style="display:none;">
           <div id="pkLookupResult" class="muted"></div>
@@ -1910,9 +1999,9 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     <div class="section-title">Signalement d'avarie / incident</div>
     <div class="app-content">
       <div class="card full-width">
-        <div class="card-header">
+      <div class="card-header">
           <div class="card-title">Déclarer un incident</div>
-        </div>
+      </div>
 
         <div class="signalement-block">
           <label for="selectIncidentType" style="font-weight: 700;">🚨 Signalement d'avarie / incident</label>
@@ -1929,16 +2018,16 @@ body[data-page-hidden="true"] .direction-arrow-moving {
             <input id="inputIncidentOther" type="text" placeholder="ex : câble arraché, signal détérioré..." />
           </div>
 
-          <div class="field">
+<div class="field">
             <label for="incidentPhoto">Photo (optionnel)</label>
             <input id="incidentPhoto" type="file" accept="image/*" />
-          </div>
+  </div>
 
           <div class="field">
             <button id="btnGenerateIncident" class="btn btn-good btn-icon" type="button">
               <span>📣</span><span>Générer le message de signalement</span>
             </button>
-          </div>
+</div>
 
           <div class="field" id="incidentResultField" style="display:none;">
             <label>Message généré :</label>
@@ -1957,7 +2046,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
         <div class="card-header">
           <div class="card-title">🚦 Calculer rouges & pétards</div>
         </div>
-        <div class="field">
+      <div class="field">
           <label for="inputCoveragePkStart">PK début chantier (m)</label>
           <input id="inputCoveragePkStart" type="number" placeholder="ex : 48000" />
         </div>
@@ -1969,6 +2058,20 @@ body[data-page-hidden="true"] .direction-arrow-moving {
           <button id="btnComputeCoverage" class="btn btn-primary btn-icon" type="button">
             <span>🚦</span><span>Calculer rouges & pétards</span>
           </button>
+        </div>
+        <div class="field coverage-guide-toggle">
+          <label for="toggleCoverageGuide">
+            <input id="toggleCoverageGuide" type="checkbox" />
+            Consulter le mode opératoire
+          </label>
+        </div>
+        <div id="coverageGuide" class="coverage-guide" aria-live="polite">
+          <p style="margin: 0 0 8px;">Répartition standard selon la doctrine RER&nbsp;A :</p>
+          <ul>
+            <li>Signal de repérage : signal à main d'arrêt + 1 pétard positionnés à 100&nbsp;m de chaque extrémité du chantier.</li>
+            <li>Pétards d'annonce : 3 pétards à 800&nbsp;m (ou 1000&nbsp;m entre Torcy PK&nbsp;48,000 et Marne-la-Vallée–Chessy), alternés tous les 30&nbsp;m sur chaque file de rail.</li>
+          </ul>
+          <p style="margin: 8px 0 0;">Indique le PK début, le PK fin ou les deux pour générer les points précis et les afficher sur la carte.</p>
         </div>
         <div class="field" style="margin-top: 15px;">
           <label style="font-weight: 600; margin-bottom: 8px;">Résultats du calcul :</label>
@@ -2023,14 +2126,14 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 
       <!-- Sensibilité mouvement -->
       <div class="sensitivity-section">
-        <div class="field">
-          <label for="selectSensitivity">Sensibilité au mouvement</label>
-          <select id="selectSensitivity">
-            <option value="slow">Marche lente</option>
-            <option value="normal">Normal</option>
-            <option value="train">Train</option>
-          </select>
-          <div class="muted">« Marche lente » détecte plus facilement un déplacement à pied.</div>
+      <div class="field">
+        <label for="selectSensitivity">Sensibilité au mouvement</label>
+        <select id="selectSensitivity">
+          <option value="slow">Marche lente</option>
+          <option value="normal">Normal</option>
+          <option value="train">Train</option>
+        </select>
+        <div class="muted">« Marche lente » détecte plus facilement un déplacement à pied.</div>
         </div>
       </div>
 
@@ -2038,48 +2141,48 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 
       <!-- Recalage PK -->
       <div class="pk-calibration-section">
-        <div class="field">
-          <label>Recalage PK</label>
-          <div id="pkOffsetInfo" class="muted">Offset actuel : ±0 m appliqués à tous les PK.</div>
-        </div>
+      <div class="field">
+        <label>Recalage PK</label>
+        <div id="pkOffsetInfo" class="muted">Offset actuel : ±0 m appliqués à tous les PK.</div>
+      </div>
 
-        <div class="field">
-          <label>Position PK estimée (lecture seule)</label>
-          <div id="pkEstimateText" class="muted">En attente de position GPS…</div>
-        </div>
+      <div class="field">
+        <label>Position PK estimée (lecture seule)</label>
+        <div id="pkEstimateText" class="muted">En attente de position GPS…</div>
+      </div>
 
-        <div class="field">
+      <div class="field">
           <label for="inputPkRecal">PK exact ici (pour recaler l'appli)</label>
-          <input id="inputPkRecal" type="text" placeholder="ex : 52700 ou 52+700" />
+        <input id="inputPkRecal" type="text" placeholder="ex : 52700 ou 52+700" />
           <button id="btnApplyRecal" class="btn btn-primary" type="button">Recaler l'appli sur ce PK</button>
-        </div>
+      </div>
 
-        <div class="field">
-          <button id="btnResetOffset" class="btn btn-secondary" type="button">
-            Réinitialiser le recalage PK
-          </button>
-        </div>
+      <div class="field">
+        <button id="btnResetOffset" class="btn btn-secondary" type="button">
+          Réinitialiser le recalage PK
+        </button>
+      </div>
 
         <!-- AJOUT CALIBRAGE : bouton d'export -->
-        <div class="field">
-          <button id="btnExportCalibrations" class="btn btn-secondary btn-icon" type="button">
-            <span>📤</span><span>Exporter mes recalages (JSON)</span>
-          </button>
-          <div class="muted">
-            Exporte les recalages que tu as faits (PK exact + GPS) pour les déposer ensuite dans GitHub.
-          </div>
+      <div class="field">
+        <button id="btnExportCalibrations" class="btn btn-secondary btn-icon" type="button">
+          <span>📤</span><span>Exporter mes recalages (JSON)</span>
+        </button>
+        <div class="muted">
+          Exporte les recalages que tu as faits (PK exact + GPS) pour les déposer ensuite dans GitHub.
         </div>
-        <!-- FIN AJOUT CALIBRAGE -->
+      </div>
+      <!-- FIN AJOUT CALIBRAGE -->
       </div>
 
       <div class="divider"></div>
 
       <!-- Points de carte -->
       <div class="pk-calibration-section">
-        <div class="field">
+      <div class="field">
           <label>Points de carte</label>
           <div id="mapPointsInfo" class="muted">Aucun point enregistré.</div>
-        </div>
+      </div>
 
         <div class="field">
           <label for="inputMapPointDescription">Description du point</label>
@@ -2090,8 +2193,8 @@ body[data-page-hidden="true"] .direction-arrow-moving {
           <button id="btnNoteLocation" class="btn btn-primary" type="button">Enregistrer l'emplacement</button>
           <div class="muted">
             Enregistre ta position GPS actuelle avec la description et le PK.
-          </div>
         </div>
+      </div>
 
         <div class="field">
           <button id="btnExportMapPoints" class="btn btn-secondary btn-icon" type="button">
@@ -2101,10 +2204,10 @@ body[data-page-hidden="true"] .direction-arrow-moving {
             Exporte tous les points enregistrés pour les déposer dans GitHub.
           </div>
         </div>
-      </div>
+        </div>
 
       <!-- Numéro SOS -->
-      <div class="field">
+        <div class="field">
         <label for="inputSosPhone">Numéro SOS pour le SMS d'urgence</label>
         <input id="inputSosPhone" type="tel" placeholder="ex : 0612345678 ou +33612345678" />
         <div style="margin-top: 8px;">
@@ -2113,16 +2216,16 @@ body[data-page-hidden="true"] .direction-arrow-moving {
           </button>
         </div>
         <div class="muted">Ce numéro sera utilisé par le bouton « SMS d'urgence ».</div>
-      </div>
+        </div>
 
       <div class="divider"></div>
 
       <!-- Tutoriel -->
-      <div class="field">
+        <div class="field">
         <button id="btnReadme" class="btn btn-secondary btn-icon" type="button">
           <span>📖</span><span>Tutoriel</span>
-        </button>
-      </div>
+          </button>
+        </div>
 
       <div id="readmePanel" class="card" style="display: none; margin-top: 15px;">
         <div class="card-header">
@@ -2130,11 +2233,11 @@ body[data-page-hidden="true"] .direction-arrow-moving {
         </div>
         <div id="readmeContent" style="padding: 16px; line-height: 1.8; color: var(--text);">
           <!-- Le contenu sera généré par JavaScript -->
-        </div>
+      </div>
         <div class="field" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
           <button id="btnCloseReadme" class="btn btn-secondary" type="button">
             Fermer
-          </button>
+        </button>
         </div>
       </div>
 
@@ -2142,8 +2245,8 @@ body[data-page-hidden="true"] .direction-arrow-moving {
         Ces réglages restent stockés dans ton navigateur (localStorage).  
         Ils ne sont pas effacés quand on met à jour l'application.
       </div>
-  </div>
-  </div>
+      </div>
+    </div>
   </div>
 
   <script src="config/access-config.js"></script>
@@ -2196,20 +2299,20 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   const brancheChessy = [
     { name: "Neuilly-Plaisance",           lat: 48.8534646981, lon: 2.5138398779, pk: 35500 },
     { name: "Bry-sur-Marne",               lat: 48.8442657465, lon: 2.5261924528, pk: 37000 },
-    { name: "Noisy-le-Grand – Mont d’Est", lat: 48.8410135149, lon: 2.5527359297, pk: 39000 },
+    { name: "Noisy-le-Grand – Mont d'Est", lat: 48.8410135149, lon: 2.5527359297, pk: 39000 },
     { name: "Noisy – Champs",              lat: 48.8429502416, lon: 2.5788366796, pk: 41000 },
     { name: "Noisiel",                     lat: 48.8437650426, lon: 2.6160790153, pk: 43000 },
     { name: "Lognes",                      lat: 48.8393611271, lon: 2.6335250335, pk: 45000 },
     { name: "Torcy",                       lat: 48.8390276009, lon: 2.6550584298, pk: 47000 },
     { name: "Bussy-Saint-Georges",         lat: 48.8371826388, lon: 2.7125386010, pk: 52000 },
-    { name: "Val d’Europe",                lat: 48.8561684149, lon: 2.7738274672, pk: 57000 },
+    { name: "Val d'Europe",                lat: 48.8561684149, lon: 2.7738274672, pk: 57000 },
     { name: "Marne-la-Vallée – Chessy",    lat: 48.8707237150, lon: 2.7826307507, pk: 59000 }
   ];
 
   // Tous les points de gare (pour recherche la plus proche, tri, etc.)
   const stations = troncCommun.concat(brancheBoissy, brancheChessy);
 
-  // Pour les accès : un accès par gare pour l’instant
+  // Pour les accès : un accès par gare pour l'instant
 const accessPoints = [
   {
     name: "Gare de St Germain en Laye",
@@ -2387,8 +2490,8 @@ const accessPoints = [
     lon: null
   },
   {
-    name: "Bout de quai V2 côté Paris : 2 av des Tilleuls, Châtou (fond de l’impasse)",
-    address: "Bout de quai V2 côté Paris : 2 av des Tilleuls, Châtou (fond de l’impasse)",
+    name: "Bout de quai V2 côté Paris : 2 av des Tilleuls, Châtou (fond de l'impasse)",
+    address: "Bout de quai V2 côté Paris : 2 av des Tilleuls, Châtou (fond de l'impasse)",
     pk: 5727,
     lat: 48.88516352,
     lon: 2.15757085
@@ -2464,8 +2567,8 @@ const accessPoints = [
     lon: null
   },
   {
-    name: "10 allée des Parfumeurs (fond de l’impasse), Nanterre (Parking difficile)",
-    address: "10 allée des Parfumeurs (fond de l’impasse), Nanterre (Parking difficile)",
+    name: "10 allée des Parfumeurs (fond de l'impasse), Nanterre (Parking difficile)",
+    address: "10 allée des Parfumeurs (fond de l'impasse), Nanterre (Parking difficile)",
     pk: 9000,
     lat: 48.89619076,
     lon: 2.19848833
@@ -2513,8 +2616,8 @@ const accessPoints = [
     lon: null
   },
   {
-    name: "Courbe de la Folie, Croisement 521 Bd des Provinces Françaises / allée d’Aquitaine, Nanterre",
-    address: "Courbe de la Folie, Croisement 521 Bd des Provinces Françaises / allée d’Aquitaine, Nanterre",
+    name: "Courbe de la Folie, Croisement 521 Bd des Provinces Françaises / allée d'Aquitaine, Nanterre",
+    address: "Courbe de la Folie, Croisement 521 Bd des Provinces Françaises / allée d'Aquitaine, Nanterre",
     pk: 10450,
     lat: 48.90204234,
     lon: 2.21802275
@@ -3488,6 +3591,7 @@ const CALIBRATION_CACHE_MS = 5000; // Reconstruire les polylignes toutes les 5 s
     lastDist: null,
     lastAccuracy: null, // AJOUT CALIBRAGE : précision GPS
     direction: null,
+    heading: null,
     nearestStation: null,
     nearestAccess: null
   };
@@ -3504,9 +3608,10 @@ const CALIBRATION_CACHE_MS = 5000; // Reconstruire les polylignes toutes les 5 s
   let couvreurLastPosition = null; // Dernière position avec mouvement significatif {lat, lon, time}
   let couvreurCheckInterval = null; // Intervalle de vérification
   const COUVREUR_NO_MOVEMENT_THRESHOLD = 3; // mètres (large de 3m)
-  const COUVREUR_ALERT_DELAY = 10 * 60 * 1000; // 10 minutes en millisecondes
+  const COUVREUR_ALERT_DELAY = 5 * 60 * 1000; // 5 minutes en millisecondes
   const COUVREUR_CHECK_INTERVAL = 30 * 1000; // Vérifier toutes les 30 secondes
   
+
   // Timer et sonnerie pour le SMS
   let smsTimerStartTime = null; // Timestamp du début du timer SMS
   let smsTimerEndTime = null; // Timestamp de la fin du timer SMS (quand le SMS est envoyé)
@@ -3679,7 +3784,7 @@ async function loadSharedCalibrations() {
     console.log("Impossible de charger les calibrages partagés :", e);
   }
 }
-// Laisse l’appel désactivé tant que le fichier n’existe pas :
+// Laisse l'appel désactivé tant que le fichier n'existe pas :
 // loadSharedCalibrations();
 
 
@@ -3699,13 +3804,13 @@ async function loadSharedCalibrations() {
 
     // Méthode pour mobile et desktop
     try {
-      const a = document.createElement("a");
-      a.href = url;
+    const a = document.createElement("a");
+    a.href = url;
       a.download = filename;
       a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
       
       // Sur mobile, afficher aussi le contenu pour copier
       setTimeout(() => {
@@ -3742,7 +3847,7 @@ async function loadSharedCalibrations() {
         }
       }, 100);
       
-      URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Erreur lors de l'export :", error);
       // Fallback : afficher le JSON dans une alerte ou une nouvelle fenêtre
@@ -3784,7 +3889,7 @@ async function loadSharedCalibrations() {
   const pkCurrentDetails = document.getElementById("pkCurrentDetails");
 
   const btnOrientationToggle = document.getElementById("btnOrientationToggle");
-  const orientationCard   = document.getElementById("orientationCard");
+const orientationCard   = document.getElementById("orientationCard");
   const orientGareValueEl = document.getElementById("orientGareValue");
 
   const btnFermeturesToggle = document.getElementById("btnFermeturesToggle");
@@ -3824,7 +3929,7 @@ async function loadSharedCalibrations() {
   const incidentResultText = document.getElementById("incidentResultText");
   const btnCopyIncident = document.getElementById("btnCopyIncident");
 
-  // AJOUT CALIBRAGE : bouton d’export
+  // AJOUT CALIBRAGE : bouton d'export
   const btnExportCalibrations = document.getElementById("btnExportCalibrations");
 
   function formatPk(pkMeters) {
@@ -3858,6 +3963,56 @@ async function loadSharedCalibrations() {
               Math.sin(dLon/2)**2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
+  }
+
+  function computeBearing(lat1, lon1, lat2, lon2) {
+    if (
+      !Number.isFinite(lat1) || !Number.isFinite(lon1) ||
+      !Number.isFinite(lat2) || !Number.isFinite(lon2)
+    ) {
+      return null;
+    }
+    const toRad = deg => deg * Math.PI / 180;
+    const toDeg = rad => rad * 180 / Math.PI;
+    const φ1 = toRad(lat1);
+    const φ2 = toRad(lat2);
+    const Δλ = toRad(lon2 - lon1);
+    const y = Math.sin(Δλ) * Math.cos(φ2);
+    const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+    if (x === 0 && y === 0) {
+      return null;
+    }
+    const θ = Math.atan2(y, x);
+    return (toDeg(θ) + 360) % 360;
+  }
+
+  function projectForward(lat, lon, distanceMeters, bearingDegrees) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || !Number.isFinite(distanceMeters) || !Number.isFinite(bearingDegrees)) {
+      return { lat, lon };
+    }
+    const R = 6378137; // Rayon moyen de la Terre (WGS84)
+    const δ = distanceMeters / R;
+    const θ = bearingDegrees * Math.PI / 180;
+    const φ1 = lat * Math.PI / 180;
+    const λ1 = lon * Math.PI / 180;
+
+    const sinφ1 = Math.sin(φ1);
+    const cosφ1 = Math.cos(φ1);
+    const sinδ = Math.sin(δ);
+    const cosδ = Math.cos(δ);
+    const sinθ = Math.sin(θ);
+    const cosθ = Math.cos(θ);
+
+    const sinφ2 = sinφ1 * cosδ + cosφ1 * sinδ * cosθ;
+    const φ2 = Math.asin(sinφ2);
+    const y = sinθ * sinδ * cosφ1;
+    const x = cosδ - sinφ1 * sinφ2;
+    const λ2 = λ1 + Math.atan2(y, x);
+
+    return {
+      lat: φ2 * 180 / Math.PI,
+      lon: ((λ2 * 180 / Math.PI + 540) % 360) - 180 // normalisation -180/+180
+    };
   }
 
   function projectToSegment(lat, lon, a, b) {
@@ -3937,7 +4092,7 @@ async function loadSharedCalibrations() {
       if (pk == null) continue;
       const d = distanceMeters(lat, lon, c.lat, c.lon);
       // Les points de calibration sont plus précis, on les garde dans un rayon de 3000m (augmenté de 1000m)
-      // et on leur donne un poids plus élevé (2.0 au lieu de 1.5) car ce sont des mesures calibrées
+      // et on leur donne un poids plus élevé (2.0 au lieu de 1.0) car ce sont des mesures calibrées
       if (d < 3000) {
         // Ajuster le poids selon l'accuracy GPS du point de calibration (si disponible)
         // Plus l'accuracy est bonne (faible valeur), plus le poids est élevé
@@ -4135,7 +4290,6 @@ function buildCalibrationPolylines() {
     .concat(calibTronc, brancheChessy, calibChessy)
     .sort((a, b) => a.pk - b.pk);
 }
-
   function findNearestStation(pk, branch) {
     if (pk == null) return null;
     let list;
@@ -4166,49 +4320,56 @@ function buildCalibrationPolylines() {
   // Crée les 3 pétards espacés de 30 m
   function makePetards(basePk, direction) {
     // direction = "est" (PK augmente) ou "ouest" (PK diminue)
-    const rail = direction === "est" ? "droite" : "gauche";
-    return [
-      {
-        order: 1,
-        railFile: rail,
-        pk: basePk,
-      }
-    ];
+    const sign = direction === "est" ? 1 : -1;
+    const railOrder = ["droite", "gauche", "droite"];
+    return railOrder.map((rail, index) => ({
+      order: index + 1,
+      railFile: rail,
+      pk: basePk + sign * index * PETARD_SPACING,
+    }));
   }
 
   // Fonction principale pour calculer les marqueurs de couverture
   function computeCoverageMarkers(pkStart, pkEnd) {
     const results = [];
 
-    // Côté PK début : SAM à 100m en direction St-Germain (PK diminue)
-    // Exemple : PK chantier 48000 → SAM à 47900
-    const pkSamStart = pkStart - SAM_OFFSET;
-    // Premier pétard à 800m du SAM (donc 800m en amont du SAM)
-    // Exemple : SAM 47900 → premier pétard à 47100 (47900 - 800)
-    const pkPetardsStart = pkSamStart - DISTANCE_RULE;
-    const petardsStart = makePetards(pkPetardsStart, "ouest");
+    if (Number.isFinite(pkStart)) {
+      // Côté PK début : SAM à 100m en direction St-Germain (PK diminue)
+      // Exemple : PK chantier 48000 → SAM à 47900
+      const pkSamStart = pkStart - SAM_OFFSET;
+      // Premier pétard à 800m du SAM (donc 800m en amont du SAM)
+      // Exemple : SAM 47900 → premier pétard à 47100 (47900 - 800)
+      const pkPetardsStart = pkSamStart - DISTANCE_RULE;
+      const petardsStart = makePetards(pkPetardsStart, "ouest");
 
-    results.push({
-      side: "pkStart",
-      pkSamRep: pkSamStart,
-      petards: petardsStart,
-      rationale: `SAM à ${SAM_OFFSET} m en direction St-Germain, pétard placé à ${DISTANCE_RULE} m en amont`,
-    });
+      results.push({
+        side: "pkStart",
+        pkSamRep: pkSamStart,
+        petards: petardsStart,
+        rationale: `SAM à ${SAM_OFFSET} m en direction St-Germain, 3 pétards espacés de ${PETARD_SPACING} m en amont`,
+      });
+    }
 
-    // Côté PK fin : SAM à 100m en direction Chessy/Boissy (PK augmente)
-    // Exemple : PK chantier 49000 → SAM à 49100
-    const pkSamEnd = pkEnd + SAM_OFFSET;
-    // Premier pétard à 800m du SAM (donc 800m en amont du SAM)
-    // Exemple : SAM 49100 → premier pétard à 49900 (49100 + 800)
-    const pkPetardsEnd = pkSamEnd + DISTANCE_RULE;
-    const petardsEnd = makePetards(pkPetardsEnd, "est");
+    if (Number.isFinite(pkEnd)) {
+      // Côté PK fin : SAM à 100m en direction Chessy/Boissy (PK augmente)
+      // Exemple : PK chantier 49000 → SAM à 49100
+      const pkSamEnd = pkEnd + SAM_OFFSET;
+      // Premier pétard à 800m du SAM (donc 800m en amont du SAM)
+      // Exemple : SAM 49100 → premier pétard à 49900 (49100 + 800)
+      const pkPetardsEnd = pkSamEnd + DISTANCE_RULE;
+      const petardsEnd = makePetards(pkPetardsEnd, "est");
 
-    results.push({
-      side: "pkEnd",
-      pkSamRep: pkSamEnd,
-      petards: petardsEnd,
-      rationale: `SAM à ${SAM_OFFSET} m en direction Chessy/Boissy, pétard placé à ${DISTANCE_RULE} m en amont`,
-    });
+      results.push({
+        side: "pkEnd",
+        pkSamRep: pkSamEnd,
+        petards: petardsEnd,
+        rationale: `SAM à ${SAM_OFFSET} m en direction Chessy/Boissy, 3 pétards espacés de ${PETARD_SPACING} m en amont`,
+      });
+    }
+
+    if (!results.length) {
+      throw new Error("Aucun PK valide fourni pour le calcul.");
+    }
 
     return {
       lineId: "RERA",
@@ -4461,7 +4622,6 @@ function buildCalibrationPolylines() {
     }
     return candidates[0] || findNearestStation(pk, branch);
   }
-
 function detectBranch(lat, lon) {
   // Si on n'a pas de GPS (cas de certains accès sans coordonnées),
   // on reste en "both" = tronc commun / branche inconnue
@@ -4569,7 +4729,6 @@ function detectBranch(lat, lon) {
 
   return minBoissy < minChessy ? "boissy" : "chessy";
 }
-
   function safeGetItem(key) {
     try {
       return localStorage.getItem(key);
@@ -4607,6 +4766,9 @@ function detectBranch(lat, lon) {
     );
     if (orientationCard) {
       orientationCard.style.display = orientationEnabled ? "block" : "none";
+      if (!orientationEnabled) {
+        orientationCard.classList.remove("is-live");
+      }
     }
     safeSetItem(ORIENT_ENABLED_KEY, orientationEnabled ? "1" : "0");
     if (orientationEnabled) {
@@ -4661,7 +4823,6 @@ function detectBranch(lat, lon) {
     const storedFerm = safeGetItem(FERMETURES_ENABLED_KEY);
     setFermeturesEnabled(storedFerm === "1");
 }
-
   function updateOffsetInfo() {
     const val = Math.round(pkOffset);
     const sign = val === 0 ? "0" : (val > 0 ? "+"+val : ""+val);
@@ -4803,7 +4964,7 @@ function detectBranch(lat, lon) {
       error: {
         className: "status-badge status-badge--danger",
         label: "GPS KO",
-        message: "Impossible d’obtenir la position. Vérifie les autorisations."
+        message: "Impossible d'obtenir la position. Vérifie les autorisations."
       }
     };
 
@@ -4862,7 +5023,8 @@ function detectBranch(lat, lon) {
 
   // Throttle pour limiter la fréquence des mises à jour (économie batterie)
   let lastUpdateTime = 0;
-  const UPDATE_THROTTLE_MS = 1000; // Mise à jour max toutes les 1 seconde
+  const UPDATE_THROTTLE_MS = 600; // Mise à jour max toutes les 0,6 seconde
+  const HEADING_MIN_DISTANCE_M = 1.5; // Distance mini (m) avant de recalculer le cap
 
   function handlePosition(pos) {
     const lat = pos.coords.latitude;
@@ -4881,7 +5043,7 @@ function detectBranch(lat, lon) {
       : undefined;
     setGpsStatus("ok", accuracyText);
 
-    // Si moins de 1 seconde depuis la dernière mise à jour, ignorer (sauf première position)
+    // Si moins de 0,4 seconde depuis la dernière mise à jour, ignorer (sauf première position)
     if (timeSinceLastUpdate < UPDATE_THROTTLE_MS && state.lastPk != null) {
       return;
     }
@@ -4910,8 +5072,8 @@ function detectBranch(lat, lon) {
     if (state.lastPk != null && state.lastPkTime != null) {
       const dPk = correctedPk - state.lastPk;
       const dt = nowSeconds - state.lastPkTime;
-      if (dt > 1) {
-        updateMovement(dPk, dt);
+      if (dt > 0.4) {
+        updateMovement(dPk, dt, lat, lon);
       }
     } else {
       movementTitle.textContent = "Détection en cours";
@@ -4944,12 +5106,22 @@ function detectBranch(lat, lon) {
     updateOrientationPanel();
   }
 
-  function updateMovement(dPk, dt) {
+  function updateMovement(dPk, dt, lat, lon) {
     const profile = sensitivityProfiles[motionSensitivity] || sensitivityProfiles.normal;
     const speed = Math.abs(dPk) / dt;
 
     if (dPk > 0) state.direction = "est";
     else if (dPk < 0) state.direction = "ouest";
+
+    if (state.lastLat != null && state.lastLon != null) {
+      const travel = distanceMeters(state.lastLat, state.lastLon, lat, lon);
+      if (travel >= HEADING_MIN_DISTANCE_M) {
+        const heading = computeBearing(state.lastLat, state.lastLon, lat, lon);
+        if (Number.isFinite(heading)) {
+          state.heading = heading;
+        }
+      }
+    }
 
     const dirLabel = state.direction === "est" ? "vers Chessy / Boissy"
                     : state.direction === "ouest" ? "vers St-Germain / Paris"
@@ -5018,7 +5190,6 @@ function detectBranch(lat, lon) {
   const dir = delta >= 0 ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
   if (pkTargetInfo) pkTargetInfo.textContent = "PK " + formatPk(pkTarget) + " · ≈ " + dist + " m " + dir;
 }
-
   // Variables globales pour la carte Leaflet
   let orientationMap = null;
   let pkActuelMarker = null;
@@ -5116,7 +5287,7 @@ function detectBranch(lat, lon) {
   }
 
   // Fonction principale pour mettre à jour la carte du plan
-  function updateOrientationPanel() {
+    function updateOrientationPanel() {
     const card = document.getElementById("orientationCard");
     const pkValue = document.getElementById("orientPkValue");
     const dirValue = document.getElementById("orientDirValue");
@@ -5126,52 +5297,54 @@ function detectBranch(lat, lon) {
 
     if (!card || !pkValue || !dirValue || !gareValue || !accessValue || !infoPanel) return;
 
-    // Si le bloc est caché, on ne fait rien
-    if (card.style.display === "none") return;
+  // Si le bloc est caché, on ne fait rien
+  if (card.style.display === "none") return;
 
     // Initialiser la carte si nécessaire
     if (!orientationMap) {
       initOrientationMap();
     }
 
-    // Pas encore de GPS
+  // Pas encore de GPS
     if (state.lastPk == null || state.lastLat == null || state.lastLon == null) {
       pkValue.textContent = "—";
       dirValue.textContent = "En attente de position…";
       gareValue.textContent = "—";
       accessValue.textContent = "—";
       infoPanel.style.display = "none";
-      return;
-    }
+      card.classList.remove("is-live");
+    return;
+  }
 
     // Afficher le panneau d'information
     infoPanel.style.display = "block";
+    card.classList.add("is-live");
 
     // Coordonnées GPS actuelles
     const currentLat = state.lastLat;
     const currentLon = state.lastLon;
 
-    // PK actuel + cible
+  // PK actuel + cible
     let txtPk = formatPk(state.lastPk);
-    if (pkTarget) {
-      txtPk += " · cible " + formatPk(pkTarget);
-    }
+  if (pkTarget) {
+    txtPk += " · cible " + formatPk(pkTarget);
+  }
     pkValue.textContent = txtPk;
 
-    // Sens
-    let dirLabel = "indéterminé";
+  // Sens
+  let dirLabel = "indéterminé";
     let directionAngle = null; // Angle en degrés pour la flèche (0 = Nord, 90 = Est, etc.)
     
-    if (state.direction === "est") {
-      dirLabel = "vers Chessy / Boissy";
+  if (state.direction === "est") {
+    dirLabel = "vers Chessy / Boissy";
       directionAngle = 90; // Est
-    } else if (state.direction === "ouest") {
-      dirLabel = "vers St-Germain / Paris";
+  } else if (state.direction === "ouest") {
+    dirLabel = "vers St-Germain / Paris";
       directionAngle = 270; // Ouest
-    }
+  }
 
-    if (pkTarget && state.lastPk != null) {
-      const delta = pkTarget - state.lastPk;
+  if (pkTarget && state.lastPk != null) {
+    const delta = pkTarget - state.lastPk;
       if (delta > 0) {
         dirLabel = "vers le PK cible (Chessy / Boissy)";
         directionAngle = 90;
@@ -5182,7 +5355,7 @@ function detectBranch(lat, lon) {
     }
     dirValue.textContent = dirLabel;
 
-    // Gare la plus proche
+  // Gare la plus proche
     if (state.nearestStation && state.nearestStation.lat != null && state.nearestStation.lon != null) {
       currentNearestStationData = state.nearestStation;
       gareValue.textContent = state.nearestStation.name + " (PK " + formatPk(state.nearestStation.pk) + ")";
@@ -5197,17 +5370,17 @@ function detectBranch(lat, lon) {
       gareValue.removeAttribute("data-orient-action");
       gareValue.removeAttribute("role");
       gareValue.removeAttribute("tabindex");
-    } else {
+  } else {
       currentNearestStationData = null;
       gareValue.textContent = "—";
       gareValue.classList.remove("is-clickable");
       gareValue.removeAttribute("data-orient-action");
       gareValue.removeAttribute("role");
       gareValue.removeAttribute("tabindex");
-    }
+  }
 
-    // 2 accès les plus proches autour de moi
-    const list = getNearestAccessesGeo(state.lastLat, state.lastLon, state.lastPk, 2);
+  // 2 accès les plus proches autour de moi
+  const list = getNearestAccessesGeo(state.lastLat, state.lastLon, state.lastPk, 2);
     currentNearestAccessesData = Array.isArray(list) ? list : [];
     state.nearestAccess = currentNearestAccessesData.length ? currentNearestAccessesData[0].acc : null;
     currentNearestAccessMarkers = [];
@@ -5227,7 +5400,7 @@ function detectBranch(lat, lon) {
           accessValue.appendChild(document.createElement("br"));
         }
       });
-    } else {
+  } else {
       accessValue.textContent = "—";
     }
 
@@ -5333,7 +5506,7 @@ function detectBranch(lat, lon) {
 
     if (currentNearestAccessesData.length) {
       currentNearestAccessesData.forEach((item, index) => {
-        const acc = item.acc;
+      const acc = item.acc;
         if (!acc || acc.lat == null || acc.lon == null) {
           currentNearestAccessMarkers[index] = null;
           return;
@@ -5363,60 +5536,38 @@ function detectBranch(lat, lon) {
     updateVisibleMarkers();
 
     // Ajouter la flèche de direction qui avance en temps réel
-    if (directionAngle !== null) {
-      // Calculer la position de la flèche devant la position actuelle dans la direction du mouvement
-      // Distance approximative : ~50 mètres devant (0.0005 degrés ≈ 50m à cette latitude)
-      const arrowDistance = 0.0005; // Distance en degrés (environ 50m)
-      
-      // Convertir l'angle en radians pour les calculs trigonométriques
-      const angleRad = (directionAngle * Math.PI) / 180;
-      
-      // Calculer le décalage lat/lon pour positionner la flèche devant
-      // Note: directionAngle 90 = Est, 270 = Ouest
-      // Pour Est (90°): décalage vers l'Est (lon augmente)
-      // Pour Ouest (270°): décalage vers l'Ouest (lon diminue)
-      let arrowLat, arrowLon;
-      
-      if (directionAngle === 90) {
-        // Direction Est (vers Chessy/Boissy) - décalage vers l'Est
-        arrowLat = currentLat;
-        arrowLon = currentLon + arrowDistance;
-      } else if (directionAngle === 270) {
-        // Direction Ouest (vers St-Germain/Paris) - décalage vers l'Ouest
-        arrowLat = currentLat;
-        arrowLon = currentLon - arrowDistance;
-      } else {
-        // Direction générale (calcul trigonométrique)
-        arrowLat = currentLat + arrowDistance * Math.cos(angleRad);
-        arrowLon = currentLon + arrowDistance * Math.sin(angleRad);
-      }
-      
-      // Créer une flèche HTML avec rotation et animation de mouvement
-      const arrowHtml = '<div class="direction-arrow direction-arrow-moving" style="transform: rotate(' + directionAngle + 'deg);"></div>';
+    const arrowHeading = Number.isFinite(state.heading)
+      ? state.heading
+      : (Number.isFinite(directionAngle) ? directionAngle : null);
+
+    if (Number.isFinite(arrowHeading)) {
+      const forwardPoint = projectForward(currentLat, currentLon, ARROW_DISTANCE_METERS, arrowHeading);
+      const arrowHtml = '<div class="direction-arrow direction-arrow-moving" style="--arrow-rotation: ' + arrowHeading + 'deg;"></div>';
       const directionIcon = L.divIcon({
         className: "leaflet-marker-direction",
         html: arrowHtml,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20],
+        iconSize: [44, 44],
+        iconAnchor: [22, 22],
       });
-      
-      // Positionner la flèche devant la position actuelle
-      directionMarker = L.marker([arrowLat, arrowLon], {
+      directionMarker = L.marker([forwardPoint.lat, forwardPoint.lon], {
         icon: directionIcon,
         zIndexOffset: 1100,
       }).addTo(orientationMap);
-      directionMarker.bindPopup("Sens : " + dirLabel + "<br>Position : " + formatPk(state.lastPk));
+      const popupLabel = dirLabel && dirLabel.trim().length ? dirLabel : "Direction";
+      directionMarker.bindPopup("Sens : " + popupLabel + "<br>Position : " + formatPk(state.lastPk));
     } else {
-      // Flèche grisée si direction indéterminée (positionnée au-dessus du point)
-      const arrowHtml = '<div class="direction-arrow direction-arrow-indetermine"></div>';
+      const arrowHtml = '<div class="direction-arrow direction-arrow-indetermine" style="--arrow-rotation: 0deg;"></div>';
       const directionIcon = L.divIcon({
         className: "leaflet-marker-direction",
         html: arrowHtml,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20],
+        iconSize: [44, 44],
+        iconAnchor: [22, 22],
       });
-      const arrowLat = currentLat + 0.0003; // Décalage vers le nord si indéterminé
-      directionMarker = L.marker([arrowLat, currentLon], {
+      const fallbackPoint = {
+        lat: currentLat + 0.0003,
+        lon: currentLon
+      };
+      directionMarker = L.marker([fallbackPoint.lat, fallbackPoint.lon], {
         icon: directionIcon,
         zIndexOffset: 1100,
       }).addTo(orientationMap);
@@ -5641,7 +5792,6 @@ function detectBranch(lat, lon) {
       }
     }, 1000); // Mise à jour toutes les secondes
   }
-
   // Fonction pour marquer le SMS comme envoyé et arrêter le timer
   function markSmsAsSent() {
     if (smsSent) return; // Déjà marqué comme envoyé
@@ -5782,7 +5932,6 @@ function detectBranch(lat, lon) {
     
     console.log('🔇 Sonnerie d\'alarme arrêtée');
   }
-
   // Fonction pour vérifier le mouvement et déclencher l'alerte si nécessaire
   function checkCouvreurMovement() {
     if (!couvreurSeulActive) return;
@@ -5825,12 +5974,12 @@ function detectBranch(lat, lon) {
     }
 
     // Si on est ici, on n'a pas bougé de plus de 3m
-    // Vérifier si on est resté immobile pendant 10 minutes
+    // Vérifier si on est resté immobile pendant 5 minutes
     if (couvreurLastMovementTime != null) {
       const timeSinceLastMovement = now - couvreurLastMovementTime;
       if (timeSinceLastMovement >= COUVREUR_ALERT_DELAY) {
-        // 10 minutes sans mouvement : envoyer le SMS automatiquement
-        console.log("Alerte couvreur cheminant seul : pas de mouvement depuis 10 minutes, envoi du SMS automatique.");
+        // 5 minutes sans mouvement : envoyer le SMS automatiquement
+        console.log("Alerte couvreur cheminant seul : pas de mouvement depuis 5 minutes, envoi du SMS automatique.");
         sendSmsAuto();
         // Désactiver le mode après l'envoi
         stopCouvreurSeul();
@@ -5840,7 +5989,6 @@ function detectBranch(lat, lon) {
       }
     }
   }
-
   // Fonction pour mettre à jour l'affichage du statut
   function updateCouvreurStatus() {
     if (!couvreurStatus) return;
@@ -5952,7 +6100,7 @@ function detectBranch(lat, lon) {
 
   function openPkLookupInMaps() {
     if (!lastPkLookupAccess) {
-      alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
+      alert("Aucun accès sélectionné. Lance une recherche par PK d'abord.");
       return;
     }
 
@@ -5965,7 +6113,7 @@ function detectBranch(lat, lon) {
       url = "https://maps.google.com/?q=" +
         lastPkLookupAccess.lat + "," + lastPkLookupAccess.lon;
     } else {
-      // Sinon on ouvre une recherche sur l’adresse / le nom
+      // Sinon on ouvre une recherche sur l'adresse / le nom
       const query = lastPkLookupAccess.address || lastPkLookupAccess.name;
       url = "https://www.google.com/maps/search/?api=1&query=" +
         encodeURIComponent(query);
@@ -5976,7 +6124,7 @@ function detectBranch(lat, lon) {
 
   function openPkLookupInWaze() {
     if (!lastPkLookupAccess) {
-      alert("Aucun accès sélectionné. Lance une recherche par PK d’abord.");
+      alert("Aucun accès sélectionné. Lance une recherche par PK d'abord.");
       return;
     }
     const lat = lastPkLookupAccess.lat;
@@ -5991,111 +6139,111 @@ function detectBranch(lat, lon) {
   }
 
   if (selectIncidentType) {
-    selectIncidentType.addEventListener("change", () => {
-      if (selectIncidentType.value === "Autre") {
+  selectIncidentType.addEventListener("change", () => {
+    if (selectIncidentType.value === "Autre") {
         if (incidentOtherField) incidentOtherField.style.display = "block";
-      } else {
+    } else {
         if (incidentOtherField) incidentOtherField.style.display = "none";
-      }
-    });
+    }
+  });
   }
 
   if (btnGenerateIncident) {
-    btnGenerateIncident.addEventListener("click", () => {
-      if (state.lastPk == null || state.lastLat == null) {
-        alert("Position GPS non disponible. Lance la géoloc avant de signaler.");
-        return;
-      }
+  btnGenerateIncident.addEventListener("click", () => {
+    if (state.lastPk == null || state.lastLat == null) {
+      alert("Position GPS non disponible. Lance la géoloc avant de signaler.");
+      return;
+    }
       let type = selectIncidentType ? selectIncidentType.value : "";
-      if (!type) {
+    if (!type) {
         alert("Choisis un type d'incident avant de générer le message.");
+      return;
+    }
+    if (type === "Autre") {
+        const desc = inputIncidentOther ? inputIncidentOther.value.trim() : "";
+      if (!desc) {
+          alert("Précise la nature de l'incident.");
         return;
       }
-      if (type === "Autre") {
-        const desc = inputIncidentOther ? inputIncidentOther.value.trim() : "";
-        if (!desc) {
-          alert("Précise la nature de l'incident.");
-          return;
-        }
-        type = desc;
-      }
+      type = desc;
+    }
 
-      const pkTxt = "PK " + formatPk(state.lastPk);
-      const station = state.nearestStation ? state.nearestStation.name : "inconnue";
-      const lat = state.lastLat.toFixed(5);
-      const lon = state.lastLon.toFixed(5);
-      const now = new Date();
-      const dateTxt = now.toLocaleDateString("fr-FR");
-      const timeTxt = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    const pkTxt = "PK " + formatPk(state.lastPk);
+    const station = state.nearestStation ? state.nearestStation.name : "inconnue";
+    const lat = state.lastLat.toFixed(5);
+    const lon = state.lastLon.toFixed(5);
+    const now = new Date();
+    const dateTxt = now.toLocaleDateString("fr-FR");
+    const timeTxt = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
-      let message =
+    let message =
         "🚨 Signalement d'avarie / incident\n" +
-        "Type : " + type + "\n" +
-        "PK : " + pkTxt + "\n" +
-        "Branche : " + (currentBranch === "boissy"
-                        ? "Boissy-Saint-Léger"
-                        : currentBranch === "chessy"
-                          ? "Marne-la-Vallée – Chessy"
-                          : "inconnue") + "\n" +
-        "Gare la plus proche : " + station + "\n";
+      "Type : " + type + "\n" +
+      "PK : " + pkTxt + "\n" +
+      "Branche : " + (currentBranch === "boissy"
+                      ? "Boissy-Saint-Léger"
+                      : currentBranch === "chessy"
+                        ? "Marne-la-Vallée – Chessy"
+                        : "inconnue") + "\n" +
+      "Gare la plus proche : " + station + "\n";
 
-      if (state.nearestAccess) {
-        message +=
-          "Accès le plus proche : " + state.nearestAccess.name +
-          " (" + state.nearestAccess.address + ")\n";
-      }
-
+    if (state.nearestAccess) {
       message +=
-        "Coordonnées : " + lat + ", " + lon + "\n" +
-        "Date/heure : " + dateTxt + " – " + timeTxt;
+        "Accès le plus proche : " + state.nearestAccess.name +
+        " (" + state.nearestAccess.address + ")\n";
+    }
 
-      if (incidentPhotoInput && incidentPhotoInput.files && incidentPhotoInput.files.length > 0) {
-        const file = incidentPhotoInput.files[0];
-        if (file && file.name) {
-          message += "\nPhoto jointe : " + file.name;
-        }
+    message +=
+      "Coordonnées : " + lat + ", " + lon + "\n" +
+      "Date/heure : " + dateTxt + " – " + timeTxt;
+
+    if (incidentPhotoInput && incidentPhotoInput.files && incidentPhotoInput.files.length > 0) {
+      const file = incidentPhotoInput.files[0];
+      if (file && file.name) {
+        message += "\nPhoto jointe : " + file.name;
       }
+    }
 
       if (incidentResultText) incidentResultText.value = message;
       if (incidentResultField) incidentResultField.style.display = "block";
-    });
+  });
   }
 
   if (btnCopyIncident) {
-    btnCopyIncident.addEventListener("click", () => {
-      const text = incidentResultText.value;
-      if (!text) {
-        alert("Aucun message à copier.");
-        return;
-      }
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(() => {
-          alert("Message copié dans le presse-papiers ✅");
-        }).catch(() => {
-          incidentResultText.select();
-          document.execCommand("copy");
-          alert("Message copié dans le presse-papiers ✅");
-        });
-      } else {
+  btnCopyIncident.addEventListener("click", () => {
+    const text = incidentResultText.value;
+    if (!text) {
+      alert("Aucun message à copier.");
+      return;
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Message copié dans le presse-papiers ✅");
+      }).catch(() => {
         incidentResultText.select();
         document.execCommand("copy");
         alert("Message copié dans le presse-papiers ✅");
-      }
-    });
+      });
+    } else {
+      incidentResultText.select();
+      document.execCommand("copy");
+      alert("Message copié dans le presse-papiers ✅");
+    }
+  });
   }
 
   if (btnToggleGeoloc) {
-    btnToggleGeoloc.addEventListener("click", () => {
-      if (geolocActive) stopGeoloc();
-      else startGeoloc();
-    });
+  btnToggleGeoloc.addEventListener("click", () => {
+    if (geolocActive) stopGeoloc();
+    else startGeoloc();
+  });
   }
 
   if (btnSettingsToggle && settingsPanel) {
-    btnSettingsToggle.addEventListener("click", () => {
-      const isVisible = settingsPanel.style.display !== "none";
-      settingsPanel.style.display = isVisible ? "none" : "block";
-    });
+  btnSettingsToggle.addEventListener("click", () => {
+    const isVisible = settingsPanel.style.display !== "none";
+    settingsPanel.style.display = isVisible ? "none" : "block";
+  });
   }
 
   // === README / TUTORIEL ===
@@ -6114,14 +6262,14 @@ function detectBranch(lat, lon) {
         <ul style="margin-left: 20px; margin-top: 8px;">
           <li>Clique sur <strong>Démarrer la géoloc</strong> pour activer le GPS.</li>
           <li>Le PK actuel apparaît dans le panneau statut (la branche est détectée automatiquement).</li>
-          <li>La gare la plus proche, la prochaine et les accès autour de toi s’actualisent en direct.</li>
+          <li>La gare la plus proche, la prochaine et les accès autour de toi s'actualisent en direct.</li>
         </ul>
 
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🎯 PK cible</h3>
-        <p>Définis un objectif pour t’orienter :</p>
+        <p>Définis un objectif pour t'orienter :</p>
         <ul style="margin-left: 20px; margin-top: 8px;">
           <li>Saisis un PK (ex&nbsp;: <code>32400</code> ou <code>32+400</code>) puis clique sur <strong>Définir ce PK comme cible</strong>.</li>
-          <li>La carte affiche une croix rouge et le panneau statut indique l’écart par rapport à ta position.</li>
+          <li>La carte affiche une croix rouge et le panneau statut indique l'écart par rapport à ta position.</li>
         </ul>
 
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🗺️ Navigation & plan</h3>
@@ -6130,7 +6278,7 @@ function detectBranch(lat, lon) {
           <li>Coche <strong>Plan – PK / gares / accès</strong> pour afficher la carte Leaflet.</li>
           <li>Le halo bleu représente ta position. Les gares et accès apparaissent selon le niveau de zoom.</li>
           <li>La légende pastel permet de centrer immédiatement sur un feu rouge ou un pétard (les popups intègrent des boutons Waze/Maps).</li>
-          <li>Les puces interactives du panneau statut (gare et accès) permettent également d’ouvrir la carte sur ces repères.</li>
+          <li>Les puces interactives du panneau statut (gare et accès) permettent également d'ouvrir la carte sur ces repères.</li>
         </ul>
 
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🚨 Urgence / SMS</h3>
@@ -6143,25 +6291,25 @@ function detectBranch(lat, lon) {
 
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ Paramètres & outils</h3>
         <ul style="margin-left: 20px; margin-top: 8px;">
-          <li><strong>Signalement d'avarie</strong> : génère un message complet (type, PK, coordonnées, accès) avec possibilité d’ajouter une photo.</li>
+          <li><strong>Signalement d'avarie</strong> : génère un message complet (type, PK, coordonnées, accès) avec possibilité d'ajouter une photo.</li>
           <li><strong>Sensibilité au mouvement</strong> : choisis entre <em>Marche lente</em>, <em>Normal</em> ou <em>Train</em>.</li>
-          <li><strong>Recalage PK</strong> : saisis un PK exact pour corriger l’offset et enrichir la base (export JSON).</li>
+          <li><strong>Recalage PK</strong> : saisis un PK exact pour corriger l'offset et enrichir la base (export JSON).</li>
           <li><strong>Points de carte</strong> : enregistre ta position actuelle avec une description (accès, clef VCC, etc.).</li>
           <li><strong>Calcul couverture travaux</strong> : calcule les SAM/pétards et affiche leurs popups (navigation Waze/Maps incluse).</li>
-          <li><strong>Recherche par PK</strong> : retrouve l’accès le plus proche et ouvre Google Maps ou Waze en un clic.</li>
-          <li><strong>Numéro SOS</strong> : stocke le numéro utilisé par les SMS d’urgence et le mode couvreur.</li>
+          <li><strong>Recherche par PK</strong> : retrouve l'accès le plus proche et ouvre Google Maps ou Waze en un clic.</li>
+          <li><strong>Numéro SOS</strong> : stocke le numéro utilisé par les SMS d'urgence et le mode couvreur.</li>
           <li><strong>Fermetures nocturnes</strong> : charge les fermetures proposées par Sytadin pour la date du jour.</li>
         </ul>
 
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">💡 Conseils</h3>
         <ul style="margin-left: 20px; margin-top: 8px;">
-          <li><strong>Précision GPS</strong> : meilleure en extérieur ; l’animation de fond se met en pause quand l’appli est masquée pour économiser la batterie.</li>
+          <li><strong>Précision GPS</strong> : meilleure en extérieur ; l'animation de fond se met en pause quand l'appli est masquée pour économiser la batterie.</li>
           <li><strong>Recalages réguliers</strong> : plus tu en enregistres, plus le calcul PK gagne en précision.</li>
-          <li><strong>Carte</strong> : la légende et les puces d’accès sont pensées pour un usage mobile (touch cible élargie).</li>
+          <li><strong>Carte</strong> : la légende et les puces d'accès sont pensées pour un usage mobile (touch cible élargie).</li>
         </ul>
 
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🔒 Sécurité</h3>
-        <p>Tous les réglages (numéro SOS, recalages, points de carte, préférences de carte) sont stockés en local dans ton navigateur. Ils ne sont pas perdus lors des mises à jour de l’application.</p>
+        <p>Tous les réglages (numéro SOS, recalages, points de carte, préférences de carte) sont stockés en local dans ton navigateur. Ils ne sont pas perdus lors des mises à jour de l'application.</p>
       </div>
     `;
 
@@ -6184,20 +6332,20 @@ function detectBranch(lat, lon) {
   }
 
   if (btnSetPkTarget && inputPkTarget) {
-    btnSetPkTarget.addEventListener("click", () => {
-      const val = parsePkInput(inputPkTarget.value);
-      if (val == null) {
-        alert("PK cible invalide. Utilise 32400 ou 32+400.");
-        return;
-      }
-      pkTarget = val;
-      updatePkTargetView();
-      updateOrientationPanel();
-    });
+  btnSetPkTarget.addEventListener("click", () => {
+    const val = parsePkInput(inputPkTarget.value);
+    if (val == null) {
+      alert("PK cible invalide. Utilise 32400 ou 32+400.");
+      return;
+    }
+    pkTarget = val;
+    updatePkTargetView();
+    updateOrientationPanel();
+  });
   }
 
   if (btnSms) {
-    btnSms.addEventListener("click", sendSms);
+  btnSms.addEventListener("click", sendSms);
   }
 
   // === MODE COUVREUR CHEMINANT SEUL ===
@@ -6212,62 +6360,61 @@ function detectBranch(lat, lon) {
   }
 
   if (btnResetOffset) {
-    btnResetOffset.addEventListener("click", () => {
-      pkOffset = 0;
-      safeSetItem("pkOffset", pkOffset);
-      updateOffsetInfo();
-      if (state.lastRawPk != null) {
-        state.lastPk = state.lastRawPk;
-        state.nearestStation = findNearestStation(state.lastPk, currentBranch);
+  btnResetOffset.addEventListener("click", () => {
+    pkOffset = 0;
+    safeSetItem("pkOffset", pkOffset);
+    updateOffsetInfo();
+    if (state.lastRawPk != null) {
+      state.lastPk = state.lastRawPk;
+      state.nearestStation = findNearestStation(state.lastPk, currentBranch);
         state.nearestAccess = (state.lastLat != null && state.lastLon != null) 
           ? findNearestAccessGeo(state.lastLat, state.lastLon)
           : findNearestAccess(state.lastPk);
-        updateNearestStation(state.lastPk, state.nearestStation);
-        updateNextStation(state.lastPk);
-        updatePkTargetView();
-        updateSmsPreview();
-        updatePkEstimateInSettings();
-      } else {
-        updatePkEstimateInSettings();
-      }
-    });
-  }
-
-  if (btnApplyRecal && inputPkRecal) {
-    btnApplyRecal.addEventListener("click", () => {
-      const exactPk = parsePkInput(inputPkRecal.value);
-      if (exactPk == null) {
-        alert("PK invalide. Utilise 52700 ou 52+700.");
-        return;
-      }
-      if (state.lastRawPk == null) {
-        alert("Pas de position GPS pour recaler. Lance la géoloc d'abord.");
-        return;
-      }
-      pkOffset = exactPk - state.lastRawPk;
-      safeSetItem("pkOffset", pkOffset);
-      updateOffsetInfo();
+      updateNearestStation(state.lastPk, state.nearestStation);
+      updateNextStation(state.lastPk);
+      updatePkTargetView();
+      updateSmsPreview();
       updatePkEstimateInSettings();
+    } else {
+      updatePkEstimateInSettings();
+    }
+  });
+  }
+  if (btnApplyRecal && inputPkRecal) {
+  btnApplyRecal.addEventListener("click", () => {
+    const exactPk = parsePkInput(inputPkRecal.value);
+    if (exactPk == null) {
+      alert("PK invalide. Utilise 52700 ou 52+700.");
+      return;
+    }
+    if (state.lastRawPk == null) {
+        alert("Pas de position GPS pour recaler. Lance la géoloc d'abord.");
+      return;
+    }
+    pkOffset = exactPk - state.lastRawPk;
+    safeSetItem("pkOffset", pkOffset);
+    updateOffsetInfo();
+    updatePkEstimateInSettings();
 
-      // AJOUT CALIBRAGE : on enregistre ce recalage comme un point de calibration
-      if (state.lastLat != null && state.lastLon != null) {
-        const calib = {
-          // PK exact saisi par toi
-          pkExact: exactPk,
+    // AJOUT CALIBRAGE : on enregistre ce recalage comme un point de calibration
+    if (state.lastLat != null && state.lastLon != null) {
+      const calib = {
+        // PK exact saisi par toi
+        pkExact: exactPk,
           // PK brut estimé par l'algorithme avant offset
-          pkRaw: state.lastRawPk,
-          // offset appliqué
-          pkOffset: pkOffset,
-          // coordonnées GPS au moment du recalage
-          lat: state.lastLat,
-          lon: state.lastLon,
-          accuracy: state.lastAccuracy,
-          branch: currentBranch,
-          timestamp: new Date().toISOString()
-        };
-        localCalibrations.push(calib);
-        saveLocalCalibrations();
-        console.log("Nouveau recalage enregistré :", calib);
+        pkRaw: state.lastRawPk,
+        // offset appliqué
+        pkOffset: pkOffset,
+        // coordonnées GPS au moment du recalage
+        lat: state.lastLat,
+        lon: state.lastLon,
+        accuracy: state.lastAccuracy,
+        branch: currentBranch,
+        timestamp: new Date().toISOString()
+      };
+      localCalibrations.push(calib);
+      saveLocalCalibrations();
+      console.log("Nouveau recalage enregistré :", calib);
         
         // Forcer la reconstruction des polylignes calibrées avec le nouveau point
         lastCalibrationBuildTime = 0; // Invalider le cache
@@ -6294,23 +6441,23 @@ function detectBranch(lat, lon) {
         }
       } else {
         alert("⚠️ Attention : Impossible d'enregistrer le recalage car les coordonnées GPS ne sont pas disponibles.");
-      }
-      // FIN AJOUT CALIBRAGE
-    });
+    }
+    // FIN AJOUT CALIBRAGE
+  });
   }
 
   if (btnSavePhone) {
     btnSavePhone.addEventListener("click", () => {
       savePhoneNumber();
-      updateSmsPreview();
-    });
+  updateSmsPreview();
+  });
   }
 
 if (selectSensitivity) {
-  selectSensitivity.addEventListener("change", () => {
-    motionSensitivity = selectSensitivity.value;
-    safeSetItem("motionSensitivity", motionSensitivity);
-  });
+selectSensitivity.addEventListener("change", () => {
+  motionSensitivity = selectSensitivity.value;
+  safeSetItem("motionSensitivity", motionSensitivity);
+});
 }
 
 if (btnOrientationToggle) {
@@ -6372,15 +6519,14 @@ if (btnFermeturesToggle) {
     setFermeturesEnabled(!fermeturesEnabled);
   });
 }
-
   if (btnPkLookup) {
-    btnPkLookup.addEventListener("click", handlePkLookup);
+  btnPkLookup.addEventListener("click", handlePkLookup);
   }
   if (btnPkLookupOpenMaps) {
-    btnPkLookupOpenMaps.addEventListener("click", openPkLookupInMaps);
+  btnPkLookupOpenMaps.addEventListener("click", openPkLookupInMaps);
   }
   if (btnPkLookupOpenWaze) {
-    btnPkLookupOpenWaze.addEventListener("click", openPkLookupInWaze);
+  btnPkLookupOpenWaze.addEventListener("click", openPkLookupInWaze);
   }
 
   // AJOUT CALIBRAGE : clic sur "Exporter mes recalages"
@@ -6407,6 +6553,15 @@ if (btnFermeturesToggle) {
   const coverageResultsLine = document.getElementById("coverageResultsLine");
   const coverageLegend = document.getElementById("coverageLegend");
   const coverageLegendItems = document.getElementById("coverageLegendItems");
+  const toggleCoverageGuide = document.getElementById("toggleCoverageGuide");
+  const coverageGuide = document.getElementById("coverageGuide");
+  const ARROW_DISTANCE_METERS = 45;
+
+  if (toggleCoverageGuide && coverageGuide) {
+    toggleCoverageGuide.addEventListener("change", () => {
+      coverageGuide.classList.toggle("is-visible", toggleCoverageGuide.checked);
+    });
+  }
 
   function removeCoverageMarkersFromMap() {
     coverageSamMarkers.forEach(marker => {
@@ -6755,19 +6910,34 @@ if (btnFermeturesToggle) {
     btnComputeCoverage.addEventListener("click", () => {
       try {
         if (!inputCoveragePkStart || !inputCoveragePkEnd) {
-          alert("Veuillez remplir les PK début et fin.");
+          alert("Champs PK introuvables sur la page.");
           return;
         }
 
-        const pkStart = parseFloat(inputCoveragePkStart.value);
-        const pkEnd = parseFloat(inputCoveragePkEnd.value);
+        const rawStart = inputCoveragePkStart.value.trim();
+        const rawEnd = inputCoveragePkEnd.value.trim();
+        const hasStart = rawStart !== "";
+        const hasEnd = rawEnd !== "";
 
-        if (isNaN(pkStart) || isNaN(pkEnd)) {
-          alert("Veuillez saisir des valeurs numériques valides.");
+        if (!hasStart && !hasEnd) {
+          alert("Saisis au moins un PK (début ou fin) pour lancer le calcul.");
           return;
         }
 
-        if (pkStart >= pkEnd) {
+        const pkStart = hasStart ? parseFloat(rawStart) : null;
+        const pkEnd = hasEnd ? parseFloat(rawEnd) : null;
+
+        if (hasStart && !Number.isFinite(pkStart)) {
+          alert("Le PK début doit être un nombre valide.");
+          return;
+        }
+
+        if (hasEnd && !Number.isFinite(pkEnd)) {
+          alert("Le PK fin doit être un nombre valide.");
+          return;
+        }
+
+        if (hasStart && hasEnd && pkStart >= pkEnd) {
           alert("Le PK début doit être inférieur au PK fin.");
           return;
         }
@@ -6837,14 +7007,13 @@ if (btnFermeturesToggle) {
   if (selectIncidentType) {
     selectIncidentType.dispatchEvent(new Event("change"));
   }
-
-  function initAccessGate() {
-    const overlay = document.getElementById("accessOverlay");
+    function initAccessGate() {
+  const overlay = document.getElementById("accessOverlay");
     const input = document.getElementById("accessCodeInput");
     const btn = document.getElementById("btnAccessCode");
     const err = document.getElementById("accessError");
 
-    if (!overlay || !input || !btn) return;
+  if (!overlay || !input || !btn) return;
 
     if (!ACCESS_CODE) {
       console.warn("⚠️ Aucun code d'accès n'est configuré. Crée `config/access-config.js` et définis `window.__PK_ACCESS_CODE__`.");
@@ -6861,14 +7030,14 @@ if (btnFermeturesToggle) {
       } catch (error) {
         console.warn("Impossible de réinitialiser localStorage :", error);
       }
-      alert("Code mis à jour — merci de contacter l’administrateur.");
+      alert("Code mis à jour — merci de contacter l'administrateur.");
     }
 
     const already = !requiresFreshValidation && safeGetItem(ACCESS_CODE_KEY);
-    if (already === "ok") {
-      overlay.style.display = "none";
-      return;
-    }
+  if (already === "ok") {
+    overlay.style.display = "none";
+    return;
+  }
 
     function grantAccess() {
       safeSetItem(ACCESS_CODE_KEY, "ok");
@@ -6885,29 +7054,29 @@ if (btnFermeturesToggle) {
       const v = (input.value || "").trim();
       if (v === ACCESS_CODE) {
         grantAccess();
-      } else {
-        err.style.display = "block";
-      }
+    } else {
+      err.style.display = "block";
     }
+  }
 
-    btn.addEventListener("click", tryCode);
-    input.addEventListener("keydown", (e) => {
+  btn.addEventListener("click", tryCode);
+  input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         tryCode();
       }
-    });
-  }
-
-  loadSettings();
-  loadLocalCalibrations();
-  loadMapPoints();
-  // loadSharedCalibrations(); // désactivé pour éviter tout fetch
-  updateSmsPreview();
-  setGpsStatus("off");
-  document.addEventListener("DOMContentLoaded", () => {
-    initAccessGate();
   });
-  console.log("PK Assistant RER A – script chargé sans erreur ✅");
+}
+
+loadSettings();
+loadLocalCalibrations();
+  loadMapPoints();
+// loadSharedCalibrations(); // désactivé pour éviter tout fetch
+updateSmsPreview();
+setGpsStatus("off");
+  document.addEventListener("DOMContentLoaded", () => {
+initAccessGate();  
+  });
+console.log("PK Assistant RER A – script chargé sans erreur ✅");
 
   // Optimisation batterie : pause les animations quand la page n'est pas visible
   document.addEventListener("visibilitychange", () => {
@@ -6926,8 +7095,8 @@ if (btnFermeturesToggle) {
             timeout: 20000 
           }
         );
-      }
-    } else {
+    }
+  } else {
       document.body.removeAttribute("data-page-hidden");
       // Restaurer la fréquence GPS normale quand la page redevient visible
       if (geolocActive && state.watchId) {
