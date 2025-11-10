@@ -914,6 +914,37 @@
     letter-spacing: 0.2em;
   }
 
+  .app-footer-contact {
+    margin-top: 6px;
+    letter-spacing: 0.04em;
+  }
+
+  .app-footer-contact a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .app-footer-contact a:hover,
+  .app-footer-contact a:focus-visible {
+    text-decoration: underline;
+  }
+
+  .access-contact-link {
+    display: inline-block;
+    margin-top: 14px;
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+
+  .access-contact-link:hover,
+  .access-contact-link:focus-visible {
+    text-decoration: underline;
+  }
+
   .divider {
     margin: 10px 0;
     height: 1px;
@@ -1584,6 +1615,10 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     <div id="accessError" class="muted" style="color:var(--danger);display:none;">
       Code incorrect.
     </div>
+
+    <a class="access-contact-link" href="mailto:pascal.akriche@ratp.fr">
+      Administrateur&nbsp;: pascal.akriche@ratp.fr
+    </a>
   </div>
 </div>
 
@@ -6803,6 +6838,9 @@ if (btnFermeturesToggle) {
   <!-- Signature -->
   <div class="app-footer">
     KYFUN
+    <div class="app-footer-contact">
+      Administrateur&nbsp;: <a href="mailto:pascal.akriche@ratp.fr">pascal.akriche@ratp.fr</a>
+    </div>
   </div>
 </body>
 </html>
