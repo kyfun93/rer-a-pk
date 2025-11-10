@@ -219,7 +219,7 @@
   .tabbar {
     margin: 32px 0 0;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 14px;
     position: sticky;
     bottom: 12px;
@@ -239,7 +239,7 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 14px 12px;
+    padding: 12px 10px;
     border-radius: 16px;
     border: none;
     cursor: pointer;
@@ -252,11 +252,11 @@
   }
 
   .tab-button .tab-icon {
-    font-size: 1.35rem;
+    font-size: 1.24rem;
   }
 
   .tab-button .tab-label {
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     text-transform: uppercase;
   }
 
@@ -351,17 +351,22 @@
 
   @media (max-width: 640px) {
     .tabbar {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      border-radius: 20px 20px 0 0;
-      padding: 10px 12px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      border-radius: 18px 18px 0 0;
+      padding: 8px 10px;
     }
     .tab-button {
-      padding: 12px 10px;
-      border-radius: 14px;
+      padding: 10px 8px;
+      border-radius: 12px;
+      gap: 4px;
+    }
+    .tab-button .tab-icon {
+      font-size: 1.08rem;
     }
     .tab-button .tab-label {
-      font-size: 0.72rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.02em;
     }
   }
 
@@ -6736,7 +6741,6 @@ if (orientGareValueEl) {
     }
   });
 }
-
 function addCoverageMarkersToMap(result) {
   try {
     ensureOrientationMapReady();
