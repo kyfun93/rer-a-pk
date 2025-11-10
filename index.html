@@ -1440,6 +1440,13 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   margin-bottom: 10px;
 }
 
+.coverage-legend-helper {
+  font-size: 0.78rem;
+  color: rgba(214, 223, 255, 0.7);
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+
 .coverage-legend-items {
   display: flex;
   flex-wrap: wrap;
@@ -1469,6 +1476,35 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 
 .coverage-legend-item:active {
   transform: translateY(0);
+}
+
+.orientation-target-group {
+  gap: 10px;
+}
+
+.orientation-target-item {
+  align-items: flex-start;
+}
+
+.orientation-target-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.orientation-target-input {
+  flex: 1 1 auto;
+}
+
+.orientation-target-button {
+  flex-shrink: 0;
+}
+
+.orientation-target-info {
+  font-size: 0.8rem;
+  color: rgba(214, 223, 255, 0.75);
+  padding-left: 8px;
 }
 
 .coverage-legend-swatch {
@@ -1717,9 +1753,26 @@ body[data-page-hidden="true"] .direction-arrow-moving {
         <span id="orientAccessValue" class="orientation-info-value">—</span>
       </div>
     </div>
+    <div class="orientation-info-group orientation-target-group">
+      <div class="orientation-info-item orientation-target-item">
+        <span class="orientation-info-label">PK cible :</span>
+        <div class="orientation-target-controls">
+          <input id="inputPkTarget" type="text" placeholder="ex : 32400 ou 32+400" class="orientation-target-input" />
+          <button id="btnSetPkTarget" class="btn btn-secondary btn-icon orientation-target-button" type="button">
+            <span>🎯</span><span>Définir</span>
+          </button>
+        </div>
+      </div>
+      <div id="pkTargetInfo" class="orientation-target-info">
+        Aucun PK cible défini pour le moment.
+      </div>
+    </div>
   </div>
   <div id="coverageLegend" class="coverage-legend">
     <div class="coverage-legend-title">Repères calculés</div>
+    <div class="coverage-legend-helper">
+      Les repères listés sont cliquables : la carte se centre dessus et affiche le détail.
+    </div>
     <div class="coverage-legend-items" id="coverageLegendItems"></div>
   </div>
 </div>
@@ -1728,21 +1781,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
       <button id="btnOrientationToggle" class="btn btn-toggle btn-icon" type="button" data-active="false">
         <span>🗺️</span><span class="btn-label">Afficher le plan PK / gares</span>
       </button>
-    </div>
-
-    <!-- PK CIBLE -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">PK cible</div>
-      </div>
-      <div id="pkTargetLabel" class="big-value">Aucun</div>
-      <div id="pkTargetInfo" class="big-sub">
-        Saisis un PK puis clique sur « Définir ce PK comme cible ».
-      </div>
-      <div class="field">
-        <input id="inputPkTarget" type="text" placeholder="ex : 32400 ou 32+400" />
-        <button id="btnSetPkTarget" class="btn btn-primary" type="button">Définir ce PK comme cible</button>
-      </div>
     </div>
 
     </div>
@@ -1773,6 +1811,135 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     </div>
     </div>
 
+    <div class="section-title">Recherche par PK & GPS</div>
+    <div class="app-content">
+      <div class="card full-width">
+        <div class="card-header">
+          <div class="card-title">Recherche par PK & GPS</div>
+        </div>
+
+        <div class="field">
+          <label for="inputPkLookup">Recherche par PK et GPS (accès le plus proche)</label>
+          <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" />
+          <button id="btnPkLookup" class="btn btn-secondary btn-icon" type="button">
+            <span>🔎</span><span>Rechercher l'accès</span>
+          </button>
+        </div>
+
+        <div class="field" id="pkLookupResultField" style="display:none;">
+          <div id="pkLookupResult" class="muted"></div>
+
+          <div class="field">
+            <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
+              <span>📍</span><span>Google Maps</span>
+            </button>
+            <button id="btnPkLookupOpenWaze" class="btn btn-secondary btn-icon" type="button">
+              <span>🚗</span><span>Waze</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Signalement d'avarie / incident</div>
+    <div class="app-content">
+      <div class="card full-width">
+        <div class="card-header">
+          <div class="card-title">Déclarer un incident</div>
+        </div>
+
+        <div class="signalement-block">
+          <label for="selectIncidentType" style="font-weight: 700;">🚨 Signalement d'avarie / incident</label>
+          <select id="selectIncidentType">
+            <option value="">-- Choisir un type d'incident --</option>
+            <option value="Cheminement endommagé">Cheminement endommagé</option>
+            <option value="Rail cassé">Rail cassé</option>
+            <option value="Animal mort">Animal mort</option>
+            <option value="Autre">Autre (saisir ci-dessous)</option>
+          </select>
+
+          <div class="field" id="incidentOtherField" style="display:none;">
+            <label for="inputIncidentOther">Précisez l'incident :</label>
+            <input id="inputIncidentOther" type="text" placeholder="ex : câble arraché, signal détérioré..." />
+          </div>
+
+          <div class="field">
+            <label for="incidentPhoto">Photo (optionnel)</label>
+            <input id="incidentPhoto" type="file" accept="image/*" />
+          </div>
+
+          <div class="field">
+            <button id="btnGenerateIncident" class="btn btn-good btn-icon" type="button">
+              <span>📣</span><span>Générer le message de signalement</span>
+            </button>
+          </div>
+
+          <div class="field" id="incidentResultField" style="display:none;">
+            <label>Message généré :</label>
+            <textarea id="incidentResultText" rows="4" readonly></textarea>
+            <button id="btnCopyIncident" class="btn btn-secondary btn-icon" type="button">
+              <span>📋</span><span>Copier le texte</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Calcul couverture travaux</div>
+    <div class="app-content">
+      <div class="card full-width">
+        <div class="card-header">
+          <div class="card-title">🚦 Calculer rouges & pétards</div>
+        </div>
+        <div class="field">
+          <label for="inputCoveragePkStart">PK début chantier (m)</label>
+          <input id="inputCoveragePkStart" type="number" placeholder="ex : 48000" />
+        </div>
+        <div class="field">
+          <label for="inputCoveragePkEnd">PK fin chantier (m)</label>
+          <input id="inputCoveragePkEnd" type="number" placeholder="ex : 49000" />
+        </div>
+        <div class="field">
+          <button id="btnComputeCoverage" class="btn btn-primary btn-icon" type="button">
+            <span>🚦</span><span>Calculer rouges & pétards</span>
+          </button>
+        </div>
+        <div class="field" style="margin-top: 15px;">
+          <label style="font-weight: 600; margin-bottom: 8px;">Résultats du calcul :</label>
+          <div id="coverageResultsLine" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; min-height: 40px; display: flex; align-items: center;">
+            <span style="color: rgba(255, 255, 255, 0.5);">Cliquez sur « Calculer rouges & pétards » pour voir les résultats</span>
+          </div>
+        </div>
+        <div id="coverageResult" class="field" style="display: none; margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+          <div id="coverageResultText" style="color: #fff; line-height: 1.6;"></div>
+        </div>
+        <div class="field">
+          <button id="btnClearCoverage" class="btn btn-secondary" type="button" style="display: none;">
+            Effacer les marqueurs
+          </button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="card toggle-card" style="margin-bottom: 12px;">
+          <div class="field" style="margin: 0; padding: 12px;">
+            <button id="btnFermeturesToggle" class="btn btn-toggle btn-icon" type="button" data-active="false">
+              <span>🌙</span><span class="btn-label">Afficher les fermetures nocturnes</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="fermeturesNocturnesCard" class="card" style="display: none; margin-bottom: 15px;">
+          <div class="card-header">
+            <div class="card-title">Fermetures nocturnes</div>
+          </div>
+          <div id="fermeturesNocturnesContent" style="padding: 16px; line-height: 1.8; color: var(--text);">
+            <!-- Le contenu sera généré par JavaScript -->
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="section-title">Paramètres & outils</div>
     <div class="app-content">
     <div class="card card-soft full-width settings-toggle-card">
@@ -1784,44 +1951,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     <!-- PARAMÈTRES -->
     <div id="settingsPanel" class="card card-soft full-width" style="display:none;">
       <div class="card-header">
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- Signalement d'avarie -->
-      <div class="signalement-block">
-        <label for="selectIncidentType" style="font-weight: 700;">🚨 Signalement d'avarie / incident</label>
-        <select id="selectIncidentType">
-          <option value="">-- Choisir un type d'incident --</option>
-          <option value="Cheminement endommagé">Cheminement endommagé</option>
-          <option value="Rail cassé">Rail cassé</option>
-          <option value="Animal mort">Animal mort</option>
-          <option value="Autre">Autre (saisir ci-dessous)</option>
-        </select>
-
-        <div class="field" id="incidentOtherField" style="display:none;">
-          <label for="inputIncidentOther">Précisez l'incident :</label>
-          <input id="inputIncidentOther" type="text" placeholder="ex : câble arraché, signal détérioré..." />
-        </div>
-
-        <div class="field">
-          <label for="incidentPhoto">Photo (optionnel)</label>
-          <input id="incidentPhoto" type="file" accept="image/*" />
-        </div>
-
-        <div class="field">
-          <button id="btnGenerateIncident" class="btn btn-good btn-icon" type="button">
-            <span>📣</span><span>Générer le message de signalement</span>
-          </button>
-        </div>
-
-        <div class="field" id="incidentResultField" style="display:none;">
-          <label>Message généré :</label>
-          <textarea id="incidentResultText" rows="4" readonly></textarea>
-          <button id="btnCopyIncident" class="btn btn-secondary btn-icon" type="button">
-            <span>📋</span><span>Copier le texte</span>
-          </button>
-        </div>
       </div>
 
       <div class="divider"></div>
@@ -1908,70 +2037,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
         </div>
       </div>
 
-      <div class="divider"></div>
-
-      <!-- Calcul couverture travaux (feux rouges et pétards) -->
-      <div class="card" style="margin-top: 20px;">
-        <div class="card-header">
-          <div class="card-title">🚦 Calcul couverture travaux</div>
-        </div>
-        <div class="field">
-          <label for="inputCoveragePkStart">PK début chantier (m)</label>
-          <input id="inputCoveragePkStart" type="number" placeholder="ex : 48000" />
-        </div>
-        <div class="field">
-          <label for="inputCoveragePkEnd">PK fin chantier (m)</label>
-          <input id="inputCoveragePkEnd" type="number" placeholder="ex : 49000" />
-        </div>
-        <div class="field">
-          <button id="btnComputeCoverage" class="btn btn-primary btn-icon" type="button">
-            <span>🚦</span><span>Calculer rouges & pétards</span>
-          </button>
-        </div>
-        <div class="field" style="margin-top: 15px;">
-          <label style="font-weight: 600; margin-bottom: 8px;">Résultats du calcul :</label>
-          <div id="coverageResultsLine" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; min-height: 40px; display: flex; align-items: center;">
-            <span style="color: rgba(255, 255, 255, 0.5);">Cliquez sur « Calculer rouges & pétards » pour voir les résultats</span>
-          </div>
-        </div>
-        <div id="coverageResult" class="field" style="display: none; margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
-          <div id="coverageResultText" style="color: #fff; line-height: 1.6;"></div>
-        </div>
-        <div class="field">
-          <button id="btnClearCoverage" class="btn btn-secondary" type="button" style="display: none;">
-            Effacer les marqueurs
-          </button>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- Recherche par PK -> accès -->
-      <div class="pk-lookup-section">
-        <div class="field">
-          <label for="inputPkLookup">Recherche par PK et GPS (accès le plus proche)</label>
-          <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" />
-          <button id="btnPkLookup" class="btn btn-secondary btn-icon" type="button">
-            <span>🔎</span><span>Rechercher l'accès</span>
-          </button>
-        </div>
-
-        <div class="field" id="pkLookupResultField" style="display:none;">
-          <div id="pkLookupResult" class="muted"></div>
-
-          <div class="field">
-            <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
-              <span>📍</span><span>Google Maps</span>
-            </button>
-            <button id="btnPkLookupOpenWaze" class="btn btn-secondary btn-icon" type="button">
-              <span>🚗</span><span>Waze</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
       <!-- Numéro SOS -->
       <div class="field">
         <label for="inputSosPhone">Numéro SOS pour le SMS d'urgence</label>
@@ -1985,24 +2050,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
       </div>
 
       <div class="divider"></div>
-
-      <!-- Fermetures nocturnes -->
-      <div class="card toggle-card" style="margin-bottom: 12px;">
-        <div class="field" style="margin: 0; padding: 12px;">
-          <button id="btnFermeturesToggle" class="btn btn-toggle btn-icon" type="button" data-active="false">
-            <span>🌙</span><span class="btn-label">Afficher les fermetures nocturnes</span>
-          </button>
-        </div>
-      </div>
-
-      <div id="fermeturesNocturnesCard" class="card" style="display: none; margin-bottom: 15px;">
-        <div class="card-header">
-          <div class="card-title">Fermetures nocturnes</div>
-        </div>
-        <div id="fermeturesNocturnesContent" style="padding: 16px; line-height: 1.8; color: var(--text);">
-          <!-- Le contenu sera généré par JavaScript -->
-        </div>
-      </div>
 
       <!-- Tutoriel -->
       <div class="field">
@@ -3658,7 +3705,6 @@ async function loadSharedCalibrations() {
   const nextStationName = document.getElementById("nextStationName");
   const nextStationInfo = document.getElementById("nextStationInfo");
 
-  const pkTargetLabel = document.getElementById("pkTargetLabel");
   const pkTargetInfo = document.getElementById("pkTargetInfo");
   const inputPkTarget = document.getElementById("inputPkTarget");
   const btnSetPkTarget = document.getElementById("btnSetPkTarget");
@@ -4891,21 +4937,20 @@ function detectBranch(lat, lon) {
 
  function updatePkTargetView() {
   if (!pkTarget) {
-    pkTargetLabel.textContent = "Aucun";
-    pkTargetInfo.textContent =
-      "Saisis un PK puis clique sur « Définir ce PK comme cible ».";
+    if (pkTargetInfo) {
+      pkTargetInfo.textContent = "Aucun PK cible défini pour le moment.";
+    }
     return;
   }
 
-  pkTargetLabel.textContent = "PK " + formatPk(pkTarget);
   if (state.lastPk == null) {
-    pkTargetInfo.textContent = "En attente de position GPS…";
+    if (pkTargetInfo) pkTargetInfo.textContent = "En attente de position GPS…";
     return;
   }
   const delta = pkTarget - state.lastPk;
   const dist = Math.round(Math.abs(delta));
   const dir = delta >= 0 ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
-  pkTargetInfo.textContent = "≈ " + dist + " m " + dir;
+  if (pkTargetInfo) pkTargetInfo.textContent = "PK " + formatPk(pkTarget) + " · ≈ " + dist + " m " + dir;
 }
 
   // Variables globales pour la carte Leaflet
