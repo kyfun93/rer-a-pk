@@ -1994,9 +1994,11 @@ body[data-page-hidden="true"] .direction-arrow-moving {
         Ces réglages restent stockés dans ton navigateur (localStorage).  
         Ils ne sont pas effacés quand on met à jour l'application.
       </div>
-    </div>
-    </div>
   </div>
+  </div>
+  </div>
+
+  <script src="config/access-config.js"></script>
 
   <script>
 
@@ -2007,8 +2009,9 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     let fermeturesEnabled = false;
 
     const ACCESS_CODE_KEY = "pkAssistantAccessGranted";
-// ⚠️ Mets le code que tu veux ici (4 chiffres par ex.)
-const ACCESS_CODE = "3615";
+    const ACCESS_CODE = typeof window !== "undefined" && typeof window.__PK_ACCESS_CODE__ === "string"
+      ? window.__PK_ACCESS_CODE__
+      : null;
 
   // === DONNÉES DE LIGNE AVEC BIFURCATION ================================
 
@@ -6696,6 +6699,12 @@ if (btnFermeturesToggle) {
   const err     = document.getElementById("accessError");
 
   if (!overlay || !input || !btn) return;
+
+  if (!ACCESS_CODE) {
+    console.warn("⚠️ Aucun code d'accès n'est configuré. Crée `config/access-config.js` et définis `window.__PK_ACCESS_CODE__`.");
+    overlay.style.display = "none";
+    return;
+  }
 
   const already = safeGetItem(ACCESS_CODE_KEY);
   if (already === "ok") {
