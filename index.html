@@ -213,7 +213,156 @@
   .app {
     max-width: 1080px;
     margin: 0 auto;
-    padding: 0 24px 52px;
+    padding: 0 24px 120px;
+  }
+
+  .tabbar {
+    margin: 32px 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    position: sticky;
+    bottom: 12px;
+    top: auto;
+    z-index: 120;
+    padding: 12px 16px;
+    background: linear-gradient(180deg, rgba(8, 10, 18, 0.14), rgba(8, 10, 18, 0.06));
+    border-radius: 22px 22px 0 0;
+    border: 1px solid rgba(200, 206, 236, 0.06);
+    box-shadow: 0 10px 18px rgba(5, 7, 16, 0.12);
+    backdrop-filter: blur(6px);
+  }
+
+  .tab-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 12px;
+    border-radius: 16px;
+    border: none;
+    cursor: pointer;
+    color: rgba(12, 16, 30, 0.92);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+    box-shadow: 0 10px 18px rgba(12, 16, 30, 0.2);
+    opacity: 0.85;
+  }
+
+  .tab-button .tab-icon {
+    font-size: 1.35rem;
+  }
+
+  .tab-button .tab-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+  }
+
+  .tab-button.is-active {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(12, 16, 30, 0.28);
+    opacity: 1;
+    border: 1px solid rgba(15, 25, 60, 0.18);
+  }
+
+  .tab-button--status {
+    background: linear-gradient(135deg, rgba(104, 200, 255, 0.48), rgba(204, 238, 255, 0.68));
+    color: rgba(8, 14, 26, 0.82);
+  }
+
+  .tab-button--plan {
+    background: linear-gradient(135deg, rgba(180, 160, 255, 0.48), rgba(220, 206, 255, 0.68));
+    color: rgba(12, 14, 26, 0.84);
+  }
+
+  .tab-button--urgence {
+    background: linear-gradient(135deg, rgba(255, 140, 170, 0.48), rgba(255, 198, 214, 0.68));
+    color: rgba(24, 14, 20, 0.84);
+  }
+
+  .tab-button--recherche {
+    background: linear-gradient(135deg, rgba(255, 192, 112, 0.48), rgba(255, 230, 170, 0.68));
+    color: rgba(26, 12, 6, 0.86);
+  }
+
+  .tab-button--fermetures {
+    background: linear-gradient(135deg, rgba(100, 232, 220, 0.48), rgba(180, 255, 248, 0.68));
+    color: rgba(8, 18, 16, 0.84);
+  }
+
+  .tab-button--settings {
+    background: linear-gradient(135deg, rgba(168, 200, 255, 0.48), rgba(224, 236, 255, 0.68));
+    color: rgba(10, 16, 28, 0.84);
+  }
+
+  .tab-panels {
+    margin-top: 6px;
+    padding-bottom: 140px;
+  }
+
+  .plan-line-card .field {
+    margin-bottom: 18px;
+  }
+
+  .plan-toggle label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    color: rgba(214, 223, 255, 0.85);
+  }
+
+  .plan-toggle input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+  }
+
+  .plan-line-container {
+    margin-top: 12px;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 14px 28px rgba(5, 7, 16, 0.32);
+  }
+
+  .plan-line-iframe {
+    width: 100%;
+    height: 500px;
+    border: none;
+    background: #0a0c12;
+  }
+
+  @media (max-width: 640px) {
+    .plan-line-iframe {
+      height: 300px;
+    }
+  }
+
+  .tab-panel {
+    display: none;
+  }
+
+  .tab-panel.is-active {
+    display: block;
+  }
+
+  @media (max-width: 640px) {
+    .tabbar {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      border-radius: 20px 20px 0 0;
+      padding: 10px 12px;
+    }
+    .tab-button {
+      padding: 12px 10px;
+      border-radius: 14px;
+    }
+    .tab-button .tab-label {
+      font-size: 0.72rem;
+    }
   }
 
   .header {
@@ -400,18 +549,6 @@
     background: var(--card-soft);
   }
 
-  .settings-toggle-card {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    padding: 22px 24px;
-  }
-
-  .settings-toggle-card .btn {
-    min-width: 220px;
-  }
-
   .card-header {
     display: flex;
     justify-content: space-between;
@@ -494,7 +631,6 @@
     color: var(--warning);
     background: rgba(255,184,77,0.12);
   }
-
   .btn {
     display: inline-flex;
     align-items: center;
@@ -515,7 +651,6 @@
     box-shadow: none;
     backdrop-filter: blur(4px);
   }
-
   .btn:hover {
     transform: translateY(-1px);
     border-color: rgba(200, 206, 236, 0.22);
@@ -557,15 +692,15 @@
     color: #160610;
     box-shadow: 0 10px 24px rgba(255, 111, 122, 0.32);
   }
-
   .btn-danger:active {
     box-shadow: 0 6px 16px rgba(255, 111, 122, 0.25);
   }
 
   .btn-good {
-    background: linear-gradient(135deg, var(--good), #b3f0c4);
-    color: #04150a;
-    box-shadow: 0 10px 24px rgba(157, 226, 176, 0.32);
+    background: linear-gradient(135deg, rgba(70, 200, 180, 0.22), rgba(90, 210, 204, 0.34));
+    border: 1px solid rgba(120, 220, 210, 0.35);
+    color: rgba(210, 248, 242, 0.92);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
   }
 
   .btn-warning {
@@ -638,34 +773,6 @@
     box-shadow: inset 0 0 0 1px rgba(255, 200, 120, 0.3);
   }
 
-  .btn-toggle {
-    background: linear-gradient(135deg, rgba(58, 62, 84, 0.65), rgba(90, 96, 120, 0.58));
-    border: 1px solid rgba(176, 188, 214, 0.5);
-    color: rgba(234, 238, 255, 0.92);
-    box-shadow: 0 8px 20px rgba(10, 12, 22, 0.28);
-  }
-
-  .btn-toggle:hover {
-    border-color: rgba(200, 208, 232, 0.6);
-    box-shadow: 0 10px 24px rgba(12, 14, 26, 0.34);
-  }
-  .btn-toggle[data-active="true"] {
-    background: linear-gradient(135deg, rgba(110, 120, 158, 0.78), rgba(142, 152, 186, 0.72));
-    border-color: rgba(206, 214, 238, 0.75);
-    color: #f8f9ff;
-    box-shadow: 0 14px 30px rgba(50, 60, 90, 0.35);
-  }
-
-  .btn-toggle[data-active="true"] span:first-child {
-    background: rgba(224, 232, 255, 0.34);
-    box-shadow: inset 0 0 0 1px rgba(224, 232, 255, 0.52);
-  }
-
-  .toggle-card .btn {
-    width: 100%;
-    justify-content: center;
-  }
-
   .status-card {
     display: flex;
     flex-direction: column;
@@ -692,7 +799,6 @@
     color: var(--muted);
     margin-top: 4px;
   }
-
   .status-badge {
     display: inline-flex;
     align-items: center;
@@ -708,13 +814,11 @@
     color: rgba(236, 239, 255, 0.92);
     min-width: 88px;
   }
-
   .status-badge--danger {
     background: rgba(255, 135, 160, 0.18);
     border-color: rgba(255, 135, 160, 0.38);
     color: #ff94aa;
   }
-
   .status-badge--warning {
     background: rgba(255, 215, 145, 0.18);
     border-color: rgba(255, 215, 145, 0.35);
@@ -738,7 +842,6 @@
     flex-direction: column;
     gap: 18px;
   }
-
   .status-line {
     display: flex;
     justify-content: space-between;
@@ -1178,7 +1281,6 @@ body[data-page-hidden="true"] .leaflet-marker-pk-actuel {
   height: 30px !important;
   position: relative;
 }
-
 .leaflet-marker-pk-target::before,
 .leaflet-marker-pk-target::after {
   content: "";
@@ -1194,7 +1296,6 @@ body[data-page-hidden="true"] .leaflet-marker-pk-actuel {
   top: 0;
   transform: translateX(-50%);
 }
-
 .leaflet-marker-pk-target::after {
   width: 100%;
   height: 3px;
@@ -1205,7 +1306,7 @@ body[data-page-hidden="true"] .leaflet-marker-pk-actuel {
 
 /* Icône SAM (feu rouge pastel) */
 .leaflet-marker-sam {
-  background: radial-gradient(circle at 40% 40%, #ffd6d6, #f7a3a3 70%, #f2858a 100%);
+  background: radial-gradient(circle at 40% 40%, rgba(255, 214, 214, 0.88), rgba(247, 163, 163, 0.88) 70%, rgba(242, 133, 138, 0.88) 100%);
   border: 2px solid rgba(255, 224, 224, 0.9);
   border-radius: 50%;
   width: 22px !important;
@@ -1218,7 +1319,7 @@ body[data-page-hidden="true"] .leaflet-marker-pk-actuel {
 
 /* Icône pétard (losange pastel) */
 .leaflet-marker-petard {
-  background: linear-gradient(135deg, #d6ecff, #cbc8ff 60%, #f0c9ff 100%);
+  background: linear-gradient(135deg, rgba(214, 236, 255, 0.88), rgba(203, 200, 255, 0.88) 60%, rgba(240, 201, 255, 0.88) 100%);
   border: 2px solid rgba(220, 226, 255, 0.9);
   border-radius: 4px;
   width: 18px !important;
@@ -1235,7 +1336,6 @@ body[data-page-hidden="true"] .leaflet-marker-pk-actuel {
   font-size: 0.7rem;
   color: rgba(22, 26, 38, 0.7);
 }
-
 /* Flèche de direction */
 .leaflet-marker-direction {
   background: transparent;
@@ -1248,7 +1348,7 @@ body[data-page-hidden="true"] .leaflet-marker-pk-actuel {
   position: relative;
   width: 34px;
   height: 34px;
-  transform-origin: 50% 50%;
+  transform-origin: 50% 55%;
   transform: rotate(var(--arrow-rotation, 0deg));
   filter: drop-shadow(0 0 10px rgba(21, 120, 255, 0.55));
 }
@@ -1257,18 +1357,18 @@ body[data-page-hidden="true"] .leaflet-marker-pk-actuel {
   content: "";
   position: absolute;
   inset: 0;
-  clip-path: polygon(50% 0%, 100% 50%, 58% 64%, 50% 100%, 42% 64%, 0% 50%);
-  background: linear-gradient(135deg, #29c0ff 0%, #1579ff 55%, #0b2f8f 100%);
-  box-shadow: 0 0 12px rgba(21, 120, 255, 0.45), 0 6px 14px rgba(4, 10, 24, 0.6);
+  clip-path: polygon(50% 0%, 100% 72%, 64% 72%, 50% 100%, 36% 72%, 0% 72%);
+  background: linear-gradient(135deg, rgba(28, 200, 255, 0.88), rgba(13, 135, 255, 0.88) 55%, rgba(11, 47, 143, 0.88) 100%);
+  box-shadow: 0 0 12px rgba(21, 120, 255, 0.45), 0 8px 18px rgba(4, 10, 24, 0.65);
 }
 
 .direction-arrow::after {
   content: "";
   position: absolute;
-  inset: 6px 8px 10px 16px;
-  clip-path: polygon(50% 0%, 100% 50%, 55% 58%, 50% 94%, 45% 58%, 0% 50%);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.12));
-  opacity: 0.85;
+  inset: 5px 7px 9px 11px;
+  clip-path: polygon(50% 0%, 94% 70%, 60% 70%, 50% 94%, 40% 70%, 6% 70%);
+  background: rgba(8, 10, 18, 0.92);
+  box-shadow: inset 0 0 6px rgba(12, 18, 32, 0.6);
 }
 
 .direction-arrow-moving {
@@ -1286,13 +1386,13 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 }
 
 .direction-arrow-indetermine::before {
-  background: linear-gradient(135deg, #7a7f92 0%, #424a60 100%);
-  box-shadow: 0 0 8px rgba(82, 88, 110, 0.4), 0 6px 12px rgba(6, 8, 16, 0.55);
+  background: linear-gradient(135deg, rgba(163, 168, 186, 0.88), rgba(88, 95, 116, 0.88) 100%);
+  box-shadow: 0 0 10px rgba(82, 88, 110, 0.35), 0 6px 14px rgba(6, 8, 16, 0.55);
 }
 
 .direction-arrow-indetermine::after {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.08));
-  opacity: 0.6;
+  background: rgba(8, 10, 18, 0.75);
+  box-shadow: inset 0 0 4px rgba(12, 14, 22, 0.6);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1491,11 +1591,9 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   display: grid;
   gap: 10px;
 }
-
 .coverage-petard-list .coverage-point {
   margin-top: 0;
 }
-
 .leaflet-popup-content-wrapper {
   background: rgba(14, 16, 24, 0.92);
   border-radius: 16px;
@@ -1508,13 +1606,11 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 .leaflet-popup-content {
   color: rgba(236, 239, 255, 0.92);
 }
-
 .leaflet-popup-tip {
   background: rgba(14, 16, 24, 0.92);
   border: 1px solid rgba(200, 206, 236, 0.12);
   box-shadow: 0 8px 24px rgba(4, 6, 12, 0.45);
 }
-
 .coverage-legend {
   margin-top: 14px;
   padding: 12px;
@@ -1539,13 +1635,11 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   line-height: 1.45;
   margin-bottom: 10px;
 }
-
 .coverage-legend-items {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
-
 .coverage-legend-item {
   display: flex;
   align-items: center;
@@ -1652,11 +1746,11 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 }
 
 .coverage-legend-swatch--sam {
-  background: linear-gradient(135deg, #ffdede, #f6a6a6);
+  background: linear-gradient(135deg, rgba(255, 214, 214, 0.88), rgba(247, 163, 163, 0.88) 70%, rgba(242, 133, 138, 0.88) 100%);
 }
 
 .coverage-legend-swatch--petard {
-  background: linear-gradient(135deg, #d8e9ff, #d2ccff 65%, #f0ceff);
+  background: linear-gradient(135deg, rgba(214, 236, 255, 0.88), rgba(203, 200, 255, 0.88) 60%, rgba(240, 201, 255, 0.88) 100%);
 }
 
 .orientation-info-value.is-clickable {
@@ -1749,14 +1843,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   margin-top: 12px;
 }
 
-.orientation-block.is-live .orientation-info-panel {
-  border: 1px solid rgba(200, 206, 236, 0.08);
-}
-
-@media (max-width: 768px) {
-  /* bloc supprimé */
-}
-
 .orientation-info-label {
   font-size: 0.74rem;
 }
@@ -1817,447 +1903,455 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     <div class="header">
       <div class="title-wrapper">
         <span class="hero-gyro" aria-hidden="true"></span>
-      <div class="title-pill">
-        <div class="title-main">PK ASSISTANT</div>
-        <div class="title-sub">RER A</div>
+        <div class="title-pill">
+          <div class="title-main">PK ASSISTANT</div>
+          <div class="title-sub">RER A</div>
         </div>
         <span class="hero-gyro" aria-hidden="true"></span>
       </div>
-      <div class="subtitle">Estimation du PK en temps réel à partir de la géolocalisation.</div>
+      <div class="subtitle">⚠️ Avertissement</div>
       <div class="note">
-        Toujours vérifier une borne quand c'est critique.
+        Cette application est une aide à l'orientation sur la voie, destinée à un usage informatif uniquement.<br>
+        Elle ne remplace en aucun cas les consignes de sécurité, les procédures internes de la RATP ou la vigilance des agents sur le terrain.<br>
+        L'utilisation du téléphone sur la voie est strictement interdite. Toute consultation doit se faire en dehors des zones de danger et dans le respect absolu des règles de sécurité.
       </div>
     </div>
 
-    <div class="section-title">Statut en temps réel</div>
-    <div class="app-content">
-      <div class="card full-width status-card">
-        <div class="status-header">
-          <div>
-            <div class="status-heading">Géolocalisation</div>
-            <div id="geolocText" class="status-helper">Prêt à démarrer.</div>
-      </div>
-          <span id="gpsStatusBadge" class="status-badge status-badge--danger">GPS OFF</span>
+    <div class="tab-panels">
+
+      <section class="tab-panel is-active" data-tab="status">
+        <h2 class="section-title">Statut en temps réel</h2>
+        <div class="app-content">
+          <div class="card full-width status-card">
+            <div class="status-header">
+              <div>
+                <div class="status-heading">Géolocalisation</div>
+                <div id="geolocText" class="status-helper">Prêt à démarrer.</div>
+              </div>
+              <span id="gpsStatusBadge" class="status-badge status-badge--danger">GPS OFF</span>
+            </div>
+            <button id="btnToggleGeoloc" class="btn btn-primary btn-icon status-cta" type="button">
+              <span>📍</span><span>Lancer la géoloc</span>
+            </button>
+            <div class="status-list">
+              <div class="status-line">
+                <span class="status-label">PK actuel</span>
+                <div class="status-values">
+                  <span id="pkCurrentValue" class="status-value">—</span>
+                  <span id="pkCurrentDetails" class="status-detail"></span>
+                </div>
+              </div>
+              <div class="status-line">
+                <span class="status-label">Sens / mouvement</span>
+                <div class="status-values">
+                  <span id="movementTitle" class="status-value">Détection en attente</span>
+                  <span id="movementDetails" class="status-detail"></span>
+                </div>
+              </div>
+              <div class="status-line">
+                <span class="status-label">Gare la plus proche</span>
+                <div class="status-values">
+                  <span id="nearestStationName" class="status-value">—</span>
+                  <span id="nearestStationInfo" class="status-detail"></span>
+                </div>
+              </div>
+              <div class="status-line">
+                <span class="status-label">Prochaine gare</span>
+                <div class="status-values">
+                  <span id="nextStationName" class="status-value">—</span>
+                  <span id="nextStationInfo" class="status-detail"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+         </div>
+       </section>
+
+      <section class="tab-panel" data-tab="plan">
+        <h2 class="section-title">Plan / Orientation</h2>
+        <div class="app-content">
+          <div id="orientationCard" class="card orientation-block full-width">
+            <div class="card-header">
+              <div class="card-title">Plan – PK / gares / accès</div>
+            </div>
+            <div id="orientationMap"></div>
+            <div id="orientationInfoPanel" class="orientation-info-panel" style="display: none;">
+              <div class="orientation-info-item">
+                <span class="orientation-info-label">PK actuel :</span>
+                <span id="orientPkValue" class="orientation-info-value">—</span>
+              </div>
+              <div class="orientation-info-item">
+                <span class="orientation-info-label">Sens :</span>
+                <span id="orientDirValue" class="orientation-info-value">En attente de GPS…</span>
+              </div>
+              <div class="orientation-info-group">
+                <div class="orientation-info-item">
+                  <span class="orientation-info-label">Gare la plus proche :</span>
+                  <span id="orientGareValue" class="orientation-info-value">—</span>
+                </div>
+              </div>
+              <div class="orientation-info-group">
+                <div class="orientation-info-item">
+                  <span class="orientation-info-label">Accès les plus proches :</span>
+                  <span id="orientAccessValue" class="orientation-info-value">—</span>
+                </div>
+              </div>
+              <div class="orientation-info-group orientation-target-group">
+                <div class="orientation-info-item orientation-target-item">
+                  <span class="orientation-info-label">PK cible :</span>
+                  <div class="orientation-target-controls">
+                    <input id="inputPkTarget" type="text" placeholder="ex : 32400 ou 32+400" class="orientation-target-input" />
+                    <button id="btnSetPkTarget" class="btn btn-secondary btn-icon orientation-target-button" type="button">
+                      <span>🎯</span><span>Définir</span>
+                    </button>
+                  </div>
+                </div>
+                <div id="pkTargetInfo" class="orientation-target-info">
+                  Aucun PK cible défini pour le moment.
+                </div>
+              </div>
+            </div>
+            <div id="coverageLegend" class="coverage-legend">
+              <div class="coverage-legend-title">Repères calculés</div>
+              <div class="coverage-legend-helper">
+                Les repères listés sont cliquables : la carte se centre dessus et affiche le détail.
+              </div>
+              <div class="coverage-legend-items" id="coverageLegendItems"></div>
+            </div>
+          </div>
+
+          <div class="card full-width plan-line-card">
+            <div class="card-header">
+              <div class="card-title">Plan de ligne</div>
+            </div>
+            <div class="field plan-toggle">
+              <label>
+                <input id="planBoissyToggle" type="checkbox" />
+                Afficher le plan de Boissy
+              </label>
+              <div id="planBoissyContainer" class="plan-line-container" style="display: none;">
+                <iframe class="plan-line-iframe" src="docs/Boissy.pdf" title="Plan de Boissy"></iframe>
+              </div>
+            </div>
+            <div class="field plan-toggle">
+              <label>
+                <input id="planParisOuestToggle" type="checkbox" />
+                Afficher le plan de Paris-Ouest
+              </label>
+              <div id="planParisOuestContainer" class="plan-line-container" style="display: none;">
+                <iframe class="plan-line-iframe" src="docs/Paris%20-%20Ouest.pdf" title="Plan de Paris-Ouest"></iframe>
+              </div>
+            </div>
+            <div class="field plan-toggle">
+              <label>
+                <input id="planChessyToggle" type="checkbox" />
+                Afficher le plan de Chessy
+              </label>
+              <div id="planChessyContainer" class="plan-line-container" style="display: none;">
+                <iframe class="plan-line-iframe" src="docs/Chessy.pdf" title="Plan de Chessy"></iframe>
+              </div>
+            </div>
+          </div>
+         </div>
+       </section>
+
+      <section class="tab-panel" data-tab="urgence">
+        <h2 class="section-title">Urgence &amp; avaries</h2>
+        <div class="app-content">
+          <div class="card full-width">
+            <div class="card-header">
+              <div class="card-title">Urgence &amp; avaries</div>
+            </div>
+            <div id="smsPreview" class="muted">
+              En attente de position GPS pour préparer le SMS.
+            </div>
+            <div class="field">
+              <button id="btnCouvreurSeul" class="btn btn-warning btn-icon" type="button">
+                <span>🚶</span><span>Couvreur cheminant seul</span>
+              </button>
+              <div id="couvreurStatus" class="muted" style="margin-top: 8px; font-size: 0.9em; display: none;">
+                Mode actif : surveillance en cours...
+              </div>
+            </div>
+            <div class="field">
+              <button id="btnSms" class="btn btn-danger btn-icon" type="button">
+                <span>✉️</span><span>SMS d'urgence</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="card full-width">
+            <div class="card-header">
+              <div class="card-title">Déclarer une avarie / un incident</div>
+            </div>
+            <div class="signalement-block">
+              <label for="selectIncidentType" style="font-weight: 700;">🚨 Signalement d'avarie / incident</label>
+              <select id="selectIncidentType">
+                <option value="">-- Choisir un type d'incident --</option>
+                <option value="Cheminement endommagé">Cheminement endommagé</option>
+                <option value="Rail cassé">Rail cassé</option>
+                <option value="Animal mort">Animal mort</option>
+                <option value="Autre">Autre (saisir ci-dessous)</option>
+              </select>
+              <div class="field" id="incidentOtherField" style="display:none;">
+                <label for="inputIncidentOther">Précisez l'incident :</label>
+                <input id="inputIncidentOther" type="text" placeholder="ex : câble arraché, signal détérioré..." />
+              </div>
+              <div class="field">
+                <label for="incidentPhoto">Photo (optionnel)</label>
+                <input id="incidentPhoto" type="file" accept="image/*" />
+              </div>
+              <div class="field">
+                <button id="btnGenerateIncident" class="btn btn-good btn-icon" type="button">
+                  <span>📣</span><span>Générer le message de signalement</span>
+                </button>
+              </div>
+              <div class="field" id="incidentResultField" style="display:none;">
+                <label>Message généré :</label>
+                <textarea id="incidentResultText" rows="4" readonly></textarea>
+                <button id="btnCopyIncident" class="btn btn-secondary btn-icon" type="button">
+                  <span>📋</span><span>Copier le texte</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <button id="btnToggleGeoloc" class="btn btn-primary btn-icon status-cta" type="button">
-          <span>📍</span><span>Lancer la géoloc</span>
-        </button>
-        <div class="status-list">
-          <div class="status-line">
-            <span class="status-label">PK actuel</span>
-            <div class="status-values">
-              <span id="pkCurrentValue" class="status-value">—</span>
-              <span id="pkCurrentDetails" class="status-detail"></span>
-      </div>
-    </div>
-          <div class="status-line">
-            <span class="status-label">Sens / mouvement</span>
-            <div class="status-values">
-              <span id="movementTitle" class="status-value">Détection en attente</span>
-              <span id="movementDetails" class="status-detail"></span>
-      </div>
-    </div>
-          <div class="status-line">
-            <span class="status-label">Gare la plus proche</span>
-            <div class="status-values">
-              <span id="nearestStationName" class="status-value">—</span>
-              <span id="nearestStationInfo" class="status-detail"></span>
-      </div>
-    </div>
-          <div class="status-line">
-            <span class="status-label">Prochaine gare</span>
-            <div class="status-values">
-              <span id="nextStationName" class="status-value">—</span>
-              <span id="nextStationInfo" class="status-detail"></span>
-      </div>
-    </div>
-      </div>
-      </div>
+      </section>
+
+      <section class="tab-panel" data-tab="recherche">
+        <h2 class="section-title">Calcul &amp; recherche PK</h2>
+        <div class="app-content">
+          <div class="card full-width">
+            <div class="card-header">
+              <div class="card-title">Recherche par PK & GPS (accès le plus proche)</div>
+            </div>
+            <div class="field">
+              <label for="inputPkLookup">Recherche par PK et GPS (accès le plus proche)</label>
+              <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" />
+              <button id="btnPkLookup" class="btn btn-secondary btn-icon" type="button">
+                <span>🔎</span><span>Rechercher l'accès</span>
+              </button>
+            </div>
+            <div class="field" id="pkLookupResultField" style="display:none;">
+              <div id="pkLookupResult" class="muted"></div>
+              <div class="field">
+                <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
+                  <span>📍</span><span>Google Maps</span>
+                </button>
+                <button id="btnPkLookupOpenWaze" class="btn btn-secondary btn-icon" type="button">
+                  <span>🚗</span><span>Waze</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card full-width">
+            <div class="card-header">
+              <div class="card-title">🚦 Calculer rouges & pétards</div>
+            </div>
+            <div class="field">
+              <label for="inputCoveragePkStart">PK début chantier (m)</label>
+              <input id="inputCoveragePkStart" type="number" placeholder="ex : 48000" />
+            </div>
+            <div class="field">
+              <label for="inputCoveragePkEnd">PK fin chantier (m)</label>
+              <input id="inputCoveragePkEnd" type="number" placeholder="ex : 49000" />
+            </div>
+            <div class="field">
+              <button id="btnComputeCoverage" class="btn btn-primary btn-icon" type="button">
+                <span>🚦</span><span>Calculer rouges & pétards</span>
+              </button>
+            </div>
+            <div class="field coverage-guide-toggle">
+              <label for="toggleCoverageGuide">
+                <input id="toggleCoverageGuide" type="checkbox" />
+                Consulter le mode opératoire
+              </label>
+            </div>
+            <div id="coverageGuide" class="coverage-guide" aria-live="polite">
+              <p style="margin: 0 0 8px;">Répartition standard selon la doctrine RER&nbsp;A :</p>
+              <ul>
+                <li>Signal de repérage : signal à main d'arrêt + 1 pétard positionnés à 100&nbsp;m de chaque extrémité du chantier.</li>
+                <li>Pétards d'annonce : 3 pétards à 800&nbsp;m (ou 1000&nbsp;m entre Torcy PK&nbsp;48,000 et Marne-la-Vallée–Chessy), alternés tous les 30&nbsp;m sur chaque file de rail.</li>
+              </ul>
+              <p style="margin: 8px 0 0;">Indique le PK début, le PK fin ou les deux pour générer les points précis et les afficher sur la carte.</p>
+            </div>
+            <div class="field" style="margin-top: 15px;">
+              <label style="font-weight: 600; margin-bottom: 8px;">Résultats du calcul :</label>
+              <div id="coverageResultsLine" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; min-height: 40px; display: flex; align-items: center;">
+                <span style="color: rgba(255, 255, 255, 0.5);">Cliquez sur « Calculer rouges & pétards » pour voir les résultats</span>
+              </div>
+            </div>
+            <div id="coverageResult" class="field" style="display: none; margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+              <div id="coverageResultText" style="color: #fff; line-height: 1.6;"></div>
+            </div>
+            <div class="field">
+              <button id="btnClearCoverage" class="btn btn-secondary" type="button" style="display: none;">
+                Effacer les marqueurs
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" data-tab="fermetures">
+        <h2 class="section-title">Fermetures nocturnes</h2>
+        <div class="app-content">
+          <div id="fermeturesNocturnesCard" class="card full-width">
+            <div class="card-header">
+              <div class="card-title">Fermetures nocturnes</div>
+            </div>
+            <div id="fermeturesNocturnesContent" style="padding: 16px; line-height: 1.8; color: var(--text);">
+              <!-- Le contenu sera généré par JavaScript -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" data-tab="settings">
+        <h2 class="section-title">Paramètres & outils</h2>
+        <div class="app-content">
+          <div id="settingsPanel" class="card card-soft full-width">
+            <div class="card-header"></div>
+            <div class="divider"></div>
+            <div class="sensitivity-section">
+              <div class="field">
+                <label for="selectSensitivity">Sensibilité au mouvement</label>
+                <select id="selectSensitivity">
+                  <option value="slow">Marche lente</option>
+                  <option value="normal">Normal</option>
+                  <option value="train">Train</option>
+                </select>
+                <div class="muted">« Marche lente » détecte plus facilement un déplacement à pied.</div>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="pk-calibration-section">
+              <div class="field">
+                <label>Recalage PK</label>
+                <div id="pkOffsetInfo" class="muted">Offset actuel : ±0 m appliqués à tous les PK.</div>
+              </div>
+              <div class="field">
+                <label>Position PK estimée (lecture seule)</label>
+                <div id="pkEstimateText" class="muted">En attente de position GPS…</div>
+              </div>
+              <div class="field">
+                <label for="inputPkRecal">PK exact ici (pour recaler l'appli)</label>
+                <input id="inputPkRecal" type="text" placeholder="ex : 52700 ou 52+700" />
+                <button id="btnApplyRecal" class="btn btn-primary" type="button">Recaler l'appli sur ce PK</button>
+              </div>
+              <div class="field">
+                <button id="btnResetOffset" class="btn btn-secondary" type="button">
+                  Réinitialiser le recalage PK
+                </button>
+              </div>
+              <div class="field">
+                <button id="btnExportCalibrations" class="btn btn-secondary btn-icon" type="button">
+                  <span>📤</span><span>Exporter mes recalages (JSON)</span>
+                </button>
+                <div class="muted">
+                  Exporte les recalages que tu as faits (PK exact + GPS) pour les déposer ensuite dans GitHub.
+                </div>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="pk-calibration-section">
+              <div class="field">
+                <label>Points de carte</label>
+                <div id="mapPointsInfo" class="muted">Aucun point enregistré.</div>
+              </div>
+              <div class="field">
+                <label for="inputMapPointDescription">Description du point</label>
+                <textarea id="inputMapPointDescription" rows="3" placeholder="Ex: Accès, clef VCC, etc."></textarea>
+              </div>
+              <div class="field">
+                <button id="btnNoteLocation" class="btn btn-primary" type="button">Enregistrer l'emplacement</button>
+                <div class="muted">
+                  Enregistre ta position GPS actuelle avec la description et le PK.
+                </div>
+              </div>
+              <div class="field">
+                <button id="btnExportMapPoints" class="btn btn-secondary btn-icon" type="button">
+                  <span>📤</span><span>Exporter les points (JSON)</span>
+                </button>
+                <div class="muted">
+                  Exporte tous les points enregistrés pour les déposer dans GitHub.
+                </div>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="field">
+              <label for="inputSosPhone">Numéro SOS pour le SMS d'urgence</label>
+              <input id="inputSosPhone" type="tel" placeholder="ex : 0612345678 ou +33612345678" />
+              <div style="margin-top: 8px;">
+                <button id="btnSavePhone" class="btn btn-primary btn-icon" type="button">
+                  <span>💾</span><span>Sauvegarder</span>
+                </button>
+              </div>
+              <div class="muted">Ce numéro sera utilisé par le bouton « SMS d'urgence ».</div>
+            </div>
+            <div class="divider"></div>
+            <div class="field">
+              <button id="btnReadme" class="btn btn-secondary btn-icon" type="button">
+                <span>📖</span><span>Tutoriel</span>
+              </button>
+            </div>
+            <div id="readmePanel" class="card" style="display: none; margin-top: 15px;">
+              <div class="card-header">
+                <div class="card-title">📖 Tutoriel - Guide d'utilisation</div>
+              </div>
+              <div id="readmeContent" style="padding: 16px; line-height: 1.8; color: var(--text);">
+                <!-- Le contenu sera généré par JavaScript -->
+              </div>
+              <div class="field" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                <button id="btnCloseReadme" class="btn btn-secondary" type="button">
+                  Fermer
+                </button>
+              </div>
+            </div>
+            <div class="settings-footer">
+              Ces réglages restent stockés dans ton navigateur (localStorage).
+              Ils ne sont pas effacés quand on met à jour l'application.
+            </div>
+          </div>
+        </div>
+      </section>
+
     </div>
 
-    <div class="section-title">Navigation & plan</div>
-    <div class="app-content">
-<!-- PLAN / PK CIBLE / GARES / ACCÈS -->
-<div id="orientationCard" class="card orientation-block full-width" style="display:none;">
-  <div class="card-header">
-    <div class="card-title">Plan – PK / gares / accès</div>
-  </div>
-
-  <!-- Carte interactive Leaflet -->
-  <div id="orientationMap"></div>
-  
-  <!-- Panneau d'information -->
-  <div id="orientationInfoPanel" class="orientation-info-panel" style="display: none;">
-    <div class="orientation-info-item">
-      <span class="orientation-info-label">PK actuel :</span>
-      <span id="orientPkValue" class="orientation-info-value">—</span>
-    </div>
-    <div class="orientation-info-item">
-      <span class="orientation-info-label">Sens :</span>
-      <span id="orientDirValue" class="orientation-info-value">En attente de GPS…</span>
-      </div>
-    <div class="orientation-info-group">
-      <div class="orientation-info-item">
-        <span class="orientation-info-label">Gare la plus proche :</span>
-        <span id="orientGareValue" class="orientation-info-value">—</span>
-      </div>
-      </div>
-    <div class="orientation-info-group">
-      <div class="orientation-info-item">
-        <span class="orientation-info-label">Accès les plus proches :</span>
-        <span id="orientAccessValue" class="orientation-info-value">—</span>
-      </div>
-    </div>
-    <div class="orientation-info-group orientation-target-group">
-      <div class="orientation-info-item orientation-target-item">
-        <span class="orientation-info-label">PK cible :</span>
-        <div class="orientation-target-controls">
-          <input id="inputPkTarget" type="text" placeholder="ex : 32400 ou 32+400" class="orientation-target-input" />
-          <button id="btnSetPkTarget" class="btn btn-secondary btn-icon orientation-target-button" type="button">
-            <span>🎯</span><span>Définir</span>
-          </button>
-  </div>
-</div>
-      <div id="pkTargetInfo" class="orientation-target-info">
-        Aucun PK cible défini pour le moment.
-      </div>
-      </div>
-      </div>
-  <div id="coverageLegend" class="coverage-legend">
-    <div class="coverage-legend-title">Repères calculés</div>
-    <div class="coverage-legend-helper">
-      Les repères listés sont cliquables : la carte se centre dessus et affiche le détail.
-    </div>
-    <div class="coverage-legend-items" id="coverageLegendItems"></div>
-      </div>
-      </div>
-
-    <div class="card full-width toggle-card">
-      <button id="btnOrientationToggle" class="btn btn-toggle btn-icon" type="button" data-active="false">
-        <span>🗺️</span><span class="btn-label">Afficher le plan PK / gares</span>
+    <nav class="tabbar" id="appTabBar">
+      <button class="tab-button tab-button--status is-active" type="button" data-tab-target="status">
+        <span class="tab-icon">📡</span>
+        <span class="tab-label">Statut</span>
       </button>
-    </div>
-
-    </div>
-
-    <div class="section-title">Alertes & interventions</div>
-    <div class="app-content">
-    <!-- URGENCE / SMS -->
-    <div class="card full-width">
-      <div class="card-header">
-        <div class="card-title">Urgence / partage position</div>
-      </div>
-      <div id="smsPreview" class="muted">
-        En attente de position GPS pour préparer le SMS.
-      </div>
-      <div class="field">
-        <button id="btnCouvreurSeul" class="btn btn-warning btn-icon" type="button">
-          <span>🚶</span><span>Couvreur cheminant seul</span>
-        </button>
-        <div id="couvreurStatus" class="muted" style="margin-top: 8px; font-size: 0.9em; display: none;">
-          Mode actif : surveillance en cours...
-        </div>
-      </div>
-      <div class="field">
-        <button id="btnSms" class="btn btn-danger btn-icon" type="button">
-          <span>✉️</span><span>SMS d'urgence</span>
-        </button>
-      </div>
-      </div>
-    </div>
-
-    <div class="section-title">Recherche par PK & GPS</div>
-    <div class="app-content">
-      <div class="card full-width">
-        <div class="card-header">
-          <div class="card-title">Recherche par PK & GPS (accès le plus proche)</div>
-        </div>
-
-        <div class="field">
-          <label for="inputPkLookup">Recherche par PK et GPS (accès le plus proche)</label>
-          <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" />
-          <button id="btnPkLookup" class="btn btn-secondary btn-icon" type="button">
-            <span>🔎</span><span>Rechercher l'accès</span>
+      <button class="tab-button tab-button--plan" type="button" data-tab-target="plan">
+        <span class="tab-icon">🗺️</span>
+        <span class="tab-label">Plan</span>
       </button>
-    </div>
-
-        <div class="field" id="pkLookupResultField" style="display:none;">
-          <div id="pkLookupResult" class="muted"></div>
-
-          <div class="field">
-            <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
-              <span>📍</span><span>Google Maps</span>
-            </button>
-            <button id="btnPkLookupOpenWaze" class="btn btn-secondary btn-icon" type="button">
-              <span>🚗</span><span>Waze</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-title">Signalement d'avarie / incident</div>
-    <div class="app-content">
-      <div class="card full-width">
-      <div class="card-header">
-          <div class="card-title">Déclarer un incident</div>
-      </div>
-
-        <div class="signalement-block">
-          <label for="selectIncidentType" style="font-weight: 700;">🚨 Signalement d'avarie / incident</label>
-          <select id="selectIncidentType">
-            <option value="">-- Choisir un type d'incident --</option>
-            <option value="Cheminement endommagé">Cheminement endommagé</option>
-            <option value="Rail cassé">Rail cassé</option>
-            <option value="Animal mort">Animal mort</option>
-            <option value="Autre">Autre (saisir ci-dessous)</option>
-          </select>
-
-          <div class="field" id="incidentOtherField" style="display:none;">
-            <label for="inputIncidentOther">Précisez l'incident :</label>
-            <input id="inputIncidentOther" type="text" placeholder="ex : câble arraché, signal détérioré..." />
-          </div>
-
-<div class="field">
-            <label for="incidentPhoto">Photo (optionnel)</label>
-            <input id="incidentPhoto" type="file" accept="image/*" />
-  </div>
-
-          <div class="field">
-            <button id="btnGenerateIncident" class="btn btn-good btn-icon" type="button">
-              <span>📣</span><span>Générer le message de signalement</span>
-            </button>
-</div>
-
-          <div class="field" id="incidentResultField" style="display:none;">
-            <label>Message généré :</label>
-            <textarea id="incidentResultText" rows="4" readonly></textarea>
-            <button id="btnCopyIncident" class="btn btn-secondary btn-icon" type="button">
-              <span>📋</span><span>Copier le texte</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-title">Calcul couverture travaux</div>
-    <div class="app-content">
-      <div class="card full-width">
-        <div class="card-header">
-          <div class="card-title">🚦 Calculer rouges & pétards</div>
-        </div>
-      <div class="field">
-          <label for="inputCoveragePkStart">PK début chantier (m)</label>
-          <input id="inputCoveragePkStart" type="number" placeholder="ex : 48000" />
-        </div>
-        <div class="field">
-          <label for="inputCoveragePkEnd">PK fin chantier (m)</label>
-          <input id="inputCoveragePkEnd" type="number" placeholder="ex : 49000" />
-        </div>
-        <div class="field">
-          <button id="btnComputeCoverage" class="btn btn-primary btn-icon" type="button">
-            <span>🚦</span><span>Calculer rouges & pétards</span>
-          </button>
-        </div>
-        <div class="field coverage-guide-toggle">
-          <label for="toggleCoverageGuide">
-            <input id="toggleCoverageGuide" type="checkbox" />
-            Consulter le mode opératoire
-          </label>
-        </div>
-        <div id="coverageGuide" class="coverage-guide" aria-live="polite">
-          <p style="margin: 0 0 8px;">Répartition standard selon la doctrine RER&nbsp;A :</p>
-          <ul>
-            <li>Signal de repérage : signal à main d'arrêt + 1 pétard positionnés à 100&nbsp;m de chaque extrémité du chantier.</li>
-            <li>Pétards d'annonce : 3 pétards à 800&nbsp;m (ou 1000&nbsp;m entre Torcy PK&nbsp;48,000 et Marne-la-Vallée–Chessy), alternés tous les 30&nbsp;m sur chaque file de rail.</li>
-          </ul>
-          <p style="margin: 8px 0 0;">Indique le PK début, le PK fin ou les deux pour générer les points précis et les afficher sur la carte.</p>
-        </div>
-        <div class="field" style="margin-top: 15px;">
-          <label style="font-weight: 600; margin-bottom: 8px;">Résultats du calcul :</label>
-          <div id="coverageResultsLine" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; min-height: 40px; display: flex; align-items: center;">
-            <span style="color: rgba(255, 255, 255, 0.5);">Cliquez sur « Calculer rouges & pétards » pour voir les résultats</span>
-          </div>
-        </div>
-        <div id="coverageResult" class="field" style="display: none; margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
-          <div id="coverageResultText" style="color: #fff; line-height: 1.6;"></div>
-        </div>
-        <div class="field">
-          <button id="btnClearCoverage" class="btn btn-secondary" type="button" style="display: none;">
-            Effacer les marqueurs
-          </button>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="card toggle-card" style="margin-bottom: 12px;">
-          <div class="field" style="margin: 0; padding: 12px;">
-            <button id="btnFermeturesToggle" class="btn btn-toggle btn-icon" type="button" data-active="false">
-              <span>🌙</span><span class="btn-label">Afficher les fermetures nocturnes</span>
-            </button>
-          </div>
-        </div>
-
-        <div id="fermeturesNocturnesCard" class="card" style="display: none; margin-bottom: 15px;">
-          <div class="card-header">
-            <div class="card-title">Fermetures nocturnes</div>
-          </div>
-          <div id="fermeturesNocturnesContent" style="padding: 16px; line-height: 1.8; color: var(--text);">
-            <!-- Le contenu sera généré par JavaScript -->
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-title">Paramètres & outils</div>
-    <div class="app-content">
-    <div class="card card-soft full-width settings-toggle-card">
-      <button id="btnSettingsToggle" class="btn btn-secondary btn-icon" type="button">
-        <span>⚙️</span><span>Paramètres</span>
+      <button class="tab-button tab-button--urgence" type="button" data-tab-target="urgence">
+        <span class="tab-icon">🚨</span>
+        <span class="tab-label">Urgence &amp; avaries</span>
       </button>
-    </div>
-
-    <!-- PARAMÈTRES -->
-    <div id="settingsPanel" class="card card-soft full-width" style="display:none;">
-      <div class="card-header">
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- Sensibilité mouvement -->
-      <div class="sensitivity-section">
-      <div class="field">
-        <label for="selectSensitivity">Sensibilité au mouvement</label>
-        <select id="selectSensitivity">
-          <option value="slow">Marche lente</option>
-          <option value="normal">Normal</option>
-          <option value="train">Train</option>
-        </select>
-        <div class="muted">« Marche lente » détecte plus facilement un déplacement à pied.</div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- Recalage PK -->
-      <div class="pk-calibration-section">
-      <div class="field">
-        <label>Recalage PK</label>
-        <div id="pkOffsetInfo" class="muted">Offset actuel : ±0 m appliqués à tous les PK.</div>
-      </div>
-
-      <div class="field">
-        <label>Position PK estimée (lecture seule)</label>
-        <div id="pkEstimateText" class="muted">En attente de position GPS…</div>
-      </div>
-
-      <div class="field">
-          <label for="inputPkRecal">PK exact ici (pour recaler l'appli)</label>
-        <input id="inputPkRecal" type="text" placeholder="ex : 52700 ou 52+700" />
-          <button id="btnApplyRecal" class="btn btn-primary" type="button">Recaler l'appli sur ce PK</button>
-      </div>
-
-      <div class="field">
-        <button id="btnResetOffset" class="btn btn-secondary" type="button">
-          Réinitialiser le recalage PK
-        </button>
-      </div>
-
-        <!-- AJOUT CALIBRAGE : bouton d'export -->
-      <div class="field">
-        <button id="btnExportCalibrations" class="btn btn-secondary btn-icon" type="button">
-          <span>📤</span><span>Exporter mes recalages (JSON)</span>
-        </button>
-        <div class="muted">
-          Exporte les recalages que tu as faits (PK exact + GPS) pour les déposer ensuite dans GitHub.
-        </div>
-      </div>
-      <!-- FIN AJOUT CALIBRAGE -->
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- Points de carte -->
-      <div class="pk-calibration-section">
-      <div class="field">
-          <label>Points de carte</label>
-          <div id="mapPointsInfo" class="muted">Aucun point enregistré.</div>
-      </div>
-
-        <div class="field">
-          <label for="inputMapPointDescription">Description du point</label>
-          <textarea id="inputMapPointDescription" rows="3" placeholder="Ex: Accès, clef VCC, etc."></textarea>
-        </div>
-
-        <div class="field">
-          <button id="btnNoteLocation" class="btn btn-primary" type="button">Enregistrer l'emplacement</button>
-          <div class="muted">
-            Enregistre ta position GPS actuelle avec la description et le PK.
-        </div>
-      </div>
-
-        <div class="field">
-          <button id="btnExportMapPoints" class="btn btn-secondary btn-icon" type="button">
-            <span>📤</span><span>Exporter les points (JSON)</span>
-          </button>
-          <div class="muted">
-            Exporte tous les points enregistrés pour les déposer dans GitHub.
-          </div>
-        </div>
-        </div>
-
-      <!-- Numéro SOS -->
-        <div class="field">
-        <label for="inputSosPhone">Numéro SOS pour le SMS d'urgence</label>
-        <input id="inputSosPhone" type="tel" placeholder="ex : 0612345678 ou +33612345678" />
-        <div style="margin-top: 8px;">
-          <button id="btnSavePhone" class="btn btn-primary btn-icon" type="button">
-            <span>💾</span><span>Sauvegarder</span>
-          </button>
-        </div>
-        <div class="muted">Ce numéro sera utilisé par le bouton « SMS d'urgence ».</div>
-        </div>
-
-      <div class="divider"></div>
-
-      <!-- Tutoriel -->
-        <div class="field">
-        <button id="btnReadme" class="btn btn-secondary btn-icon" type="button">
-          <span>📖</span><span>Tutoriel</span>
-          </button>
-        </div>
-
-      <div id="readmePanel" class="card" style="display: none; margin-top: 15px;">
-        <div class="card-header">
-          <div class="card-title">📖 Tutoriel - Guide d'utilisation</div>
-        </div>
-        <div id="readmeContent" style="padding: 16px; line-height: 1.8; color: var(--text);">
-          <!-- Le contenu sera généré par JavaScript -->
-      </div>
-        <div class="field" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
-          <button id="btnCloseReadme" class="btn btn-secondary" type="button">
-            Fermer
-        </button>
-        </div>
-      </div>
-
-      <div class="settings-footer">
-        Ces réglages restent stockés dans ton navigateur (localStorage).  
-        Ils ne sont pas effacés quand on met à jour l'application.
-      </div>
-      </div>
-    </div>
-  </div>
+      <button class="tab-button tab-button--recherche" type="button" data-tab-target="recherche">
+        <span class="tab-icon">🔍</span>
+        <span class="tab-label">Calcul &amp; recherche PK</span>
+      </button>
+      <button class="tab-button tab-button--fermetures" type="button" data-tab-target="fermetures">
+        <span class="tab-icon">🌙</span>
+        <span class="tab-label">Fermetures</span>
+      </button>
+      <button class="tab-button tab-button--settings" type="button" data-tab-target="settings">
+        <span class="tab-icon">⚙️</span>
+        <span class="tab-label">Paramètres</span>
+      </button>
+    </nav>
+   </div>
 
   <script src="config/access-config.js"></script>
 
   <script>
 
-    const ORIENT_ENABLED_KEY = "orientationEnabled";
-    const FERMETURES_ENABLED_KEY = "fermeturesNocturnesEnabled";
-
-    let orientationEnabled = false;
-    let fermeturesEnabled = false;
+    const ACTIVE_TAB_KEY = "pkAssistantActiveTab";
 
     const ACCESS_CODE_KEY = "pkAssistantAccessGranted";
     const ACCESS_LAST_USED_CODE_KEY = "lastUsedCode";
@@ -2959,13 +3053,6 @@ const accessPoints = [
     lon: null
   },
   {
-    name: "150 av. du Maréchal Leclerc, La Varenne",
-    address: "150 av. du Maréchal Leclerc, La Varenne",
-    pk: 42600,
-    lat: null,
-    lon: null
-  },
-  {
     name: "102 av. du Général De Gaulle, Sucy-en-Brie",
     address: "102 av. du Général De Gaulle, Sucy-en-Brie",
     pk: 42750,
@@ -3111,13 +3198,6 @@ const accessPoints = [
     pk: 37950,
     lat: 48.81394444,
     lon: 2.46969444
-  },
-  {
-    name: "20 av. de Condé, St Maur des fossés",
-    address: "20 av. de Condé, St Maur des fossés",
-    pk: 37550,
-    lat: 48.81722222,
-    lon: 2.46483333
   },
   {
     name: "Gare de St-Maur - L'Écluse",
@@ -3558,7 +3638,7 @@ const accessPoints = [
   // (tronc commun = both, le reste on laissera null)
   for (const acc of accessPoints) {
     if (acc.pk <= 34000) {
-      acc.branch = "both"; // tronçon commun
+      acc.branch = "both"; // tronc commun
     } else {
       acc.branch = null;   // on déterminera la branche à la volée si besoin
     }
@@ -3888,20 +3968,20 @@ async function loadSharedCalibrations() {
   const pkCurrentValue = document.getElementById("pkCurrentValue");
   const pkCurrentDetails = document.getElementById("pkCurrentDetails");
 
-  const btnOrientationToggle = document.getElementById("btnOrientationToggle");
-const orientationCard   = document.getElementById("orientationCard");
+  const orientationCard   = document.getElementById("orientationCard");
   const orientGareValueEl = document.getElementById("orientGareValue");
 
-  const btnFermeturesToggle = document.getElementById("btnFermeturesToggle");
   const fermeturesNocturnesCard = document.getElementById("fermeturesNocturnesCard");
   const fermeturesNocturnesContent = document.getElementById("fermeturesNocturnesContent");
 
-  const btnSettingsToggle = document.getElementById("btnSettingsToggle");
   const settingsPanel = document.getElementById("settingsPanel");
   const btnReadme = document.getElementById("btnReadme");
   const readmePanel = document.getElementById("readmePanel");
   const readmeContent = document.getElementById("readmeContent");
   const btnCloseReadme = document.getElementById("btnCloseReadme");
+
+  const tabButtons = Array.from(document.querySelectorAll(".tab-button"));
+  const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
 
   const inputSosPhone = document.getElementById("inputSosPhone");
   const btnSavePhone = document.getElementById("btnSavePhone");
@@ -4479,9 +4559,7 @@ function buildCalibrationPolylines() {
   }
 
   function ensureOrientationMapReady() {
-    if (!orientationEnabled) {
-      setOrientationEnabled(true);
-    } else if (!orientationMap) {
+    if (!orientationMap) {
       initOrientationMap();
     }
   }
@@ -4746,64 +4824,6 @@ function detectBranch(lat, lon) {
     }
   }
 
-  function updateToggleButton(button, active, activeLabel, inactiveLabel) {
-    if (!button) return;
-    button.dataset.active = active ? "true" : "false";
-    button.setAttribute("aria-pressed", active ? "true" : "false");
-    const label = button.querySelector(".btn-label");
-    if (label) {
-      label.textContent = active ? activeLabel : inactiveLabel;
-    }
-  }
-
-  function setOrientationEnabled(enabled) {
-    orientationEnabled = !!enabled;
-    updateToggleButton(
-      btnOrientationToggle,
-      orientationEnabled,
-      "Masquer le plan PK / gares",
-      "Afficher le plan PK / gares"
-    );
-    if (orientationCard) {
-      orientationCard.style.display = orientationEnabled ? "block" : "none";
-      if (!orientationEnabled) {
-        orientationCard.classList.remove("is-live");
-      }
-    }
-    safeSetItem(ORIENT_ENABLED_KEY, orientationEnabled ? "1" : "0");
-    if (orientationEnabled) {
-      if (!orientationMap) {
-        initOrientationMap();
-      } else {
-        setTimeout(() => {
-          try {
-            orientationMap.invalidateSize();
-          } catch (e) {
-            console.warn("Impossible de recalculer la taille de la carte :", e);
-          }
-        }, 200);
-      }
-      updateOrientationPanel();
-    }
-  }
-
-  function setFermeturesEnabled(enabled) {
-    fermeturesEnabled = !!enabled;
-    updateToggleButton(
-      btnFermeturesToggle,
-      fermeturesEnabled,
-      "Masquer les fermetures nocturnes",
-      "Afficher les fermetures nocturnes"
-    );
-    if (fermeturesNocturnesCard) {
-      fermeturesNocturnesCard.style.display = fermeturesEnabled ? "block" : "none";
-    }
-    safeSetItem(FERMETURES_ENABLED_KEY, fermeturesEnabled ? "1" : "0");
-    if (fermeturesEnabled) {
-      generateFermeturesNocturnesContent();
-    }
-  }
-
   function loadSettings() {
     let storedOffset = parseFloat(safeGetItem("pkOffset"));
     pkOffset = isNaN(storedOffset) ? 0 : storedOffset;
@@ -4817,12 +4837,39 @@ function detectBranch(lat, lon) {
     inputSosPhone.value = sosPhone;
     selectSensitivity.value = motionSensitivity;
     updateOffsetInfo();
-    const storedOrient = safeGetItem(ORIENT_ENABLED_KEY);
-    setOrientationEnabled(storedOrient === "1");
+    const storedTab = safeGetItem(ACTIVE_TAB_KEY);
+    const fallbackTab = "status";
+    const initialTab = storedTab && tabPanels.some(panel => panel.dataset.tab === storedTab)
+      ? storedTab
+      : fallbackTab;
+    activateTab(initialTab, { skipStore: true });
+    generateFermeturesNocturnesContent();
+  }
 
-    const storedFerm = safeGetItem(FERMETURES_ENABLED_KEY);
-    setFermeturesEnabled(storedFerm === "1");
-}
+  function activateTab(tabId, options = {}) {
+    if (!tabPanels.length) return;
+    const { skipStore = false } = options;
+    tabButtons.forEach(button => {
+      const target = button.getAttribute("data-tab-target");
+      const isActive = target === tabId;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+    tabPanels.forEach(panel => {
+      panel.classList.toggle("is-active", panel.dataset.tab === tabId);
+    });
+    if (!skipStore) {
+      safeSetItem(ACTIVE_TAB_KEY, tabId);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (tabId === "plan") {
+      ensureOrientationMapReady();
+      updateOrientationPanel();
+    } else if (tabId === "fermetures") {
+      generateFermeturesNocturnesContent();
+    }
+  }
+
   function updateOffsetInfo() {
     const val = Math.round(pkOffset);
     const sign = val === 0 ? "0" : (val > 0 ? "+"+val : ""+val);
@@ -5297,8 +5344,10 @@ function detectBranch(lat, lon) {
 
     if (!card || !pkValue || !dirValue || !gareValue || !accessValue || !infoPanel) return;
 
-  // Si le bloc est caché, on ne fait rien
-  if (card.style.display === "none") return;
+    const panel = card.closest(".tab-panel");
+    if (panel && !panel.classList.contains("is-active")) {
+      return;
+    }
 
     // Initialiser la carte si nécessaire
     if (!orientationMap) {
@@ -5835,7 +5884,6 @@ function detectBranch(lat, lon) {
     }
     // Ne pas réinitialiser smsTimerStartTime et smsTimerEndTime pour garder l'information
   }
-
   // Fonction pour démarrer la sonnerie forte
   function startAlarm() {
     try {
@@ -6239,13 +6287,6 @@ function detectBranch(lat, lon) {
   });
   }
 
-  if (btnSettingsToggle && settingsPanel) {
-  btnSettingsToggle.addEventListener("click", () => {
-    const isVisible = settingsPanel.style.display !== "none";
-    settingsPanel.style.display = isVisible ? "none" : "block";
-  });
-  }
-
   // === README / TUTORIEL ===
   function generateReadmeContent() {
     if (!readmeContent) return;
@@ -6255,61 +6296,63 @@ function detectBranch(lat, lon) {
         <h2 style="color: var(--accent); margin-top: 0; margin-bottom: 20px; font-size: 1.3rem;">📖 Guide d'utilisation - PK Assistant RER A</h2>
 
         <p><strong>🚀 Vue d'ensemble</strong></p>
-        <p>L'interface est organisée en trois blocs&nbsp;: <em>Statut en temps réel</em> (PK, sens, gares), <em>Navigation & plan</em> (carte interactive, légende, PK cible) et <em>Alertes & interventions</em> (SMS d'urgence, mode couvreur). Les réglages avancés sont regroupés dans la section «&nbsp;Paramètres & outils&nbsp;».</p>
+        <p>L'application est désormais structurée en <strong>onglets colorés</strong> en bas d'écran&nbsp;: <em>Statut</em>, <em>Plan</em>, <em>Urgence &amp; avaries</em>, <em>Calcul &amp; recherche PK</em>, <em>Fermetures</em> et <em>Paramètres</em>. Chaque onglet regroupe les outils qui lui correspondent et un appui fait défiler automatiquement la page en haut.</p>
 
-        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">📍 Géolocalisation & calcul du PK</h3>
-        <p>Surveille ta position en temps réel :</p>
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">📡 Statut</h3>
         <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>Clique sur <strong>Démarrer la géoloc</strong> pour activer le GPS.</li>
-          <li>Le PK actuel apparaît dans le panneau statut (la branche est détectée automatiquement).</li>
-          <li>La gare la plus proche, la prochaine et les accès autour de toi s'actualisent en direct.</li>
+          <li><strong>Lancer la géoloc</strong> pour afficher PK actuel, sens détecté, gare la plus proche et prochaine gare.</li>
+          <li>Les puces interactives (gare / accès) ouvrent la carte sur le repère correspondant.</li>
         </ul>
 
-        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🎯 PK cible</h3>
-        <p>Définis un objectif pour t'orienter :</p>
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🗺️ Plan</h3>
         <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>Saisis un PK (ex&nbsp;: <code>32400</code> ou <code>32+400</code>) puis clique sur <strong>Définir ce PK comme cible</strong>.</li>
-          <li>La carte affiche une croix rouge et le panneau statut indique l'écart par rapport à ta position.</li>
+          <li>Carte Leaflet sombre avec ta position, les gares et les accès (zoom intelligent).</li>
+          <li><strong>PK cible</strong> : saisis un PK puis clique sur « Définir » pour tracer une croix rouge et afficher l'écart dans le panneau statut.</li>
+          <li><strong>Plan de ligne</strong> : 3 cases à cocher ouvrent les PDF Boissy / Paris-Ouest / Chessy directement dans l'application.</li>
+          <li>La légende pastel liste les feux rouges / pétards : un clic centre la carte et ouvre le popup (Waze / Maps inclus).</li>
         </ul>
 
-        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🗺️ Navigation & plan</h3>
-        <p>Active la carte interactive pour visualiser ta progression :</p>
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🚨 Urgence &amp; avaries</h3>
         <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>Coche <strong>Plan – PK / gares / accès</strong> pour afficher la carte Leaflet.</li>
-          <li>Le halo bleu représente ta position. Les gares et accès apparaissent selon le niveau de zoom.</li>
-          <li>La légende pastel permet de centrer immédiatement sur un feu rouge ou un pétard (les popups intègrent des boutons Waze/Maps).</li>
-          <li>Les puces interactives du panneau statut (gare et accès) permettent également d'ouvrir la carte sur ces repères.</li>
+          <li><strong>SMS d'urgence</strong> : génère un message complet (PK, branche, accès, coordonnées) prêt à envoyer.</li>
+          <li><strong>Couvreur cheminant seul</strong> : surveillance automatique. Après 5 minutes sans mouvement, le SMS part automatiquement (avec alarme au-delà de 30 s).</li>
+          <li><strong>Signalement d'avarie / incident</strong> : formulaire avec photo optionnelle + message pré-rempli copiable d'un clic.</li>
         </ul>
 
-        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🚨 Urgence / SMS</h3>
-        <p><strong>SMS d'urgence</strong> : ouvre ton application SMS avec un message pré-rempli (PK, branche, gare, accès, coordonnées).</p>
-        <p><strong>Mode «&nbsp;Couvreur cheminant seul&nbsp;»</strong> :</p>
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🔍 Calcul &amp; recherche PK</h3>
         <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>Active la surveillance automatique. Après 10&nbsp;minutes sans mouvement (&plusmn; 3&nbsp;m), le SMS d'urgence est préparé sans confirmation.</li>
-          <li>Un timer de suivi s'affiche ; une alarme retentit si le SMS reste non envoyé au-delà de 30&nbsp;secondes.</li>
+          <li><strong>Recherche par PK</strong> : propose l'accès le plus proche et des raccourcis Google Maps / Waze.</li>
+          <li><strong>Calcul couverture travaux</strong> : saisis PK début/fin. La doctrine (SAM à 100 m, 3 pétards espacés 30 m) est rappelée dans le mode opératoire, et les repères sont ajoutés sur la carte.</li>
+          <li>Bouton « Effacer les marqueurs » pour repartir de zéro.</li>
         </ul>
 
-        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ Paramètres & outils</h3>
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🌙 Fermetures</h3>
+        <p>Affiche les fermetures nocturnes du jour (extraites de Sytadin) : idéal pour préparer un déplacement de nuit.</p>
+
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">⚙️ Paramètres &amp; outils</h3>
         <ul style="margin-left: 20px; margin-top: 8px;">
-          <li><strong>Signalement d'avarie</strong> : génère un message complet (type, PK, coordonnées, accès) avec possibilité d'ajouter une photo.</li>
-          <li><strong>Sensibilité au mouvement</strong> : choisis entre <em>Marche lente</em>, <em>Normal</em> ou <em>Train</em>.</li>
-          <li><strong>Recalage PK</strong> : saisis un PK exact pour corriger l'offset et enrichir la base (export JSON).</li>
-          <li><strong>Points de carte</strong> : enregistre ta position actuelle avec une description (accès, clef VCC, etc.).</li>
-          <li><strong>Calcul couverture travaux</strong> : calcule les SAM/pétards et affiche leurs popups (navigation Waze/Maps incluse).</li>
-          <li><strong>Recherche par PK</strong> : retrouve l'accès le plus proche et ouvre Google Maps ou Waze en un clic.</li>
-          <li><strong>Numéro SOS</strong> : stocke le numéro utilisé par les SMS d'urgence et le mode couvreur.</li>
-          <li><strong>Fermetures nocturnes</strong> : charge les fermetures proposées par Sytadin pour la date du jour.</li>
+          <li><strong>Sensibilité au mouvement</strong> : adapte le seuil pour la détection (Marche lente / Normal / Train).</li>
+          <li><strong>Recalage PK</strong> : ajuste l'offset et exporte les recalages JSON.</li>
+          <li><strong>Points de carte</strong> : enregistre un point GPS avec description, exportable en JSON.</li>
+          <li><strong>Numéro SOS</strong> : mémorise le numéro utilisé par le SMS d'urgence et le mode couvreur.</li>
+          <li><strong>Tutoriel</strong> : accessible ici en permanence, avec ce guide à jour.</li>
         </ul>
 
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">💡 Conseils</h3>
         <ul style="margin-left: 20px; margin-top: 8px;">
-          <li><strong>Précision GPS</strong> : meilleure en extérieur ; l'animation de fond se met en pause quand l'appli est masquée pour économiser la batterie.</li>
-          <li><strong>Recalages réguliers</strong> : plus tu en enregistres, plus le calcul PK gagne en précision.</li>
-          <li><strong>Carte</strong> : la légende et les puces d'accès sont pensées pour un usage mobile (touch cible élargie).</li>
+          <li>La précision GPS augmente en extérieur. L'animation de fond se met en pause quand l'app est masquée pour économiser la batterie.</li>
+          <li>Plus tu enregistres de recalages et de points, plus le calcul PK devient précis.</li>
+          <li>Les onglets restent épinglés en bas : passe de l'un à l'autre sans perdre le contexte.</li>
         </ul>
 
-        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🔒 Sécurité</h3>
-        <p>Tous les réglages (numéro SOS, recalages, points de carte, préférences de carte) sont stockés en local dans ton navigateur. Ils ne sont pas perdus lors des mises à jour de l'application.</p>
+        <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🔒 Sécurité & bonnes pratiques</h3>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>Respecte toujours les consignes RATP et la vigilance terrain : l'application reste un outil d'orientation.</li>
+          <li>L'utilisation du téléphone sur la voie est interdite : consulte l'app hors zone de danger.</li>
+          <li>Les données (offset, numéros, points) sont stockées localement sur ton appareil.</li>
+        </ul>
+
+        <p style="margin-top: 24px;">Besoin d'aide ? Contacte l'administrateur depuis le pied de page (« KYFUN » → pascal.akriche@ratp.fr).</p>
       </div>
     `;
 
@@ -6459,13 +6502,6 @@ selectSensitivity.addEventListener("change", () => {
   safeSetItem("motionSensitivity", motionSensitivity);
 });
 }
-
-if (btnOrientationToggle) {
-  btnOrientationToggle.addEventListener("click", () => {
-    setOrientationEnabled(!orientationEnabled);
-  });
-}
-
 // Fonction pour générer le contenu des fermetures nocturnes
 function generateFermeturesNocturnesContent() {
   const today = new Date();
@@ -6514,546 +6550,543 @@ function generateFermeturesNocturnesContent() {
 }
 
 // Gestion de l'affichage du bloc Fermetures nocturnes
-if (btnFermeturesToggle) {
-  btnFermeturesToggle.addEventListener("click", () => {
-    setFermeturesEnabled(!fermeturesEnabled);
+// (affichage déclenché via l'onglet dédié)
+if (btnPkLookup) {
+  btnPkLookup.addEventListener("click", handlePkLookup);
+}
+if (btnPkLookupOpenMaps) {
+  btnPkLookupOpenMaps.addEventListener("click", openPkLookupInMaps);
+}
+if (btnPkLookupOpenWaze) {
+  btnPkLookupOpenWaze.addEventListener("click", openPkLookupInWaze);
+}
+
+// AJOUT CALIBRAGE : clic sur "Exporter mes recalages"
+if (btnExportCalibrations) {
+  btnExportCalibrations.addEventListener("click", exportLocalCalibrationsForGitHub);
+}
+
+// Points de carte
+if (btnNoteLocation) {
+  btnNoteLocation.addEventListener("click", noteLocation);
+}
+
+if (btnExportMapPoints) {
+  btnExportMapPoints.addEventListener("click", exportMapPointsForGitHub);
+}
+
+// Calcul de couverture travaux (feux rouges et pétards)
+const inputCoveragePkStart = document.getElementById("inputCoveragePkStart");
+const inputCoveragePkEnd = document.getElementById("inputCoveragePkEnd");
+const btnComputeCoverage = document.getElementById("btnComputeCoverage");
+const btnClearCoverage = document.getElementById("btnClearCoverage");
+const coverageResult = document.getElementById("coverageResult");
+const coverageResultText = document.getElementById("coverageResultText");
+const coverageResultsLine = document.getElementById("coverageResultsLine");
+const coverageLegend = document.getElementById("coverageLegend");
+const coverageLegendItems = document.getElementById("coverageLegendItems");
+const toggleCoverageGuide = document.getElementById("toggleCoverageGuide");
+const coverageGuide = document.getElementById("coverageGuide");
+const ARROW_DISTANCE_METERS = 45;
+
+if (toggleCoverageGuide && coverageGuide) {
+  toggleCoverageGuide.addEventListener("change", () => {
+    coverageGuide.classList.toggle("is-visible", toggleCoverageGuide.checked);
   });
 }
-  if (btnPkLookup) {
-  btnPkLookup.addEventListener("click", handlePkLookup);
-  }
-  if (btnPkLookupOpenMaps) {
-  btnPkLookupOpenMaps.addEventListener("click", openPkLookupInMaps);
-  }
-  if (btnPkLookupOpenWaze) {
-  btnPkLookupOpenWaze.addEventListener("click", openPkLookupInWaze);
-  }
 
-  // AJOUT CALIBRAGE : clic sur "Exporter mes recalages"
-  if (btnExportCalibrations) {
-    btnExportCalibrations.addEventListener("click", exportLocalCalibrationsForGitHub);
-  }
-
-  // Points de carte
-  if (btnNoteLocation) {
-    btnNoteLocation.addEventListener("click", noteLocation);
-  }
-
-  if (btnExportMapPoints) {
-    btnExportMapPoints.addEventListener("click", exportMapPointsForGitHub);
-  }
-
-  // Calcul de couverture travaux (feux rouges et pétards)
-  const inputCoveragePkStart = document.getElementById("inputCoveragePkStart");
-  const inputCoveragePkEnd = document.getElementById("inputCoveragePkEnd");
-  const btnComputeCoverage = document.getElementById("btnComputeCoverage");
-  const btnClearCoverage = document.getElementById("btnClearCoverage");
-  const coverageResult = document.getElementById("coverageResult");
-  const coverageResultText = document.getElementById("coverageResultText");
-  const coverageResultsLine = document.getElementById("coverageResultsLine");
-  const coverageLegend = document.getElementById("coverageLegend");
-  const coverageLegendItems = document.getElementById("coverageLegendItems");
-  const toggleCoverageGuide = document.getElementById("toggleCoverageGuide");
-  const coverageGuide = document.getElementById("coverageGuide");
-  const ARROW_DISTANCE_METERS = 45;
-
-  if (toggleCoverageGuide && coverageGuide) {
-    toggleCoverageGuide.addEventListener("change", () => {
-      coverageGuide.classList.toggle("is-visible", toggleCoverageGuide.checked);
-    });
-  }
-
-  function removeCoverageMarkersFromMap() {
-    coverageSamMarkers.forEach(marker => {
-      if (orientationMap && orientationMap.hasLayer(marker)) {
-        orientationMap.removeLayer(marker);
-      }
-    });
-    coveragePetardMarkers.forEach(marker => {
-      if (orientationMap && orientationMap.hasLayer(marker)) {
-        orientationMap.removeLayer(marker);
-      }
-    });
-    coverageSamMarkers = [];
-    coveragePetardMarkers = [];
-  }
-
-  function clearCoverageMarkers() {
-    removeCoverageMarkersFromMap();
-    if (coverageResult) coverageResult.style.display = "none";
-    if (btnClearCoverage) btnClearCoverage.style.display = "none";
-    if (coverageResultText) coverageResultText.innerHTML = "";
-    if (coverageResultsLine) {
-      coverageResultsLine.innerHTML = '<span style="color: rgba(255, 255, 255, 0.5);">Cliquez sur « Calculer rouges & pétards » pour voir les résultats</span>';
-    }
-    renderCoverageLegend([]);
-  }
-
-  function renderCoverageLegend(entries) {
-    if (!coverageLegend || !coverageLegendItems) return;
-    coverageLegendEntries = Array.isArray(entries) ? entries : [];
-    if (!coverageLegendEntries.length) {
-      coverageLegend.style.display = "none";
-      coverageLegendItems.innerHTML = "";
-      return;
-    }
-
-    const items = coverageLegendEntries.map((entry, index) => `
-      <button type="button" class="coverage-legend-item" data-legend-index="${index}">
-        <span class="coverage-legend-swatch coverage-legend-swatch--${entry.kind === "petard" ? "petard" : "sam"}"></span>
-        <span>${entry.label}</span>
-      </button>
-    `);
-
-    coverageLegendItems.innerHTML = items.join("");
-    coverageLegend.style.display = "block";
-  }
-
-  function focusLegendEntry(index) {
-    const entry = coverageLegendEntries[index];
-    if (!entry || !entry.marker) {
-      alert("Aucun repère disponible pour cette entrée.");
-      return;
-    }
-
-    ensureOrientationMapReady();
-    if (!orientationMap) return;
-
-    const latLng = entry.marker.getLatLng();
-    if (!latLng) {
-      alert("Coordonnées indisponibles pour ce repère.");
-      return;
-    }
-
-    manualMapFocusUntil = Date.now() + 6000;
-    orientationMap.setView(latLng, Math.max(15, orientationMap.getZoom() || 15));
-    setTimeout(() => {
-      if (entry.marker && typeof entry.marker.openPopup === "function") {
-        entry.marker.openPopup();
-      }
-    }, 200);
-  }
-
-  function focusNearestStation() {
-    ensureOrientationMapReady();
-    if (!orientationMap || !currentNearestStationData) {
-      alert("Aucune gare disponible pour la navigation.");
-      return;
-    }
-
-    manualMapFocusUntil = Date.now() + 6000;
-
-    if (gareMarker && typeof gareMarker.getLatLng === "function") {
-      const latLng = gareMarker.getLatLng();
-      orientationMap.setView(latLng, Math.max(15, orientationMap.getZoom() || 15));
-      setTimeout(() => {
-        if (gareMarker && typeof gareMarker.openPopup === "function") {
-          gareMarker.openPopup();
-        }
-      }, 200);
-      return;
-    }
-
-    if (currentNearestStationData.lat != null && currentNearestStationData.lon != null) {
-      const latLng = L.latLng(currentNearestStationData.lat, currentNearestStationData.lon);
-      orientationMap.setView(latLng, Math.max(15, orientationMap.getZoom() || 15));
-    } else {
-      alert("Coordonnées indisponibles pour cette gare.");
-    }
-  }
-
-  function focusNearestAccess(index) {
-    if (!currentNearestAccessesData.length) {
-      alert("Aucun accès à afficher.");
-      return;
-    }
-    const entry = currentNearestAccessesData[index];
-    const marker = currentNearestAccessMarkers[index];
-    ensureOrientationMapReady();
-    if (!orientationMap || !entry) {
-      alert("Accès indisponible.");
-      return;
-    }
-
-    if (marker && typeof marker.getLatLng === "function") {
-      const latLng = marker.getLatLng();
-      orientationMap.setView(latLng, Math.max(16, orientationMap.getZoom() || 16));
-      manualMapFocusUntil = Date.now() + 6000;
-      setTimeout(() => {
-        if (marker && typeof marker.openPopup === "function") {
-          marker.openPopup();
-        }
-      }, 200);
-      return;
-    }
-
-    if (entry.acc && entry.acc.lat != null && entry.acc.lon != null) {
-      const latLng = L.latLng(entry.acc.lat, entry.acc.lon);
-      orientationMap.setView(latLng, Math.max(16, orientationMap.getZoom() || 16));
-      manualMapFocusUntil = Date.now() + 6000;
-    } else {
-      alert("Coordonnées indisponibles pour cet accès.");
-    }
-  }
-
-  if (orientGareValueEl) {
-    orientGareValueEl.addEventListener("keydown", (event) => {
-      if ((event.key === "Enter" || event.key === " ") && orientGareValueEl.getAttribute("data-orient-action") === "station") {
-        event.preventDefault();
-        focusNearestStation();
-      }
-    });
-  }
-
-  function addCoverageMarkersToMap(result) {
-    try {
-      ensureOrientationMapReady();
-
-      if (orientationMap) {
-        updateOrientationPanel();
-      }
-
-      removeCoverageMarkersFromMap();
-
-      const sideSummaries = result.bySide.map(sideResult => {
-        const sideLabel = sideResult.side === "pkStart" ? "Début" : "Fin";
-        const samGps = getGpsFromPk(sideResult.pkSamRep);
-        const samAccess = samGps ? getNearestAccessDetails(samGps.lat, samGps.lon, sideResult.pkSamRep) : null;
-        const samEntry = {
-          type: "sam",
-          side: sideResult.side,
-          sideLabel,
-          pk: sideResult.pkSamRep,
-          lat: samGps ? samGps.lat : null,
-          lon: samGps ? samGps.lon : null,
-          nearestAccess: samAccess,
-          title: `Feu rouge – côté ${sideLabel}`
-        };
-        const petards = sideResult.petards.map(petard => {
-          const petardGps = getGpsFromPk(petard.pk);
-          const petardAccess = petardGps ? getNearestAccessDetails(petardGps.lat, petardGps.lon, petard.pk) : null;
-          return {
-            type: "petard",
-            order: petard.order,
-            railFile: petard.railFile,
-            pk: petard.pk,
-            lat: petardGps ? petardGps.lat : null,
-            lon: petardGps ? petardGps.lon : null,
-            nearestAccess: petardAccess,
-            title: `Pétard ${petard.order} (${petard.railFile})`
-          };
-        });
-        return {
-          side: sideResult.side,
-          sideLabel,
-          rationale: sideResult.rationale,
-          sam: samEntry,
-          petards
-        };
-      });
-
-      if (coverageResultsLine) {
-        const chips = sideSummaries.map(summary => {
-          const parts = [`<strong>${summary.sideLabel}</strong> 🔴 PK ${formatPk(summary.sam.pk)}`];
-          if (summary.petards.length) {
-            const petardList = summary.petards.map(p => formatPk(p.pk)).join(", ");
-            parts.push(`🟣 ${petardList}`);
-          }
-          if (summary.sam.nearestAccess) {
-            const access = summary.sam.nearestAccess;
-            const accessParts = [];
-            accessParts.push(`🚪 ${access.name}`);
-            if (access.pk != null) {
-              accessParts.push(`PK ${formatPk(access.pk)}`);
-            }
-            if (access.distanceText) {
-              accessParts.push(`<span>${access.distanceText}</span>`);
-            }
-            parts.push(`<span class="coverage-summary-access">${accessParts.join(" · ")}</span>`);
-          }
-          return `<span class="coverage-summary-chip">${parts.join(" · ")}</span>`;
-        });
-        coverageResultsLine.innerHTML = chips.join("");
-      }
-
-      if (coverageResultText) {
-        let resultHtml = `<div class="coverage-result-block">`;
-        resultHtml += `<div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: #ff9f7b;">📊 Résultat du calcul</div>`;
-        resultHtml += `<div style="margin-bottom: 12px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 6px;"><strong>Distance règle :</strong> ${result.distanceRule} m</div>`;
-
-        sideSummaries.forEach(summary => {
-          const sideColor = summary.side === "pkStart" ? "#ff4b6b" : "#3d7bff";
-          let blockHtml = `<div class="coverage-point" style="border-left: 3px solid ${sideColor};">`;
-          blockHtml += `<div class="coverage-point-header" style="color: ${sideColor};"><span>🚦</span><span>Côté ${summary.sideLabel}</span></div>`;
-          blockHtml += `<div class="coverage-point-info"><strong>Feu rouge :</strong> PK ${formatPk(summary.sam.pk)}</div>`;
-          if (summary.sam.nearestAccess) {
-            const access = summary.sam.nearestAccess;
-            blockHtml += `<div class="coverage-point-info"><strong>Accès le plus proche :</strong> ${access.name}`;
-            if (access.pk != null) {
-              blockHtml += ` · PK ${formatPk(access.pk)}`;
-            }
-            if (access.distanceText) {
-              blockHtml += ` · ${access.distanceText}`;
-            }
-            blockHtml += `</div>`;
-          }
-          if (summary.sam.lat != null && summary.sam.lon != null) {
-            blockHtml += createNavigationButtonsHTML(summary.sam.lat, summary.sam.lon);
-          }
-          if (summary.petards.length) {
-            const petardsHtml = summary.petards.map(p => {
-              let petardBlock = `<div class="coverage-point coverage-point--nested">`;
-              petardBlock += `<div class="coverage-point-header"><span>🟣</span><span>${p.title}</span></div>`;
-              petardBlock += `<div class="coverage-point-info"><strong>PK :</strong> ${formatPk(p.pk)}</div>`;
-              if (p.nearestAccess) {
-                const access = p.nearestAccess;
-                petardBlock += `<div class="coverage-point-info"><strong>Accès :</strong> ${access.name}`;
-                if (access.pk != null) {
-                  petardBlock += ` · PK ${formatPk(access.pk)}`;
-                }
-                if (access.distanceText) {
-                  petardBlock += ` · ${access.distanceText}`;
-                }
-                petardBlock += `</div>`;
-              }
-              if (p.lat != null && p.lon != null) {
-                petardBlock += createNavigationButtonsHTML(p.lat, p.lon, { compact: true });
-              }
-              petardBlock += `</div>`;
-              return petardBlock;
-            }).join("");
-            blockHtml += `<div class="coverage-petard-list">${petardsHtml}</div>`;
-          }
-          blockHtml += `<div class="coverage-point-info" style="margin-top: 8px; font-style: italic; color: rgba(226, 231, 255, 0.65);">${summary.rationale}</div>`;
-          blockHtml += `</div>`;
-          resultHtml += blockHtml;
-        });
-
-        resultHtml += `</div>`;
-        coverageResultText.innerHTML = resultHtml;
-      }
-
-      if (coverageResult) {
-        coverageResult.style.display = "block";
-      }
-      if (btnClearCoverage) {
-        btnClearCoverage.style.display = "block";
-      }
-
-      if (!orientationMap) {
-        return;
-      }
-
-      const markerLatLngs = [];
-      const legendEntries = [];
-
-      sideSummaries.forEach(summary => {
-        if (summary.sam.lat != null && summary.sam.lon != null) {
-          const samIcon = L.divIcon({
-            className: "leaflet-marker-sam",
-            html: "",
-            iconSize: [22, 22],
-            iconAnchor: [11, 11],
-          });
-          const samMarker = L.marker([summary.sam.lat, summary.sam.lon], {
-            icon: samIcon,
-            zIndexOffset: 1200,
-          }).addTo(orientationMap);
-          samMarker.bindPopup(createCoveragePopupContent(summary.sam));
-          coverageSamMarkers.push(samMarker);
-          markerLatLngs.push([summary.sam.lat, summary.sam.lon]);
-          legendEntries.push({
-            kind: "sam",
-            label: `Feu rouge · côté ${summary.sideLabel}`,
-            marker: samMarker,
-          });
-        }
-
-        summary.petards.forEach(p => {
-          if (p.lat != null && p.lon != null) {
-            const petardIcon = L.divIcon({
-              className: "leaflet-marker-petard",
-              html: "<span>✶</span>",
-              iconSize: [18, 18],
-              iconAnchor: [9, 9],
-            });
-            const petardMarker = L.marker([p.lat, p.lon], {
-              icon: petardIcon,
-              zIndexOffset: 1150,
-            }).addTo(orientationMap);
-            petardMarker.bindPopup(createCoveragePopupContent(p));
-            coveragePetardMarkers.push(petardMarker);
-            markerLatLngs.push([p.lat, p.lon]);
-            legendEntries.push({
-              kind: "petard",
-              label: `Pétard · côté ${summary.sideLabel}`,
-              marker: petardMarker,
-            });
-          }
-        });
-      });
-
-      renderCoverageLegend(legendEntries);
-
-      if (markerLatLngs.length > 0) {
-        const bounds = L.latLngBounds(markerLatLngs);
-        orientationMap.fitBounds(bounds.pad(0.25));
-        manualMapFocusUntil = Date.now() + 5000;
-      }
-    } catch (error) {
-      console.error("Erreur dans addCoverageMarkersToMap :", error);
-      alert("Erreur lors de l'affichage des résultats : " + error.message);
-    }
-  }
-
-  if (btnComputeCoverage) {
-    btnComputeCoverage.addEventListener("click", () => {
-      try {
-        if (!inputCoveragePkStart || !inputCoveragePkEnd) {
-          alert("Champs PK introuvables sur la page.");
-          return;
-        }
-
-        const rawStart = inputCoveragePkStart.value.trim();
-        const rawEnd = inputCoveragePkEnd.value.trim();
-        const hasStart = rawStart !== "";
-        const hasEnd = rawEnd !== "";
-
-        if (!hasStart && !hasEnd) {
-          alert("Saisis au moins un PK (début ou fin) pour lancer le calcul.");
-          return;
-        }
-
-        const pkStart = hasStart ? parseFloat(rawStart) : null;
-        const pkEnd = hasEnd ? parseFloat(rawEnd) : null;
-
-        if (hasStart && !Number.isFinite(pkStart)) {
-          alert("Le PK début doit être un nombre valide.");
-          return;
-        }
-
-        if (hasEnd && !Number.isFinite(pkEnd)) {
-          alert("Le PK fin doit être un nombre valide.");
-          return;
-        }
-
-        if (hasStart && hasEnd && pkStart >= pkEnd) {
-          alert("Le PK début doit être inférieur au PK fin.");
-          return;
-        }
-
-        const result = computeCoverageMarkers(pkStart, pkEnd);
-        if (!result || !result.bySide) {
-          console.error("Erreur : computeCoverageMarkers n'a pas retourné un résultat valide", result);
-          alert("Erreur lors du calcul. Veuillez réessayer.");
-          return;
-        }
-        
-        addCoverageMarkersToMap(result);
-      } catch (error) {
-        console.error("Erreur lors du calcul des rouges et pétards :", error);
-        alert("Une erreur est survenue : " + error.message);
-      }
-    });
-  }
-
-  if (btnClearCoverage) {
-    btnClearCoverage.addEventListener("click", () => {
-      clearCoverageMarkers();
-      if (orientationMap) {
-        updateOrientationPanel();
-      }
-    });
-  }
-
-  document.addEventListener("click", (event) => {
-    const legendTarget = event.target.closest("[data-legend-index]");
-    if (legendTarget) {
-      const index = parseInt(legendTarget.getAttribute("data-legend-index"), 10);
-      if (!Number.isNaN(index)) {
-        focusLegendEntry(index);
-      }
-      return;
-    }
-
-    const accessTarget = event.target.closest("[data-access-index]");
-    if (accessTarget) {
-      const index = parseInt(accessTarget.getAttribute("data-access-index"), 10);
-      if (!Number.isNaN(index)) {
-        focusNearestAccess(index);
-      }
-      return;
-    }
-
-    const stationTarget = event.target.closest("[data-orient-action='station']");
-    if (stationTarget) {
-      focusNearestStation();
-      return;
-    }
-
-    const navTarget = event.target.closest("[data-nav-provider]");
-    if (navTarget) {
-      const provider = navTarget.getAttribute("data-nav-provider");
-      const lat = parseFloat(navTarget.getAttribute("data-lat"));
-      const lon = parseFloat(navTarget.getAttribute("data-lon"));
-      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-        alert("Coordonnées indisponibles pour cette navigation.");
-        return;
-      }
-      openNavigationApp(provider, lat, lon);
+function removeCoverageMarkersFromMap() {
+  coverageSamMarkers.forEach(marker => {
+    if (orientationMap && orientationMap.hasLayer(marker)) {
+      orientationMap.removeLayer(marker);
     }
   });
+  coveragePetardMarkers.forEach(marker => {
+    if (orientationMap && orientationMap.hasLayer(marker)) {
+      orientationMap.removeLayer(marker);
+    }
+  });
+  coverageSamMarkers = [];
+  coveragePetardMarkers = [];
+}
 
-  if (selectIncidentType) {
-    selectIncidentType.dispatchEvent(new Event("change"));
+function clearCoverageMarkers() {
+  removeCoverageMarkersFromMap();
+  if (coverageResult) coverageResult.style.display = "none";
+  if (btnClearCoverage) btnClearCoverage.style.display = "none";
+  if (coverageResultText) coverageResultText.innerHTML = "";
+  if (coverageResultsLine) {
+    coverageResultsLine.innerHTML = '<span style="color: rgba(255, 255, 255, 0.5);">Cliquez sur « Calculer rouges & pétards » pour voir les résultats</span>';
   }
-    function initAccessGate() {
+  renderCoverageLegend([]);
+}
+
+function renderCoverageLegend(entries) {
+  if (!coverageLegend || !coverageLegendItems) return;
+  coverageLegendEntries = Array.isArray(entries) ? entries : [];
+  if (!coverageLegendEntries.length) {
+    coverageLegend.style.display = "none";
+    coverageLegendItems.innerHTML = "";
+    return;
+  }
+
+  const items = coverageLegendEntries.map((entry, index) => `
+    <button type="button" class="coverage-legend-item" data-legend-index="${index}">
+      <span class="coverage-legend-swatch coverage-legend-swatch--${entry.kind === "petard" ? "petard" : "sam"}"></span>
+      <span>${entry.label}</span>
+    </button>
+  `);
+
+  coverageLegendItems.innerHTML = items.join("");
+  coverageLegend.style.display = "block";
+}
+
+function focusLegendEntry(index) {
+  const entry = coverageLegendEntries[index];
+  if (!entry || !entry.marker) {
+    alert("Aucun repère disponible pour cette entrée.");
+    return;
+  }
+
+  ensureOrientationMapReady();
+  if (!orientationMap) return;
+
+  const latLng = entry.marker.getLatLng();
+  if (!latLng) {
+    alert("Coordonnées indisponibles pour ce repère.");
+    return;
+  }
+
+  manualMapFocusUntil = Date.now() + 6000;
+  orientationMap.setView(latLng, Math.max(15, orientationMap.getZoom() || 15));
+  setTimeout(() => {
+    if (entry.marker && typeof entry.marker.openPopup === "function") {
+      entry.marker.openPopup();
+    }
+  }, 200);
+}
+
+function focusNearestStation() {
+  ensureOrientationMapReady();
+  if (!orientationMap || !currentNearestStationData) {
+    alert("Aucune gare disponible pour la navigation.");
+    return;
+  }
+
+  manualMapFocusUntil = Date.now() + 6000;
+
+  if (gareMarker && typeof gareMarker.getLatLng === "function") {
+    const latLng = gareMarker.getLatLng();
+    orientationMap.setView(latLng, Math.max(15, orientationMap.getZoom() || 15));
+    setTimeout(() => {
+      if (gareMarker && typeof gareMarker.openPopup === "function") {
+        gareMarker.openPopup();
+      }
+    }, 200);
+    return;
+  }
+
+  if (currentNearestStationData.lat != null && currentNearestStationData.lon != null) {
+    const latLng = L.latLng(currentNearestStationData.lat, currentNearestStationData.lon);
+    orientationMap.setView(latLng, Math.max(15, orientationMap.getZoom() || 15));
+  } else {
+    alert("Coordonnées indisponibles pour cette gare.");
+  }
+}
+
+function focusNearestAccess(index) {
+  if (!currentNearestAccessesData.length) {
+    alert("Aucun accès à afficher.");
+    return;
+  }
+  const entry = currentNearestAccessesData[index];
+  const marker = currentNearestAccessMarkers[index];
+  ensureOrientationMapReady();
+  if (!orientationMap || !entry) {
+    alert("Accès indisponible.");
+    return;
+  }
+
+  if (marker && typeof marker.getLatLng === "function") {
+    const latLng = marker.getLatLng();
+    orientationMap.setView(latLng, Math.max(16, orientationMap.getZoom() || 16));
+    manualMapFocusUntil = Date.now() + 6000;
+    setTimeout(() => {
+      if (marker && typeof marker.openPopup === "function") {
+        marker.openPopup();
+      }
+    }, 200);
+    return;
+  }
+
+  if (entry.acc && entry.acc.lat != null && entry.acc.lon != null) {
+    const latLng = L.latLng(entry.acc.lat, entry.acc.lon);
+    orientationMap.setView(latLng, Math.max(16, orientationMap.getZoom() || 16));
+    manualMapFocusUntil = Date.now() + 6000;
+  } else {
+    alert("Coordonnées indisponibles pour cet accès.");
+  }
+}
+
+if (orientGareValueEl) {
+  orientGareValueEl.addEventListener("keydown", (event) => {
+    if ((event.key === "Enter" || event.key === " ") && orientGareValueEl.getAttribute("data-orient-action") === "station") {
+      event.preventDefault();
+      focusNearestStation();
+    }
+  });
+}
+
+function addCoverageMarkersToMap(result) {
+  try {
+    ensureOrientationMapReady();
+
+    if (orientationMap) {
+      updateOrientationPanel();
+    }
+
+    removeCoverageMarkersFromMap();
+
+    const sideSummaries = result.bySide.map(sideResult => {
+      const sideLabel = sideResult.side === "pkStart" ? "Début" : "Fin";
+      const samGps = getGpsFromPk(sideResult.pkSamRep);
+      const samAccess = samGps ? getNearestAccessDetails(samGps.lat, samGps.lon, sideResult.pkSamRep) : null;
+      const samEntry = {
+        type: "sam",
+        side: sideResult.side,
+        sideLabel,
+        pk: sideResult.pkSamRep,
+        lat: samGps ? samGps.lat : null,
+        lon: samGps ? samGps.lon : null,
+        nearestAccess: samAccess,
+        title: `Feu rouge – côté ${sideLabel}`
+      };
+      const petards = sideResult.petards.map(petard => {
+        const petardGps = getGpsFromPk(petard.pk);
+        const petardAccess = petardGps ? getNearestAccessDetails(petardGps.lat, petardGps.lon, petard.pk) : null;
+        return {
+          type: "petard",
+          order: petard.order,
+          railFile: petard.railFile,
+          pk: petard.pk,
+          lat: petardGps ? petardGps.lat : null,
+          lon: petardGps ? petardGps.lon : null,
+          nearestAccess: petardAccess,
+          title: `Pétard ${petard.order} (${petard.railFile})`
+        };
+      });
+      return {
+        side: sideResult.side,
+        sideLabel,
+        rationale: sideResult.rationale,
+        sam: samEntry,
+        petards
+      };
+    });
+
+    if (coverageResultsLine) {
+      const chips = sideSummaries.map(summary => {
+        const parts = [`<strong>${summary.sideLabel}</strong> 🔴 PK ${formatPk(summary.sam.pk)}`];
+        if (summary.petards.length) {
+          const petardList = summary.petards.map(p => formatPk(p.pk)).join(", ");
+          parts.push(`🟣 ${petardList}`);
+        }
+        if (summary.sam.nearestAccess) {
+          const access = summary.sam.nearestAccess;
+          const accessParts = [];
+          accessParts.push(`🚪 ${access.name}`);
+          if (access.pk != null) {
+            accessParts.push(`PK ${formatPk(access.pk)}`);
+          }
+          if (access.distanceText) {
+            accessParts.push(`<span>${access.distanceText}</span>`);
+          }
+          parts.push(`<span class="coverage-summary-access">${accessParts.join(" · ")}</span>`);
+        }
+        return `<span class="coverage-summary-chip">${parts.join(" · ")}</span>`;
+      });
+      coverageResultsLine.innerHTML = chips.join("");
+    }
+
+    if (coverageResultText) {
+      let resultHtml = `<div class="coverage-result-block">`;
+      resultHtml += `<div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: #ff9f7b;">📊 Résultat du calcul</div>`;
+      resultHtml += `<div style="margin-bottom: 12px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 6px;"><strong>Distance règle :</strong> ${result.distanceRule} m</div>`;
+
+      sideSummaries.forEach(summary => {
+        const sideColor = summary.side === "pkStart" ? "#ff4b6b" : "#3d7bff";
+        let blockHtml = `<div class="coverage-point" style="border-left: 3px solid ${sideColor};">`;
+        blockHtml += `<div class="coverage-point-header" style="color: ${sideColor};"><span>🚦</span><span>Côté ${summary.sideLabel}</span></div>`;
+        blockHtml += `<div class="coverage-point-info"><strong>Feu rouge :</strong> PK ${formatPk(summary.sam.pk)}</div>`;
+        if (summary.sam.nearestAccess) {
+          const access = summary.sam.nearestAccess;
+          blockHtml += `<div class="coverage-point-info"><strong>Accès le plus proche :</strong> ${access.name}`;
+          if (access.pk != null) {
+            blockHtml += ` · PK ${formatPk(access.pk)}`;
+          }
+          if (access.distanceText) {
+            blockHtml += ` · ${access.distanceText}`;
+          }
+          blockHtml += `</div>`;
+        }
+        if (summary.sam.lat != null && summary.sam.lon != null) {
+          blockHtml += createNavigationButtonsHTML(summary.sam.lat, summary.sam.lon);
+        }
+        if (summary.petards.length) {
+          const petardsHtml = summary.petards.map(p => {
+            let petardBlock = `<div class="coverage-point coverage-point--nested">`;
+            petardBlock += `<div class="coverage-point-header"><span>🟣</span><span>${p.title}</span></div>`;
+            petardBlock += `<div class="coverage-point-info"><strong>PK :</strong> ${formatPk(p.pk)}</div>`;
+            if (p.nearestAccess) {
+              const access = p.nearestAccess;
+              petardBlock += `<div class="coverage-point-info"><strong>Accès :</strong> ${access.name}`;
+              if (access.pk != null) {
+                petardBlock += ` · PK ${formatPk(access.pk)}`;
+              }
+              if (access.distanceText) {
+                petardBlock += ` · ${access.distanceText}`;
+              }
+              petardBlock += `</div>`;
+            }
+            if (p.lat != null && p.lon != null) {
+              petardBlock += createNavigationButtonsHTML(p.lat, p.lon, { compact: true });
+            }
+            petardBlock += `</div>`;
+            return petardBlock;
+          }).join("");
+          blockHtml += `<div class="coverage-petard-list">${petardsHtml}</div>`;
+        }
+        blockHtml += `<div class="coverage-point-info" style="margin-top: 8px; font-style: italic; color: rgba(226, 231, 255, 0.65);">${summary.rationale}</div>`;
+        blockHtml += `</div>`;
+        resultHtml += blockHtml;
+      });
+
+      resultHtml += `</div>`;
+      coverageResultText.innerHTML = resultHtml;
+    }
+
+    if (coverageResult) {
+      coverageResult.style.display = "block";
+    }
+    if (btnClearCoverage) {
+      btnClearCoverage.style.display = "block";
+    }
+
+    if (!orientationMap) {
+      return;
+    }
+
+    const markerLatLngs = [];
+    const legendEntries = [];
+
+    sideSummaries.forEach(summary => {
+      if (summary.sam.lat != null && summary.sam.lon != null) {
+        const samIcon = L.divIcon({
+          className: "leaflet-marker-sam",
+          html: "",
+          iconSize: [22, 22],
+          iconAnchor: [11, 11],
+        });
+        const samMarker = L.marker([summary.sam.lat, summary.sam.lon], {
+          icon: samIcon,
+          zIndexOffset: 1200,
+        }).addTo(orientationMap);
+        samMarker.bindPopup(createCoveragePopupContent(summary.sam));
+        coverageSamMarkers.push(samMarker);
+        markerLatLngs.push([summary.sam.lat, summary.sam.lon]);
+        legendEntries.push({
+          kind: "sam",
+          label: `Feu rouge · côté ${summary.sideLabel}`,
+          marker: samMarker,
+        });
+      }
+
+      summary.petards.forEach(p => {
+        if (p.lat != null && p.lon != null) {
+          const petardIcon = L.divIcon({
+            className: "leaflet-marker-petard",
+            html: "<span>✶</span>",
+            iconSize: [18, 18],
+            iconAnchor: [9, 9],
+          });
+          const petardMarker = L.marker([p.lat, p.lon], {
+            icon: petardIcon,
+            zIndexOffset: 1150,
+          }).addTo(orientationMap);
+          petardMarker.bindPopup(createCoveragePopupContent(p));
+          coveragePetardMarkers.push(petardMarker);
+          markerLatLngs.push([p.lat, p.lon]);
+          legendEntries.push({
+            kind: "petard",
+            label: `Pétard · côté ${summary.sideLabel}`,
+            marker: petardMarker,
+          });
+        }
+      });
+    });
+
+    renderCoverageLegend(legendEntries);
+
+    if (markerLatLngs.length > 0) {
+      const bounds = L.latLngBounds(markerLatLngs);
+      orientationMap.fitBounds(bounds.pad(0.25));
+      manualMapFocusUntil = Date.now() + 5000;
+    }
+  } catch (error) {
+    console.error("Erreur dans addCoverageMarkersToMap :", error);
+    alert("Erreur lors de l'affichage des résultats : " + error.message);
+  }
+}
+
+if (btnComputeCoverage) {
+  btnComputeCoverage.addEventListener("click", () => {
+    try {
+      if (!inputCoveragePkStart || !inputCoveragePkEnd) {
+        alert("Champs PK introuvables sur la page.");
+        return;
+      }
+
+      const rawStart = inputCoveragePkStart.value.trim();
+      const rawEnd = inputCoveragePkEnd.value.trim();
+      const hasStart = rawStart !== "";
+      const hasEnd = rawEnd !== "";
+
+      if (!hasStart && !hasEnd) {
+        alert("Saisis au moins un PK (début ou fin) pour lancer le calcul.");
+        return;
+      }
+
+      const pkStart = hasStart ? parseFloat(rawStart) : null;
+      const pkEnd = hasEnd ? parseFloat(rawEnd) : null;
+
+      if (hasStart && !Number.isFinite(pkStart)) {
+        alert("Le PK début doit être un nombre valide.");
+        return;
+      }
+
+      if (hasEnd && !Number.isFinite(pkEnd)) {
+        alert("Le PK fin doit être un nombre valide.");
+        return;
+      }
+
+      if (hasStart && hasEnd && pkStart >= pkEnd) {
+        alert("Le PK début doit être inférieur au PK fin.");
+        return;
+      }
+
+      const result = computeCoverageMarkers(pkStart, pkEnd);
+      if (!result || !result.bySide) {
+        console.error("Erreur : computeCoverageMarkers n'a pas retourné un résultat valide", result);
+        alert("Erreur lors du calcul. Veuillez réessayer.");
+        return;
+      }
+      
+      addCoverageMarkersToMap(result);
+    } catch (error) {
+      console.error("Erreur lors du calcul des rouges et pétards :", error);
+      alert("Une erreur est survenue : " + error.message);
+    }
+  });
+}
+
+if (btnClearCoverage) {
+  btnClearCoverage.addEventListener("click", () => {
+    clearCoverageMarkers();
+    if (orientationMap) {
+      updateOrientationPanel();
+    }
+  });
+}
+
+document.addEventListener("click", (event) => {
+  const legendTarget = event.target.closest("[data-legend-index]");
+  if (legendTarget) {
+    const index = parseInt(legendTarget.getAttribute("data-legend-index"), 10);
+    if (!Number.isNaN(index)) {
+      focusLegendEntry(index);
+    }
+    return;
+  }
+
+  const accessTarget = event.target.closest("[data-access-index]");
+  if (accessTarget) {
+    const index = parseInt(accessTarget.getAttribute("data-access-index"), 10);
+    if (!Number.isNaN(index)) {
+      focusNearestAccess(index);
+    }
+    return;
+  }
+
+  const stationTarget = event.target.closest("[data-orient-action='station']");
+  if (stationTarget) {
+    focusNearestStation();
+    return;
+  }
+
+  const navTarget = event.target.closest("[data-nav-provider]");
+  if (navTarget) {
+    const provider = navTarget.getAttribute("data-nav-provider");
+    const lat = parseFloat(navTarget.getAttribute("data-lat"));
+    const lon = parseFloat(navTarget.getAttribute("data-lon"));
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      alert("Coordonnées indisponibles pour cette navigation.");
+      return;
+    }
+    openNavigationApp(provider, lat, lon);
+  }
+});
+
+if (selectIncidentType) {
+  selectIncidentType.dispatchEvent(new Event("change"));
+}
+
+function initAccessGate() {
   const overlay = document.getElementById("accessOverlay");
-    const input = document.getElementById("accessCodeInput");
-    const btn = document.getElementById("btnAccessCode");
-    const err = document.getElementById("accessError");
+  const input = document.getElementById("accessCodeInput");
+  const btn = document.getElementById("btnAccessCode");
+  const err = document.getElementById("accessError");
 
   if (!overlay || !input || !btn) return;
 
-    if (!ACCESS_CODE) {
-      console.warn("⚠️ Aucun code d'accès n'est configuré. Crée `config/access-config.js` et définis `window.__PK_ACCESS_CODE__`.");
-      overlay.style.display = "none";
-      return;
+  if (!ACCESS_CODE) {
+    console.warn("⚠️ Aucun code d'accès n'est configuré. Crée `config/access-config.js` et définis `window.__PK_ACCESS_CODE__`.");
+    overlay.style.display = "none";
+    return;
+  }
+
+  const storedCode = safeGetItem(ACCESS_LAST_USED_CODE_KEY);
+  const requiresFreshValidation = !storedCode || storedCode !== ACCESS_CODE;
+
+  if (requiresFreshValidation) {
+    try {
+      localStorage.clear();
+    } catch (error) {
+      console.warn("Impossible de réinitialiser localStorage :", error);
     }
+    alert("Code mis à jour — merci de contacter l'administrateur.");
+  }
 
-    const storedCode = safeGetItem(ACCESS_LAST_USED_CODE_KEY);
-    const requiresFreshValidation = !storedCode || storedCode !== ACCESS_CODE;
-
-    if (requiresFreshValidation) {
-      try {
-        localStorage.clear();
-      } catch (error) {
-        console.warn("Impossible de réinitialiser localStorage :", error);
-      }
-      alert("Code mis à jour — merci de contacter l'administrateur.");
-    }
-
-    const already = !requiresFreshValidation && safeGetItem(ACCESS_CODE_KEY);
+  const already = !requiresFreshValidation && safeGetItem(ACCESS_CODE_KEY);
   if (already === "ok") {
     overlay.style.display = "none";
     return;
   }
 
-    function grantAccess() {
-      safeSetItem(ACCESS_CODE_KEY, "ok");
-      safeSetItem(ACCESS_LAST_USED_CODE_KEY, ACCESS_CODE);
-      err.style.display = "none";
-      overlay.style.transition = "opacity 0.2s ease";
-      overlay.style.opacity = "0";
-      setTimeout(() => {
-        overlay.style.display = "none";
-      }, 200);
-    }
+  function grantAccess() {
+    safeSetItem(ACCESS_CODE_KEY, "ok");
+    safeSetItem(ACCESS_LAST_USED_CODE_KEY, ACCESS_CODE);
+    err.style.display = "none";
+    overlay.style.transition = "opacity 0.2s ease";
+    overlay.style.opacity = "0";
+    setTimeout(() => {
+      overlay.style.display = "none";
+    }, 200);
+  }
 
-    function tryCode() {
-      const v = (input.value || "").trim();
-      if (v === ACCESS_CODE) {
-        grantAccess();
+  function tryCode() {
+    const v = (input.value || "").trim();
+    if (v === ACCESS_CODE) {
+      grantAccess();
     } else {
       err.style.display = "block";
     }
@@ -7061,21 +7094,21 @@ if (btnFermeturesToggle) {
 
   btn.addEventListener("click", tryCode);
   input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        tryCode();
-      }
+    if (e.key === "Enter") {
+      tryCode();
+    }
   });
 }
 
 loadSettings();
 loadLocalCalibrations();
-  loadMapPoints();
-// loadSharedCalibrations(); // désactivé pour éviter tout fetch
+loadMapPoints();
 updateSmsPreview();
 setGpsStatus("off");
-  document.addEventListener("DOMContentLoaded", () => {
-initAccessGate();  
-  });
+
+document.addEventListener("DOMContentLoaded", () => {
+  initAccessGate();
+});
 console.log("PK Assistant RER A – script chargé sans erreur ✅");
 
   // Optimisation batterie : pause les animations quand la page n'est pas visible
@@ -7113,6 +7146,27 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
       }
     }
   });
+
+  if (tabButtons.length) {
+    tabButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        const target = button.getAttribute("data-tab-target") || "status";
+        activateTab(target);
+      });
+    });
+  }
+
+  function bindPlanToggle(toggle, container) {
+    if (!toggle || !container) return;
+    toggle.addEventListener("change", () => {
+      container.style.display = toggle.checked ? "block" : "none";
+    });
+  }
+
+  bindPlanToggle(planBoissyToggle, planBoissyContainer);
+  bindPlanToggle(planParisOuestToggle, planParisOuestContainer);
+  bindPlanToggle(planChessyToggle, planChessyContainer);
+
   </script>
 
   <!-- Signature -->
