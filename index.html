@@ -226,11 +226,11 @@
     top: auto;
     z-index: 120;
     padding: 12px 16px;
-    background: linear-gradient(180deg, rgba(22, 32, 58, 0.18), rgba(32, 48, 88, 0.06));
+    background: linear-gradient(180deg, rgba(26, 40, 72, 0.12), rgba(40, 58, 102, 0.035));
     border-radius: 22px 22px 0 0;
-    border: 1px solid rgba(232, 240, 255, 0.12);
-    box-shadow: 0 16px 32px rgba(12, 18, 32, 0.24), 0 0 18px rgba(120, 170, 255, 0.32);
-    backdrop-filter: blur(8px);
+    border: 1px solid rgba(236, 244, 255, 0.16);
+    box-shadow: 0 18px 34px rgba(10, 16, 28, 0.22), 0 0 26px rgba(150, 200, 255, 0.36);
+    backdrop-filter: blur(10px) saturate(120%);
   }
 
   .tab-button {
@@ -247,8 +247,8 @@
     font-weight: 600;
     letter-spacing: 0.01em;
     transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
-    box-shadow: 0 12px 24px rgba(12, 16, 30, 0.22);
-    opacity: 0.94;
+    box-shadow: 0 14px 26px rgba(12, 16, 30, 0.2), 0 0 14px rgba(255, 255, 255, 0.24);
+    opacity: 0.96;
   }
 
   .tab-button .tab-icon {
@@ -271,39 +271,39 @@
   }
 
   .tab-button--status {
-    background: linear-gradient(135deg, rgba(144, 210, 255, 0.62), rgba(224, 246, 255, 0.82));
-    color: rgba(6, 12, 24, 0.8);
-    box-shadow: inset 0 0 12px rgba(180, 228, 255, 0.45);
+    background: linear-gradient(135deg, rgba(174, 226, 255, 0.46), rgba(236, 252, 255, 0.76));
+    color: rgba(4, 10, 24, 0.8);
+    box-shadow: inset 0 0 14px rgba(190, 236, 255, 0.42);
   }
 
   .tab-button--plan {
-    background: linear-gradient(135deg, rgba(196, 178, 255, 0.62), rgba(232, 220, 255, 0.82));
-    color: rgba(10, 12, 26, 0.82);
-    box-shadow: inset 0 0 12px rgba(210, 196, 255, 0.45);
+    background: linear-gradient(135deg, rgba(214, 198, 255, 0.46), rgba(240, 230, 255, 0.76));
+    color: rgba(8, 10, 26, 0.82);
+    box-shadow: inset 0 0 14px rgba(220, 206, 255, 0.4);
   }
 
   .tab-button--urgence {
-    background: linear-gradient(135deg, rgba(255, 160, 188, 0.62), rgba(255, 214, 226, 0.82));
-    color: rgba(22, 12, 18, 0.82);
-    box-shadow: inset 0 0 12px rgba(255, 192, 210, 0.42);
+    background: linear-gradient(135deg, rgba(255, 184, 210, 0.46), rgba(255, 228, 236, 0.76));
+    color: rgba(20, 10, 16, 0.82);
+    box-shadow: inset 0 0 14px rgba(255, 206, 222, 0.38);
   }
 
   .tab-button--recherche {
-    background: linear-gradient(135deg, rgba(255, 204, 128, 0.62), rgba(255, 236, 184, 0.82));
-    color: rgba(24, 10, 4, 0.84);
-    box-shadow: inset 0 0 12px rgba(255, 216, 164, 0.42);
+    background: linear-gradient(135deg, rgba(255, 218, 160, 0.46), rgba(255, 242, 204, 0.76));
+    color: rgba(22, 8, 4, 0.84);
+    box-shadow: inset 0 0 14px rgba(255, 226, 176, 0.36);
   }
 
   .tab-button--fermetures {
-    background: linear-gradient(135deg, rgba(132, 242, 230, 0.62), rgba(196, 255, 250, 0.82));
-    color: rgba(6, 18, 16, 0.82);
-    box-shadow: inset 0 0 12px rgba(176, 250, 238, 0.4);
+    background: linear-gradient(135deg, rgba(158, 248, 240, 0.46), rgba(212, 255, 252, 0.76));
+    color: rgba(6, 16, 14, 0.82);
+    box-shadow: inset 0 0 14px rgba(188, 252, 242, 0.34);
   }
 
   .tab-button--settings {
-    background: linear-gradient(135deg, rgba(188, 212, 255, 0.62), rgba(232, 240, 255, 0.82));
-    color: rgba(8, 14, 26, 0.82);
-    box-shadow: inset 0 0 12px rgba(204, 224, 255, 0.42);
+    background: linear-gradient(135deg, rgba(210, 226, 255, 0.46), rgba(238, 246, 255, 0.76));
+    color: rgba(6, 12, 24, 0.82);
+    box-shadow: inset 0 0 14px rgba(216, 232, 255, 0.36);
   }
 
   .tab-panels {
@@ -349,7 +349,6 @@
       height: 300px;
     }
   }
-
   .tab-panel {
     display: none;
   }
@@ -365,10 +364,12 @@
       border-radius: 18px 18px 0 0;
       padding: 8px 10px;
       bottom: 28px;
+      background: linear-gradient(180deg, rgba(32, 48, 86, 0.12), rgba(46, 64, 108, 0.04));
     }
     .tab-button {
       padding: 9px 7px;
       border-radius: 13px;
+      box-shadow: 0 12px 22px rgba(12, 16, 30, 0.18), 0 0 12px rgba(255, 255, 255, 0.22);
     }
     .tab-button .tab-icon {
       font-size: 1.08rem;
@@ -697,7 +698,6 @@
   .btn-secondary:hover {
     background: rgba(34, 40, 56, 0.82);
   }
-
   .btn-danger {
     background: linear-gradient(135deg, var(--danger), #ff8a96);
     color: #160610;
@@ -1041,7 +1041,6 @@
     font-weight: 600;
     color: #fff;
   }
-
   .pk-calibration-section {
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 16px;
@@ -1389,7 +1388,6 @@ body[data-page-hidden="true"] .leaflet-marker-pk-actuel {
 body[data-page-hidden="true"] .direction-arrow-moving {
   animation-play-state: paused;
 }
-
 .direction-arrow-indetermine {
   filter: drop-shadow(0 0 6px rgba(80, 86, 110, 0.6));
 }
@@ -1738,7 +1736,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 .orientation-target-button {
   flex-shrink: 0;
 }
-
 .orientation-target-info {
   font-size: 0.8rem;
   color: rgba(214, 223, 255, 0.75);
@@ -2062,7 +2059,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
           </div>
          </div>
        </section>
-
       <section class="tab-panel" data-tab="urgence">
         <h2 class="section-title">Urgence &amp; avaries</h2>
         <div class="app-content">
@@ -2410,7 +2406,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     { name: "Val d'Europe",                lat: 48.8561684149, lon: 2.7738274672, pk: 57000 },
     { name: "Marne-la-Vallée – Chessy",    lat: 48.8707237150, lon: 2.7826307507, pk: 59000 }
   ];
-
   // Tous les points de gare (pour recherche la plus proche, tri, etc.)
   const stations = troncCommun.concat(brancheBoissy, brancheChessy);
 
@@ -3110,13 +3105,6 @@ const accessPoints = [
     lon: null
   },
   {
-    name: "PST Sucy",
-    address: "PST Sucy",
-    pk: 47780,
-    lat: null,
-    lon: null
-  },
-  {
     name: "Bvd Georges Clémenceau",
     address: "Bvd Georges Clémenceau",
     pk: 47380,
@@ -3460,13 +3448,6 @@ const accessPoints = [
     lon: null
   },
   {
-    name: "2 allée Jean Paul Sartre / Cours du Buisson (2 accès Rdpt Bvd Salvador Allendé), Noisiel",
-    address: "2 allée Jean Paul Sartre / Cours du Buisson (2 accès Rdpt Bvd Salvador Allendé), Noisiel",
-    pk: 45080,
-    lat: 48.84366667,
-    lon: 2.61972222
-  },
-  {
     name: "« Chocolaterie » / 111 grande allée du 12 février 1934, Noisiel",
     address: "« Chocolaterie » / 111 grande allée du 12 février 1934, Noisiel",
     pk: 45490,
@@ -3779,7 +3760,6 @@ const CALIBRATION_CACHE_MS = 5000; // Reconstruire les polylignes toutes les 5 s
       mapPointsInfo.textContent = count + " point(s) enregistré(s).";
     }
   }
-
   function noteLocation() {
     if (state.lastLat == null || state.lastLon == null) {
       alert("Pas de position GPS disponible. Lance la géolocalisation d'abord.");
@@ -4102,7 +4082,6 @@ async function loadSharedCalibrations() {
       lon: ((λ2 * 180 / Math.PI + 540) % 360) - 180 // normalisation -180/+180
     };
   }
-
   function projectToSegment(lat, lon, a, b) {
     const meanLat = (a.lat + b.lat) / 2 * Math.PI/180;
     const cosLat = Math.cos(meanLat);
@@ -4416,7 +4395,6 @@ function buildCalibrationPolylines() {
       pk: basePk + sign * index * PETARD_SPACING,
     }));
   }
-
   // Fonction principale pour calculer les marqueurs de couverture
   function computeCoverageMarkers(pkStart, pkEnd) {
     const results = [];
@@ -4761,7 +4739,6 @@ function detectBranch(lat, lon) {
       pkBoissy = proj.pkProj;
     }
   }
-
   let minChessy = Infinity;
   let pkChessy = null;
   
@@ -5075,7 +5052,6 @@ function detectBranch(lat, lon) {
     setGpsStatus("error", err && err.message ? err.message : undefined);
     console.error(err);
   }
-
   // Throttle pour limiter la fréquence des mises à jour (économie batterie)
   let lastUpdateTime = 0;
   const UPDATE_THROTTLE_MS = 600; // Mise à jour max toutes les 0,6 seconde
@@ -5411,7 +5387,6 @@ function detectBranch(lat, lon) {
       }
     }
     dirValue.textContent = dirLabel;
-
   // Gare la plus proche
     if (state.nearestStation && state.nearestStation.lat != null && state.nearestStation.lon != null) {
       currentNearestStationData = state.nearestStation;
@@ -5736,7 +5711,6 @@ function detectBranch(lat, lon) {
 
     window.location.href = url;
   }
-
   // === MODE COUVREUR CHEMINANT SEUL ===
   // Fonction pour ouvrir automatiquement l'application SMS avec le message pré-rempli
   // Note : Pour un envoi vraiment automatique sans action, il faudrait un backend/service SMS
@@ -6073,7 +6047,6 @@ function detectBranch(lat, lon) {
       couvreurStatus.textContent = `Mode actif : ${minutes} min ${seconds} s avant alerte automatique`;
     }
   }
-
   // Fonction pour démarrer le mode "couvreur cheminant seul"
   function startCouvreurSeul() {
     if (!geolocActive) {
@@ -6409,7 +6382,6 @@ function detectBranch(lat, lon) {
       }
     });
   }
-
   if (btnResetOffset) {
   btnResetOffset.addEventListener("click", () => {
     pkOffset = 0;
@@ -7046,7 +7018,6 @@ document.addEventListener("click", (event) => {
 if (selectIncidentType) {
   selectIncidentType.dispatchEvent(new Event("change"));
 }
-
 function initAccessGate() {
   const overlay = document.getElementById("accessOverlay");
   const input = document.getElementById("accessCodeInput");
