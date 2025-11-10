@@ -27,9 +27,14 @@ npm-debug.log*
 .env.local
 .env.production
 
+# Configuration locale non versionnée
+config/access-config.js
 
 
 
 
 
 
+
+
+config/access-config.js
