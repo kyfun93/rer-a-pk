@@ -2009,6 +2009,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     let fermeturesEnabled = false;
 
     const ACCESS_CODE_KEY = "pkAssistantAccessGranted";
+    const ACCESS_LAST_USED_CODE_KEY = "lastUsedCode";
     const ACCESS_CODE = typeof window !== "undefined" && typeof window.__PK_ACCESS_CODE__ === "string"
       ? window.__PK_ACCESS_CODE__
       : null;
@@ -6691,55 +6692,76 @@ if (btnFermeturesToggle) {
     selectIncidentType.dispatchEvent(new Event("change"));
   }
 
-  // Initialisation
-    function initAccessGate() {
-  const overlay = document.getElementById("accessOverlay");
-  const input   = document.getElementById("accessCodeInput");
-  const btn     = document.getElementById("btnAccessCode");
-  const err     = document.getElementById("accessError");
+  function initAccessGate() {
+    const overlay = document.getElementById("accessOverlay");
+    const input = document.getElementById("accessCodeInput");
+    const btn = document.getElementById("btnAccessCode");
+    const err = document.getElementById("accessError");
 
-  if (!overlay || !input || !btn) return;
+    if (!overlay || !input || !btn) return;
 
-  if (!ACCESS_CODE) {
-    console.warn("⚠️ Aucun code d'accès n'est configuré. Crée `config/access-config.js` et définis `window.__PK_ACCESS_CODE__`.");
-    overlay.style.display = "none";
-    return;
-  }
+    if (!ACCESS_CODE) {
+      console.warn("⚠️ Aucun code d'accès n'est configuré. Crée `config/access-config.js` et définis `window.__PK_ACCESS_CODE__`.");
+      overlay.style.display = "none";
+      return;
+    }
 
-  const already = safeGetItem(ACCESS_CODE_KEY);
-  if (already === "ok") {
-    // Déjà autorisé sur cet appareil -> on masque l'overlay
-    overlay.style.display = "none";
-    return;
-  }
+    const storedCode = safeGetItem(ACCESS_LAST_USED_CODE_KEY);
+    const requiresFreshValidation = !storedCode || storedCode !== ACCESS_CODE;
 
-  function tryCode() {
-    const v = (input.value || "").trim();
-    if (v === ACCESS_CODE) {
+    if (requiresFreshValidation) {
+      try {
+        localStorage.clear();
+      } catch (error) {
+        console.warn("Impossible de réinitialiser localStorage :", error);
+      }
+      alert("Code mis à jour — merci de contacter l’administrateur.");
+    }
+
+    const already = !requiresFreshValidation && safeGetItem(ACCESS_CODE_KEY);
+    if (already === "ok") {
+      overlay.style.display = "none";
+      return;
+    }
+
+    function grantAccess() {
       safeSetItem(ACCESS_CODE_KEY, "ok");
+      safeSetItem(ACCESS_LAST_USED_CODE_KEY, ACCESS_CODE);
       err.style.display = "none";
       overlay.style.transition = "opacity 0.2s ease";
       overlay.style.opacity = "0";
-      setTimeout(() => { overlay.style.display = "none"; }, 200);
-    } else {
-      err.style.display = "block";
+      setTimeout(() => {
+        overlay.style.display = "none";
+      }, 200);
     }
+
+    function tryCode() {
+      const v = (input.value || "").trim();
+      if (v === ACCESS_CODE) {
+        grantAccess();
+      } else {
+        err.style.display = "block";
+      }
+    }
+
+    btn.addEventListener("click", tryCode);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        tryCode();
+      }
+    });
   }
 
-  btn.addEventListener("click", tryCode);
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") tryCode();
+  loadSettings();
+  loadLocalCalibrations();
+  loadMapPoints();
+  // loadSharedCalibrations(); // désactivé pour éviter tout fetch
+  updateSmsPreview();
+  setGpsStatus("off");
+  document.addEventListener("DOMContentLoaded", () => {
+    initAccessGate();
   });
-}
-
-loadSettings();
-loadLocalCalibrations();
-loadMapPoints();
-// loadSharedCalibrations(); // désactivé pour éviter tout fetch
-updateSmsPreview();
-setGpsStatus("off");
-initAccessGate();
-console.log("PK Assistant RER A – script chargé sans erreur ✅");
+  console.log("PK Assistant RER A – script chargé sans erreur ✅");
 
   // Optimisation batterie : pause les animations quand la page n'est pas visible
   document.addEventListener("visibilitychange", () => {
