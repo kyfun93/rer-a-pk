@@ -2554,7 +2554,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   </div>
                   <button class="pdf-nav-btn pdf-nav-next" data-pdf="boissy" aria-label="Page suivante">›</button>
                 </div>
-                <iframe id="planBoissyIframe" class="plan-line-iframe" src="docs/Boissy.pdf#page=1" title="Plan de Boissy"></iframe>
+                <iframe id="planBoissyIframe" class="plan-line-iframe" src="docs/Boissy.pdf#page=1" title="Plan de Boissy" type="application/pdf"></iframe>
               </div>
             </div>
             <div class="field plan-toggle">
@@ -2571,7 +2571,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   </div>
                   <button class="pdf-nav-btn pdf-nav-next" data-pdf="parisouest" aria-label="Page suivante">›</button>
                 </div>
-                <iframe id="planParisOuestIframe" class="plan-line-iframe" src="docs/Paris%20-%20Ouest.pdf#page=1" title="Plan de Paris-Ouest"></iframe>
+                <iframe id="planParisOuestIframe" class="plan-line-iframe" src="docs/Paris%20-%20Ouest.pdf#page=1" title="Plan de Paris-Ouest" type="application/pdf"></iframe>
               </div>
             </div>
             <div class="field plan-toggle">
@@ -2588,7 +2588,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   </div>
                   <button class="pdf-nav-btn pdf-nav-next" data-pdf="chessy" aria-label="Page suivante">›</button>
                 </div>
-                <iframe id="planChessyIframe" class="plan-line-iframe" src="docs/Chessy.pdf#page=1" title="Plan de Chessy"></iframe>
+                <iframe id="planChessyIframe" class="plan-line-iframe" src="docs/Chessy.pdf#page=1" title="Plan de Chessy" type="application/pdf"></iframe>
               </div>
             </div>
           </div>
@@ -8585,7 +8585,7 @@ function detectBranch(lat, lon) {
 
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">📡 Statut</h3>
         <ul style="margin-left: 20px; margin-top: 8px;">
-          <li><strong>Lancer la géoloc</strong> pour afficher PK actuel, sens détecté, gare la plus proche et prochaine gare.</li>
+          <li><strong>Lancer la géoloc</strong> pour afficher PK actuel, sens détecté, gare la plus proche, prochaine gare et <strong>accès le plus proche</strong>.</li>
           <li>Les puces interactives (gare / accès) ouvrent la carte sur le repère correspondant.</li>
         </ul>
 
@@ -8593,7 +8593,7 @@ function detectBranch(lat, lon) {
         <ul style="margin-left: 20px; margin-top: 8px;">
           <li>Carte Leaflet sombre avec ta position, les gares et les accès (zoom intelligent).</li>
           <li><strong>PK cible</strong> : saisis un PK puis clique sur « Définir » pour tracer une croix rouge et afficher l'écart dans le panneau statut.</li>
-          <li><strong>Plan de ligne</strong> : 3 cases à cocher ouvrent les PDF Boissy / Paris-Ouest / Chessy directement dans l'application.</li>
+          <li><strong>Plan de ligne</strong> : 3 cases à cocher ouvrent les PDF Boissy / Paris-Ouest / Chessy directement dans l'application. <strong>Navigation par pages</strong> : utilise les boutons ‹ › ou saisis directement le numéro de page pour naviguer dans les PDF (fonctionne sur mobile et desktop).</li>
           <li>La légende pastel liste les feux rouges / pétards : un clic centre la carte et ouvre le popup (Waze / Maps inclus).</li>
         </ul>
 
@@ -8618,7 +8618,7 @@ function detectBranch(lat, lon) {
         <ul style="margin-left: 20px; margin-top: 8px;">
           <li><strong>Sensibilité au mouvement</strong> : adapte le seuil pour la détection (Marche lente / Normal / Train).</li>
           <li><strong>Recalage PK</strong> : ajuste l'offset et exporte les recalages JSON.</li>
-          <li><strong>Points de carte</strong> : enregistre un point GPS avec description, exportable en JSON.</li>
+          <li><strong>Points de carte</strong> : enregistre un point GPS avec description. <strong>Export</strong> : disponible en format JSON (pour GitHub) ou Note (format texte lisible avec toutes les informations).</li>
           <li><strong>Numéro SOS</strong> : mémorise le numéro utilisé par le SMS d'urgence et le mode couvreur.</li>
           <li><strong>Tutoriel</strong> : accessible ici en permanence, avec ce guide à jour.</li>
         </ul>
@@ -9660,9 +9660,23 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     const maxPages = config.maxPages || 50;
     const page = Math.max(1, Math.min(pageNum, maxPages));
     
-    // Mettre à jour l'URL de l'iframe avec le paramètre de page
-    config.iframe.src = config.baseUrl + "#page=" + page;
-    config.currentPage = page;
+    // Pour iOS, forcer le rechargement complet de l'iframe
+    // En vidant d'abord le src, puis en le remettant avec le nouveau paramètre
+    const iframe = config.iframe;
+    const newSrc = config.baseUrl + "#page=" + page;
+    
+    // Si c'est la même page, ne rien faire
+    if (config.currentPage === page && iframe.src === newSrc) {
+      return;
+    }
+    
+    // Forcer le rechargement en vidant puis remettant le src
+    iframe.src = "";
+    // Petit délai pour s'assurer que le navigateur a bien vidé l'iframe
+    setTimeout(() => {
+      iframe.src = newSrc;
+      config.currentPage = page;
+    }, 50);
 
     // Mettre à jour l'interface
     const pageInput = document.querySelector(`.pdf-page-input[data-pdf="${pdfId}"]`);
