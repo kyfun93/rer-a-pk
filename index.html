@@ -349,6 +349,91 @@
     touch-action: pan-y;
   }
 
+  .pdf-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(14, 18, 28, 0.6);
+    border-bottom: 1px solid rgba(62, 80, 130, 0.3);
+    border-radius: 18px 18px 0 0;
+  }
+
+  .pdf-nav-btn {
+    background: linear-gradient(135deg, rgba(100, 140, 200, 0.8), rgba(80, 120, 180, 0.7));
+    border: 1px solid rgba(120, 160, 220, 0.4);
+    color: rgba(240, 245, 255, 0.95);
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(20, 40, 80, 0.3);
+  }
+
+  .pdf-nav-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(120, 160, 220, 0.9), rgba(100, 140, 200, 0.8));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(20, 40, 80, 0.4);
+  }
+
+  .pdf-nav-btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .pdf-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .pdf-page-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(230, 235, 255, 0.9);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .pdf-page-input {
+    width: 60px;
+    padding: 8px 10px;
+    background: rgba(20, 26, 40, 0.7);
+    border: 1px solid rgba(100, 140, 200, 0.3);
+    border-radius: 8px;
+    color: rgba(240, 245, 255, 0.95);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+  }
+
+  .pdf-page-input::-webkit-outer-spin-button,
+  .pdf-page-input::-webkit-inner-spin-button {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .pdf-page-input:focus {
+    outline: none;
+    border-color: rgba(120, 160, 220, 0.6);
+    box-shadow: 0 0 0 2px rgba(100, 140, 200, 0.2);
+  }
+
+  .pdf-page-total {
+    color: rgba(200, 210, 230, 0.7);
+    font-size: 0.85rem;
+  }
+
   .plan-line-iframe {
     width: 100%;
     height: 500px;
@@ -360,6 +445,23 @@
   }
 
   @media (max-width: 640px) {
+    .pdf-navigation {
+      padding: 10px 12px;
+      gap: 10px;
+    }
+    .pdf-nav-btn {
+      width: 36px;
+      height: 36px;
+      font-size: 1.3rem;
+    }
+    .pdf-page-input {
+      width: 50px;
+      padding: 6px 8px;
+      font-size: 0.85rem;
+    }
+    .pdf-page-info {
+      font-size: 0.85rem;
+    }
     .plan-line-container {
       overflow: auto;
       -webkit-overflow-scrolling: touch;
@@ -2366,6 +2468,13 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   <span id="nextStationInfo" class="status-detail"></span>
                 </div>
               </div>
+              <div class="status-line">
+                <span class="status-label">Accès le plus proche</span>
+                <div class="status-values">
+                  <span id="nearestAccessName" class="status-value">—</span>
+                  <span id="nearestAccessInfo" class="status-detail"></span>
+                </div>
+              </div>
             </div>
           </div>
          </div>
@@ -2437,7 +2546,15 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                 Afficher le plan de Boissy
               </label>
               <div id="planBoissyContainer" class="plan-line-container" style="display: none;">
-                <iframe class="plan-line-iframe" src="docs/Boissy.pdf" title="Plan de Boissy"></iframe>
+                <div class="pdf-navigation">
+                  <button class="pdf-nav-btn pdf-nav-prev" data-pdf="boissy" aria-label="Page précédente">‹</button>
+                  <div class="pdf-page-info">
+                    <input type="number" class="pdf-page-input" data-pdf="boissy" min="1" value="1" aria-label="Numéro de page">
+                    <span class="pdf-page-total" data-pdf="boissy">/ ?</span>
+                  </div>
+                  <button class="pdf-nav-btn pdf-nav-next" data-pdf="boissy" aria-label="Page suivante">›</button>
+                </div>
+                <iframe id="planBoissyIframe" class="plan-line-iframe" src="docs/Boissy.pdf#page=1" title="Plan de Boissy"></iframe>
               </div>
             </div>
             <div class="field plan-toggle">
@@ -2446,7 +2563,15 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                 Afficher le plan de Paris-Ouest
               </label>
               <div id="planParisOuestContainer" class="plan-line-container" style="display: none;">
-                <iframe class="plan-line-iframe" src="docs/Paris%20-%20Ouest.pdf" title="Plan de Paris-Ouest"></iframe>
+                <div class="pdf-navigation">
+                  <button class="pdf-nav-btn pdf-nav-prev" data-pdf="parisouest" aria-label="Page précédente">‹</button>
+                  <div class="pdf-page-info">
+                    <input type="number" class="pdf-page-input" data-pdf="parisouest" min="1" value="1" aria-label="Numéro de page">
+                    <span class="pdf-page-total" data-pdf="parisouest">/ ?</span>
+                  </div>
+                  <button class="pdf-nav-btn pdf-nav-next" data-pdf="parisouest" aria-label="Page suivante">›</button>
+                </div>
+                <iframe id="planParisOuestIframe" class="plan-line-iframe" src="docs/Paris%20-%20Ouest.pdf#page=1" title="Plan de Paris-Ouest"></iframe>
               </div>
             </div>
             <div class="field plan-toggle">
@@ -2455,7 +2580,15 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                 Afficher le plan de Chessy
               </label>
               <div id="planChessyContainer" class="plan-line-container" style="display: none;">
-                <iframe class="plan-line-iframe" src="docs/Chessy.pdf" title="Plan de Chessy"></iframe>
+                <div class="pdf-navigation">
+                  <button class="pdf-nav-btn pdf-nav-prev" data-pdf="chessy" aria-label="Page précédente">‹</button>
+                  <div class="pdf-page-info">
+                    <input type="number" class="pdf-page-input" data-pdf="chessy" min="1" value="1" aria-label="Numéro de page">
+                    <span class="pdf-page-total" data-pdf="chessy">/ ?</span>
+                  </div>
+                  <button class="pdf-nav-btn pdf-nav-next" data-pdf="chessy" aria-label="Page suivante">›</button>
+                </div>
+                <iframe id="planChessyIframe" class="plan-line-iframe" src="docs/Chessy.pdf#page=1" title="Plan de Chessy"></iframe>
               </div>
             </div>
           </div>
@@ -2737,11 +2870,16 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                 </div>
               </div>
               <div class="field">
-                <button id="btnExportMapPoints" class="btn btn-secondary btn-icon" type="button">
-                  <span>📤</span><span>Exporter les points (JSON)</span>
-                </button>
-                <div class="muted">
-                  Exporte tous les points enregistrés pour les déposer dans GitHub.
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                  <button id="btnExportMapPoints" class="btn btn-secondary btn-icon" type="button">
+                    <span>📤</span><span>Exporter (JSON)</span>
+                  </button>
+                  <button id="btnExportMapPointsNote" class="btn btn-secondary btn-icon" type="button">
+                    <span>📝</span><span>Exporter (Note)</span>
+                  </button>
+                </div>
+                <div class="muted" style="margin-top: 8px;">
+                  Exporte tous les points enregistrés : JSON pour GitHub, Note pour un format texte lisible.
                 </div>
               </div>
             </div>
@@ -4334,6 +4472,84 @@ const BRANCH_OPTION_LABELS = {
     }
   }
 
+  function exportMapPointsAsNote() {
+    if (!mapPoints.length) {
+      alert("Tu n'as encore enregistré aucun point de carte.");
+      return;
+    }
+
+    let noteText = "POINTS DE CARTE - RER A\n";
+    noteText += "========================\n\n";
+    noteText += `Total : ${mapPoints.length} point(s)\n`;
+    noteText += `Date d'export : ${new Date().toLocaleString('fr-FR')}\n\n`;
+    noteText += "─".repeat(50) + "\n\n";
+
+    mapPoints.forEach((point, index) => {
+      noteText += `[Point ${index + 1}]\n`;
+      noteText += `Description : ${point.description || "—"}\n`;
+      
+      if (point.pk != null) {
+        noteText += `PK : ${formatPk(point.pk)} (${Math.round(point.pk)} m)\n`;
+      } else {
+        noteText += `PK : —\n`;
+      }
+      
+      if (point.lat != null && point.lon != null) {
+        noteText += `Coordonnées GPS : ${point.lat.toFixed(6)}, ${point.lon.toFixed(6)}\n`;
+      } else {
+        noteText += `Coordonnées GPS : —\n`;
+      }
+      
+      if (point.accuracy != null) {
+        noteText += `Précision GPS : ±${Math.round(point.accuracy)} m\n`;
+      }
+      
+      if (point.branch) {
+        const branchLabel = point.branch === "central" ? "Tronçon central" : 
+                           point.branch === "boissy" ? "Boissy" : 
+                           point.branch === "chessy" ? "Chessy" : point.branch;
+        noteText += `Branche : ${branchLabel}\n`;
+      }
+      
+      if (point.timestamp) {
+        const date = new Date(point.timestamp);
+        noteText += `Date d'enregistrement : ${date.toLocaleString('fr-FR')}\n`;
+      }
+      
+      noteText += "\n" + "─".repeat(50) + "\n\n";
+    });
+
+    const blob = new Blob([noteText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+
+    const now = new Date();
+    const stamp = now.toISOString().replace(/[:.]/g, "-");
+    const filename = "map-points-" + stamp + ".txt";
+
+    // Méthode pour mobile et desktop
+    try {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      // Fallback : copier dans le presse-papiers (mobile)
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(noteText).then(() => {
+          alert("✅ Note copiée dans le presse-papiers !\n\nColle-la dans un fichier texte.\n\nNombre de points : " + mapPoints.length);
+        }).catch(() => {
+          alert("❌ Erreur lors de la copie dans le presse-papiers.");
+        });
+      } else {
+        alert("❌ Impossible d'exporter. Essaie sur un ordinateur ou vérifie les permissions du navigateur.");
+      }
+    }
+  }
+
 // === AJOUT CALIBRAGE : fichier partagé optionnel =========================
 async function loadSharedCalibrations() {
   try {
@@ -4443,6 +4659,9 @@ async function loadSharedCalibrations() {
   const nextStationName = document.getElementById("nextStationName");
   const nextStationInfo = document.getElementById("nextStationInfo");
 
+  const nearestAccessName = document.getElementById("nearestAccessName");
+  const nearestAccessInfo = document.getElementById("nearestAccessInfo");
+
   const pkTargetInfo = document.getElementById("pkTargetInfo");
   const inputPkTarget = document.getElementById("inputPkTarget");
   const btnSetPkTarget = document.getElementById("btnSetPkTarget");
@@ -4489,6 +4708,7 @@ async function loadSharedCalibrations() {
   const btnResetOffset = document.getElementById("btnResetOffset");
   const btnNoteLocation = document.getElementById("btnNoteLocation");
   const btnExportMapPoints = document.getElementById("btnExportMapPoints");
+  const btnExportMapPointsNote = document.getElementById("btnExportMapPointsNote");
   const inputPkLookup = document.getElementById("inputPkLookup");
   const pkLookupSuggestions = document.getElementById("pkLookupSuggestions");
   const btnPkLookup = document.getElementById("btnPkLookup");
@@ -6186,6 +6406,7 @@ function detectBranch(lat, lon) {
         : findNearestAccess(correctedPk, currentBranch);
       updateNearestStation(correctedPk, state.nearestStation);
       updateNextStation(correctedPk);
+      updateNearestAccess(correctedPk);
       updateOrientationPanel();
       updateSmsPreview();
       updatePkEstimateInSettings();
@@ -6243,6 +6464,7 @@ function detectBranch(lat, lon) {
           state.nearestStation = nearest;
           updateNearestStation(correctedPk, nearest);
           updateNextStation(correctedPk);
+          updateNearestAccess(correctedPk);
           
           // Mettre à jour l'interface immédiatement
           if (pkCurrentValue) {
@@ -6906,6 +7128,7 @@ function detectBranch(lat, lon) {
 
     updateNearestStation(correctedPk, nearest);
     updateNextStation(correctedPk);
+    updateNearestAccess(correctedPk);
     updatePkTargetView();
     updateSmsPreview();
     updatePkEstimateInSettings();
@@ -6976,6 +7199,22 @@ function detectBranch(lat, lon) {
     const dir = next.pk >= pk ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
     nextStationInfo.textContent =
       "PK " + formatPk(next.pk) + " · ≈ " + delta + " m " + dir;
+  }
+
+  function updateNearestAccess(pk) {
+    if (!nearestAccessName || !nearestAccessInfo) return;
+    
+    if (pk == null || !state.nearestAccess) {
+      nearestAccessName.textContent = "—";
+      nearestAccessInfo.textContent = "";
+      return;
+    }
+    
+    const access = state.nearestAccess;
+    nearestAccessName.textContent = access.name;
+    const delta = Math.round(Math.abs(access.pk - pk));
+    nearestAccessInfo.textContent =
+      "PK " + formatPk(access.pk) + " · ΔPK ≈ " + delta + " m";
   }
  function updatePkTargetView() {
   if (!pkTarget) {
@@ -8464,6 +8703,7 @@ function detectBranch(lat, lon) {
         : findNearestAccess(state.lastPk, currentBranch);
       updateNearestStation(state.lastPk, state.nearestStation);
       updateNextStation(state.lastPk);
+      updateNearestAccess(state.lastPk);
       updatePkTargetView();
       updateSmsPreview();
       updateOrientationPanel();
@@ -8630,6 +8870,10 @@ if (btnNoteLocation) {
 
 if (btnExportMapPoints) {
   btnExportMapPoints.addEventListener("click", exportMapPointsForGitHub);
+}
+
+if (btnExportMapPointsNote) {
+  btnExportMapPointsNote.addEventListener("click", exportMapPointsAsNote);
 }
 
 // Calcul de couverture travaux (feux rouges et pétards)
@@ -9370,6 +9614,14 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     });
   }
 
+  // Déclaration des éléments du DOM pour les plans PDF
+  const planBoissyToggle = document.getElementById("planBoissyToggle");
+  const planBoissyContainer = document.getElementById("planBoissyContainer");
+  const planParisOuestToggle = document.getElementById("planParisOuestToggle");
+  const planParisOuestContainer = document.getElementById("planParisOuestContainer");
+  const planChessyToggle = document.getElementById("planChessyToggle");
+  const planChessyContainer = document.getElementById("planChessyContainer");
+
   function bindPlanToggle(toggle, container) {
     if (!toggle || !container) return;
     toggle.addEventListener("change", () => {
@@ -9380,6 +9632,99 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
   bindPlanToggle(planBoissyToggle, planBoissyContainer);
   bindPlanToggle(planParisOuestToggle, planParisOuestContainer);
   bindPlanToggle(planChessyToggle, planChessyContainer);
+
+  // Gestion de la navigation des PDF
+  const pdfConfig = {
+    boissy: {
+      iframe: document.getElementById("planBoissyIframe"),
+      baseUrl: "docs/Boissy.pdf",
+      maxPages: 50 // Valeur par défaut, sera mise à jour si détectée
+    },
+    parisouest: {
+      iframe: document.getElementById("planParisOuestIframe"),
+      baseUrl: "docs/Paris%20-%20Ouest.pdf",
+      maxPages: 50
+    },
+    chessy: {
+      iframe: document.getElementById("planChessyIframe"),
+      baseUrl: "docs/Chessy.pdf",
+      maxPages: 50
+    }
+  };
+
+  // Fonction pour mettre à jour la page du PDF
+  function updatePdfPage(pdfId, pageNum) {
+    const config = pdfConfig[pdfId];
+    if (!config || !config.iframe) return;
+
+    const maxPages = config.maxPages || 50;
+    const page = Math.max(1, Math.min(pageNum, maxPages));
+    
+    // Mettre à jour l'URL de l'iframe avec le paramètre de page
+    config.iframe.src = config.baseUrl + "#page=" + page;
+    config.currentPage = page;
+
+    // Mettre à jour l'interface
+    const pageInput = document.querySelector(`.pdf-page-input[data-pdf="${pdfId}"]`);
+    const totalSpan = document.querySelector(`.pdf-page-total[data-pdf="${pdfId}"]`);
+    const prevBtn = document.querySelector(`.pdf-nav-prev[data-pdf="${pdfId}"]`);
+    const nextBtn = document.querySelector(`.pdf-nav-next[data-pdf="${pdfId}"]`);
+
+    if (pageInput) pageInput.value = page;
+    if (totalSpan) totalSpan.textContent = "/ " + maxPages;
+    if (prevBtn) prevBtn.disabled = page <= 1;
+    if (nextBtn) nextBtn.disabled = page >= maxPages;
+  }
+
+  // Initialiser la navigation pour chaque PDF
+  Object.keys(pdfConfig).forEach(pdfId => {
+    const config = pdfConfig[pdfId];
+    if (!config.iframe) return;
+
+    // Bouton précédent
+    const prevBtn = document.querySelector(`.pdf-nav-prev[data-pdf="${pdfId}"]`);
+    if (prevBtn) {
+      prevBtn.addEventListener("click", () => {
+        const currentPage = config.currentPage || 1;
+        updatePdfPage(pdfId, currentPage - 1);
+      });
+    }
+
+    // Bouton suivant
+    const nextBtn = document.querySelector(`.pdf-nav-next[data-pdf="${pdfId}"]`);
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => {
+        const currentPage = config.currentPage || 1;
+        updatePdfPage(pdfId, currentPage + 1);
+      });
+    }
+
+    // Champ de saisie
+    const pageInput = document.querySelector(`.pdf-page-input[data-pdf="${pdfId}"]`);
+    if (pageInput) {
+      pageInput.addEventListener("change", (e) => {
+        const pageNum = parseInt(e.target.value, 10);
+        if (!isNaN(pageNum) && pageNum > 0) {
+          updatePdfPage(pdfId, pageNum);
+        } else {
+          e.target.value = config.currentPage || 1;
+        }
+      });
+
+      pageInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          e.target.blur();
+          const pageNum = parseInt(e.target.value, 10);
+          if (!isNaN(pageNum) && pageNum > 0) {
+            updatePdfPage(pdfId, pageNum);
+          }
+        }
+      });
+    }
+
+    // Initialiser à la page 1
+    updatePdfPage(pdfId, 1);
+  });
 
   </script>
 
