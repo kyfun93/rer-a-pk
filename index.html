@@ -1505,6 +1505,125 @@
     text-decoration: underline;
   }
 
+  /* Styles pour les boutons de test */
+  .test-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .test-item:last-child {
+    border-bottom: none;
+  }
+
+  .test-item-text {
+    flex: 1;
+    font-size: 0.9rem;
+    color: rgba(236, 239, 255, 0.85);
+    line-height: 1.4;
+  }
+
+  .test-buttons {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .test-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.3rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    background: rgba(20, 26, 40, 0.6);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .test-btn-ok {
+    border-color: rgba(70, 200, 180, 0.4);
+    color: rgba(70, 200, 180, 0.7);
+  }
+
+  .test-btn-ok:hover {
+    background: rgba(70, 200, 180, 0.15);
+    border-color: rgba(70, 200, 180, 0.6);
+    color: rgba(120, 220, 210, 0.9);
+  }
+
+  .test-btn-ok.active {
+    background: rgba(70, 200, 180, 0.25);
+    border-color: rgba(70, 200, 180, 0.7);
+    color: #46c8b4;
+    box-shadow: 0 0 12px rgba(70, 200, 180, 0.3);
+  }
+
+  .test-btn-ko {
+    border-color: rgba(255, 111, 122, 0.4);
+    color: rgba(255, 111, 122, 0.7);
+  }
+
+  .test-btn-ko:hover {
+    background: rgba(255, 111, 122, 0.15);
+    border-color: rgba(255, 111, 122, 0.6);
+    color: rgba(255, 150, 160, 0.9);
+  }
+
+  .test-btn-ko.active {
+    background: rgba(255, 111, 122, 0.25);
+    border-color: rgba(255, 111, 122, 0.7);
+    color: #ff6f7a;
+    box-shadow: 0 0 12px rgba(255, 111, 122, 0.3);
+  }
+
+  @media (max-width: 640px) {
+    .test-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 0;
+    }
+
+    .test-item-text {
+      width: 100%;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .test-buttons {
+      width: 100%;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .test-btn {
+      width: 50px;
+      height: 50px;
+      font-size: 1.4rem;
+      border-radius: 12px;
+    }
+
+    #testListContent h3 {
+      font-size: 1.05rem !important;
+      margin-top: 24px !important;
+      margin-bottom: 14px !important;
+      padding-bottom: 8px !important;
+    }
+
+    #testListContent p {
+      font-size: 0.9rem !important;
+      margin-bottom: 16px !important;
+    }
+  }
+
   .access-contact-link {
     display: inline-block;
     margin-top: 14px;
@@ -4685,6 +4804,10 @@ async function loadSharedCalibrations() {
   const readmePanel = document.getElementById("readmePanel");
   const readmeContent = document.getElementById("readmeContent");
   const btnCloseReadme = document.getElementById("btnCloseReadme");
+  const btnTestList = document.getElementById("btnTestList");
+  const testListPanel = document.getElementById("testListPanel");
+  const testListContent = document.getElementById("testListContent");
+  const btnCloseTestList = document.getElementById("btnCloseTestList");
 
   const tabButtons = Array.from(document.querySelectorAll(".tab-button"));
   const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
@@ -6781,7 +6904,7 @@ function detectBranch(lat, lon) {
       error: {
         className: "status-badge status-badge--danger",
         label: "GPS KO",
-        message: "Impossible d'obtenir la position. Vérifie les autorisations."
+        message: "Géolocalisation refusée. Active la géolocalisation dans les paramètres de ton appareil."
       }
     };
 
@@ -6808,6 +6931,12 @@ function detectBranch(lat, lon) {
     updateGeolocButton();
     setGpsStatus("search", "Recherche du signal GPS…");
 
+    // Lancer directement watchPosition
+    // La gestion des erreurs se fera dans handleGeolocError qui ignore les erreurs temporaires
+    launchWatchPosition();
+  }
+
+  function launchWatchPosition() {
     // Optimisation batterie : augmenter maximumAge pour utiliser le cache GPS
     // et réduire la fréquence des mises à jour
     state.watchId = navigator.geolocation.watchPosition(
@@ -6816,7 +6945,7 @@ function detectBranch(lat, lon) {
       { 
         enableHighAccuracy: false, // Désactivé pour économiser la batterie (suffisant pour la plupart des cas)
         maximumAge: 10000, // Utiliser les positions en cache jusqu'à 10 secondes (économie batterie)
-        timeout: 20000 // Timeout plus long pour éviter les reconnexions fréquentes
+        timeout: 20000 // Timeout pour éviter les reconnexions fréquentes
       }
     );
   }
@@ -6837,8 +6966,48 @@ function detectBranch(lat, lon) {
   }
 
   function handleGeolocError(err) {
-    setGpsStatus("error", err && err.message ? err.message : undefined);
-    console.error(err);
+    // Ne pas afficher d'erreur si la géolocalisation n'est pas active
+    // (pour éviter d'afficher "GPS KO" avant même que l'utilisateur ait cliqué)
+    if (!geolocActive) {
+      return;
+    }
+    
+    if (!err) {
+      return;
+    }
+    
+    // Ignorer les erreurs temporaires qui ne sont pas vraiment des erreurs
+    // kCLErrorLocationUnknown (code 0) sur iOS = CoreLocation n'a pas encore de position, mais continue à chercher
+    if (err.code === 0 || (err.message && (
+      err.message.includes("kCLErrorLocationUnknown") || 
+      err.message.includes("LocationUnknown") ||
+      err.message.toLowerCase().includes("location unknown")
+    ))) {
+      // Ne pas afficher d'erreur pour cette erreur temporaire, juste logger
+      console.log("Position GPS en cours d'acquisition... (erreur temporaire ignorée)");
+      return;
+    }
+    
+    let userMessage = "Impossible d'obtenir la position.";
+    
+    // Traduire les messages d'erreur courants en français
+    if (err.code === 1 || (err.message && err.message.toLowerCase().includes("denied"))) {
+      userMessage = "Géolocalisation refusée. Active la géolocalisation dans les paramètres de ton appareil.";
+      // Réinitialiser geolocActive si permission refusée
+      geolocActive = false;
+      updateGeolocButton();
+    } else if (err.code === 2 || (err.message && err.message.toLowerCase().includes("unavailable"))) {
+      userMessage = "Géolocalisation indisponible. Vérifie que le GPS est activé.";
+    } else if (err.code === 3 || (err.message && err.message.toLowerCase().includes("timeout"))) {
+      userMessage = "Délai d'attente dépassé. Réessaie.";
+      // Ne pas arrêter la géolocalisation en cas de timeout, juste afficher le message
+    } else if (err.message) {
+      // Pour les autres erreurs, utiliser le message par défaut
+      userMessage = "Impossible d'obtenir la position. Vérifie les autorisations.";
+    }
+    
+    setGpsStatus("error", userMessage);
+    console.error("Erreur géolocalisation:", err);
   }
   // Throttle pour limiter la fréquence des mises à jour (économie batterie)
   let lastUpdateTime = 0;
@@ -8659,6 +8828,27 @@ function detectBranch(lat, lon) {
     });
   }
 
+  // Fonction pour initialiser les event listeners de la liste de tests
+  function initTestListListeners() {
+    const btnTestListEl = document.getElementById("btnTestList");
+    const testListPanelEl = document.getElementById("testListPanel");
+    const btnCloseTestListEl = document.getElementById("btnCloseTestList");
+    
+    if (btnTestListEl && testListPanelEl) {
+      btnTestListEl.addEventListener("click", () => {
+        generateTestListContent();
+        const isVisible = testListPanelEl.style.display !== "none";
+        testListPanelEl.style.display = isVisible ? "none" : "block";
+      });
+    }
+
+    if (btnCloseTestListEl && testListPanelEl) {
+      btnCloseTestListEl.addEventListener("click", () => {
+        testListPanelEl.style.display = "none";
+      });
+    }
+  }
+
   if (btnSetPkTarget && inputPkTarget) {
   btnSetPkTarget.addEventListener("click", () => {
     const val = parsePkInput(inputPkTarget.value);
@@ -9740,7 +9930,159 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     updatePdfPage(pdfId, 1);
   });
 
+  // Liste de tests sur la page d'accueil
+  const TEST_LIST_KEY = "testListResults";
+  let testResults = {};
+
+  function loadTestResults() {
+    try {
+      const stored = safeGetItem(TEST_LIST_KEY);
+      if (stored) {
+        testResults = JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn("Erreur lors du chargement des résultats de tests", e);
+      testResults = {};
+    }
+  }
+
+  function saveTestResults() {
+    try {
+      safeSetItem(TEST_LIST_KEY, JSON.stringify(testResults));
+    } catch (e) {
+      console.warn("Erreur lors de la sauvegarde des résultats de tests", e);
+    }
+  }
+
+  function setTestResult(testId, result) {
+    // Si on clique sur le même résultat, on le désactive (toggle)
+    if (testResults[testId] === result) {
+      delete testResults[testId];
+    } else {
+      testResults[testId] = result;
+    }
+    saveTestResults();
+    updateTestButtonState(testId);
+  }
+
+  // Rendre la fonction accessible globalement pour les onclick
+  window.setTestResult = setTestResult;
+
+  function updateTestButtonState(testId) {
+    const okBtn = document.getElementById(`test-ok-${testId}`);
+    const koBtn = document.getElementById(`test-ko-${testId}`);
+    const result = testResults[testId];
+    
+    if (okBtn) okBtn.classList.toggle("active", result === "ok");
+    if (koBtn) koBtn.classList.toggle("active", result === "ko");
+  }
+
+  function generateTestListContent() {
+    const container = document.getElementById("testListContent");
+    if (!container) return;
+
+    const tests = [
+      { id: "access-1", text: "Ouvrir l'application dans le navigateur", section: "Accès" },
+      { id: "access-2", text: "Saisir le code d'accès (3615)", section: "Accès" },
+      { id: "access-3", text: "Vérifier que l'écran d'accueil s'affiche correctement", section: "Accès" },
+      { id: "geoloc-1", text: "Cliquer sur \"Lancer la géoloc\"", section: "Géolocalisation" },
+      { id: "geoloc-2", text: "Autoriser la géolocalisation si demandé", section: "Géolocalisation" },
+      { id: "geoloc-3", text: "Vérifier que le PK actuel s'affiche", section: "Géolocalisation" },
+      { id: "geoloc-4", text: "Vérifier que le sens s'affiche", section: "Géolocalisation" },
+      { id: "geoloc-5", text: "Vérifier que la gare la plus proche s'affiche", section: "Géolocalisation" },
+      { id: "geoloc-6", text: "Vérifier que la prochaine gare s'affiche", section: "Géolocalisation" },
+      { id: "geoloc-7", text: "Vérifier que l'accès le plus proche s'affiche", section: "Géolocalisation" },
+      { id: "map-1", text: "Vérifier que la carte s'affiche avec ta position", section: "Carte" },
+      { id: "map-2", text: "Vérifier que les gares apparaissent sur la carte", section: "Carte" },
+      { id: "map-3", text: "Vérifier que les accès apparaissent sur la carte", section: "Carte" },
+      { id: "map-4", text: "Zoomer et dézoomer sur la carte", section: "Carte" },
+      { id: "map-5", text: "Définir un PK cible et vérifier qu'il apparaît", section: "Carte" },
+      { id: "pdf-1", text: "Ouvrir le plan de Boissy", section: "Plans PDF" },
+      { id: "pdf-2", text: "Naviguer dans les PDF avec les boutons", section: "Plans PDF" },
+      { id: "pdf-3", text: "Saisir un numéro de page directement", section: "Plans PDF" },
+      { id: "pdf-4", text: "Sur mobile : défilement vertical fonctionne", section: "Plans PDF" },
+      { id: "sms-1", text: "Générer le SMS d'urgence", section: "SMS" },
+      { id: "sms-2", text: "Vérifier que le message contient toutes les infos", section: "SMS" },
+      { id: "search-1", text: "Rechercher un PK", section: "Recherche" },
+      { id: "search-2", text: "Vérifier que l'accès le plus proche s'affiche", section: "Recherche" },
+      { id: "search-3", text: "Ouvrir Google Maps depuis la recherche", section: "Recherche" },
+      { id: "coverage-1", text: "Calculer une couverture travaux", section: "Couverture" },
+      { id: "coverage-2", text: "Vérifier que les marqueurs apparaissent", section: "Couverture" },
+      { id: "coverage-3", text: "Effacer les marqueurs", section: "Couverture" },
+      { id: "points-1", text: "Enregistrer un point de carte", section: "Points" },
+      { id: "points-2", text: "Exporter en JSON", section: "Points" },
+      { id: "points-3", text: "Exporter en Note", section: "Points" },
+      { id: "settings-1", text: "Changer la sensibilité au mouvement", section: "Paramètres" },
+      { id: "settings-2", text: "Sauvegarder un numéro SOS", section: "Paramètres" },
+      { id: "settings-3", text: "Faire un recalage PK", section: "Paramètres" },
+      { id: "mobile-1", text: "Tester sur mobile (Android)", section: "Mobile" },
+      { id: "mobile-2", text: "Tester sur mobile (iPhone)", section: "Mobile" },
+      { id: "mobile-3", text: "Tous les boutons fonctionnent au toucher", section: "Mobile" }
+    ];
+
+    let html = '<p style="margin-bottom: 20px; color: var(--muted); font-size: 0.9rem; line-height: 1.5;">Clique sur <span style="color: #46c8b4;">✓</span> pour OK ou <span style="color: #ff6f7a;">✗</span> pour pas OK pour chaque test.</p>';
+    
+    const sections = {};
+    tests.forEach(test => {
+      if (!sections[test.section]) {
+        sections[test.section] = [];
+      }
+      sections[test.section].push(test);
+    });
+
+    Object.keys(sections).forEach(sectionName => {
+      html += `<h3 style="color: var(--text); margin-top: 24px; margin-bottom: 14px; font-size: 1.05rem; font-weight: 600; border-bottom: 1px solid var(--border); padding-bottom: 8px;">${sectionName}</h3>`;
+      sections[sectionName].forEach(test => {
+        html += `
+          <div class="test-item">
+            <span class="test-item-text">${test.text}</span>
+            <div class="test-buttons">
+              <button id="test-ok-${test.id}" class="test-btn test-btn-ok" onclick="setTestResult('${test.id}', 'ok')" title="OK" aria-label="Test OK">✓</button>
+              <button id="test-ko-${test.id}" class="test-btn test-btn-ko" onclick="setTestResult('${test.id}', 'ko')" title="Pas OK" aria-label="Test pas OK">✗</button>
+            </div>
+          </div>
+        `;
+      });
+    });
+
+    container.innerHTML = html;
+    
+    // Mettre à jour l'état des boutons
+    tests.forEach(test => {
+      updateTestButtonState(test.id);
+    });
+  }
+
+  // Initialiser les résultats de tests au chargement
+  loadTestResults();
+
+  // Initialiser les event listeners pour la liste de tests (après création des éléments HTML)
+  setTimeout(() => {
+    initTestListListeners();
+  }, 100);
+
   </script>
+
+  <!-- Liste de tests -->
+  <div style="margin: 40px auto 20px; max-width: 1080px; padding: 0 24px;">
+    <button id="btnTestList" class="btn btn-secondary btn-icon" type="button" style="width: 100%; justify-content: center;">
+      <span>✅</span><span>Liste de tests</span>
+    </button>
+    
+    <div id="testListPanel" class="card" style="display: none; margin-top: 20px;">
+      <div class="card-header">
+        <div class="card-title">✅ Liste de tests</div>
+      </div>
+      <div id="testListContent" style="padding: 16px; line-height: 1.8; color: var(--text); max-height: 70vh; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+        <!-- Le contenu sera généré par JavaScript -->
+      </div>
+      <div class="field" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+        <button id="btnCloseTestList" class="btn btn-secondary" type="button" style="width: 100%;">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Signature -->
   <div class="app-footer">
