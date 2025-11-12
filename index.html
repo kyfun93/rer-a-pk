@@ -14,8 +14,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="PK Assistant" />
   
-  <!-- Manifest -->
-  <link rel="manifest" href="manifest.json" />
+  <!-- Manifest (chargé uniquement si pas en file:// pour éviter l'erreur CORS) -->
+  <script>
+    if (window.location.protocol !== 'file:') {
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = 'manifest.json';
+      document.head.appendChild(link);
+    }
+  </script>
   
   <!-- Icônes -->
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
@@ -213,24 +220,27 @@
   .app {
     max-width: 1080px;
     margin: 0 auto;
-    padding: 0 24px 120px;
+    padding: 0 24px 220px;
   }
 
   .tabbar {
-    margin: 32px 0 0;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 24px;
+    margin: 0 auto;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-    gap: 14px;
-    position: sticky;
-    bottom: 32px;
-    top: auto;
-    z-index: 120;
-    padding: 12px 16px;
-    background: linear-gradient(180deg, rgba(26, 40, 72, 0.12), rgba(40, 58, 102, 0.035));
-    border-radius: 22px 22px 0 0;
-    border: 1px solid rgba(236, 244, 255, 0.16);
-    box-shadow: 0 18px 34px rgba(10, 16, 28, 0.22), 0 0 26px rgba(150, 200, 255, 0.36);
-    backdrop-filter: blur(10px) saturate(120%);
+    gap: 16px;
+    padding: 14px 18px;
+    width: calc(100% - 40px);
+    max-width: 960px;
+    background: linear-gradient(180deg, rgba(10, 14, 22, 0.82), rgba(12, 18, 30, 0.96));
+    border-radius: 26px 26px 34px 34px;
+    border: 1px solid rgba(62, 80, 130, 0.4);
+    box-shadow: 0 20px 46px rgba(4, 8, 20, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(18px) saturate(125%);
+    z-index: 3500;
   }
 
   .tab-button {
@@ -271,39 +281,39 @@
   }
 
   .tab-button--status {
-    background: linear-gradient(135deg, rgba(174, 226, 255, 0.46), rgba(236, 252, 255, 0.76));
-    color: rgba(4, 10, 24, 0.8);
-    box-shadow: inset 0 0 14px rgba(190, 236, 255, 0.42);
+    background: linear-gradient(135deg, rgba(255, 156, 179, 0.95), rgba(255, 156, 179, 0.75));
+    color: rgba(48, 12, 22, 0.85);
+    box-shadow: inset 0 0 14px rgba(255, 156, 179, 0.45);
   }
 
   .tab-button--plan {
-    background: linear-gradient(135deg, rgba(214, 198, 255, 0.46), rgba(240, 230, 255, 0.76));
-    color: rgba(8, 10, 26, 0.82);
-    box-shadow: inset 0 0 14px rgba(220, 206, 255, 0.4);
+    background: linear-gradient(135deg, rgba(255, 143, 112, 0.95), rgba(255, 143, 112, 0.72));
+    color: rgba(58, 20, 12, 0.85);
+    box-shadow: inset 0 0 14px rgba(255, 143, 112, 0.4);
   }
 
   .tab-button--urgence {
-    background: linear-gradient(135deg, rgba(255, 184, 210, 0.46), rgba(255, 228, 236, 0.76));
-    color: rgba(20, 10, 16, 0.82);
-    box-shadow: inset 0 0 14px rgba(255, 206, 222, 0.38);
+    background: linear-gradient(135deg, rgba(255, 188, 134, 0.92), rgba(255, 188, 134, 0.7));
+    color: rgba(58, 28, 10, 0.82);
+    box-shadow: inset 0 0 14px rgba(255, 188, 134, 0.38);
   }
 
   .tab-button--recherche {
-    background: linear-gradient(135deg, rgba(255, 218, 160, 0.46), rgba(255, 242, 204, 0.76));
-    color: rgba(22, 8, 4, 0.84);
-    box-shadow: inset 0 0 14px rgba(255, 226, 176, 0.36);
+    background: linear-gradient(135deg, rgba(255, 200, 77, 0.9), rgba(255, 200, 77, 0.7));
+    color: rgba(46, 28, 4, 0.84);
+    box-shadow: inset 0 0 14px rgba(255, 200, 77, 0.36);
   }
 
   .tab-button--fermetures {
-    background: linear-gradient(135deg, rgba(158, 248, 240, 0.46), rgba(212, 255, 252, 0.76));
-    color: rgba(6, 16, 14, 0.82);
-    box-shadow: inset 0 0 14px rgba(188, 252, 242, 0.34);
+    background: linear-gradient(135deg, rgba(214, 240, 114, 0.9), rgba(214, 240, 114, 0.7));
+    color: rgba(35, 48, 10, 0.82);
+    box-shadow: inset 0 0 14px rgba(214, 240, 114, 0.34);
   }
 
   .tab-button--settings {
-    background: linear-gradient(135deg, rgba(210, 226, 255, 0.46), rgba(238, 246, 255, 0.76));
-    color: rgba(6, 12, 24, 0.82);
-    box-shadow: inset 0 0 14px rgba(216, 232, 255, 0.36);
+    background: linear-gradient(135deg, rgba(241, 166, 255, 0.92), rgba(241, 166, 255, 0.72));
+    color: rgba(46, 16, 64, 0.82);
+    box-shadow: inset 0 0 14px rgba(241, 166, 255, 0.36);
   }
 
   .tab-panels {
@@ -349,6 +359,196 @@
       height: 300px;
     }
   }
+  .pk-lookup-input {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .pk-lookup-input input {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .pk-lookup-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .pk-lookup-actions .btn {
+    flex: 1 1 150px;
+  }
+
+  .pk-lookup-choice {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    width: 100%;
+    padding: 12px 14px;
+    margin-top: 8px;
+    border-radius: 14px;
+    border: 1px solid rgba(200, 206, 236, 0.22);
+    background: rgba(20, 26, 48, 0.65);
+    color: var(--text);
+    text-align: left;
+    transition: transform var(--transition-fast), border var(--transition-fast), background var(--transition-fast);
+  }
+
+  .pk-lookup-choice:hover,
+  .pk-lookup-choice:focus {
+    outline: none;
+    transform: translateY(-1px);
+    border-color: rgba(238, 242, 255, 0.45);
+    background: rgba(28, 34, 56, 0.75);
+  }
+
+  .pk-lookup-choice strong {
+    font-weight: 600;
+    font-size: 0.96rem;
+  }
+
+  .recal-preview {
+    background: rgba(20, 24, 44, 0.65);
+    border-radius: 14px;
+    border: 1px solid rgba(200, 206, 236, 0.18);
+    padding: 14px;
+  }
+
+  .recal-preview-content {
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+
+  .recal-preview-content span {
+    font-weight: 600;
+    color: rgba(238, 242, 255, 0.92);
+  }
+
+  .recal-preview-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .recal-messages {
+    min-height: 20px;
+  }
+
+  .recal-messages.is-error {
+    color: #ff9393;
+  }
+
+  .recal-messages.is-success {
+    color: #7bffce;
+  }
+
+  .recal-history-list {
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .recal-history-item {
+    margin-top: 6px;
+  }
+
+  .recal-history-list strong {
+    color: rgba(238, 242, 255, 0.92);
+  }
+
+  .pk-lookup-choice .muted {
+    color: rgba(216, 222, 255, 0.72);
+  }
+
+  .branch-choice-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .branch-choice-label {
+    font-size: 0.8rem;
+    color: rgba(216, 222, 255, 0.72);
+  }
+
+  .branch-choice-wrapper {
+    position: relative;
+  }
+
+  .branch-choice-menu-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .branch-choice-button {
+    border: 1px solid rgba(200, 206, 236, 0.22);
+    background: rgba(24, 30, 48, 0.6);
+    color: rgba(236, 239, 255, 0.9);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: background 0.2s ease, border 0.2s ease;
+    position: relative;
+  }
+
+  .branch-choice-button:hover {
+    background: rgba(46, 52, 70, 0.75);
+    border-color: rgba(220, 228, 255, 0.35);
+  }
+
+  .branch-choice-button[aria-expanded="true"] {
+    background: rgba(46, 52, 70, 0.9);
+    border-color: rgba(220, 228, 255, 0.5);
+  }
+
+  .branch-choice-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 1000;
+    background: rgba(24, 30, 48, 0.98);
+    border: 1px solid rgba(200, 206, 236, 0.3);
+    border-radius: 8px;
+    padding: 4px;
+    min-width: 160px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .branch-choice-menu[hidden] {
+    display: none;
+  }
+
+  .branch-choice-menu button {
+    background: transparent;
+    border: none;
+    color: rgba(236, 239, 255, 0.9);
+    padding: 8px 12px;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    transition: background 0.15s ease;
+  }
+
+  .branch-choice-menu button:hover {
+    background: rgba(46, 52, 70, 0.6);
+  }
+
+  .branch-choice-menu button:active {
+    background: rgba(60, 70, 90, 0.8);
+  }
+
+  .orientation-branch-control {
+    margin-top: 10px;
+  }
+
   .tab-panel {
     display: none;
   }
@@ -356,15 +556,15 @@
   .tab-panel.is-active {
     display: block;
   }
-
   @media (max-width: 640px) {
     .tabbar {
+      width: calc(100% - 18px);
+      max-width: none;
       grid-template-columns: repeat(6, minmax(48px, 1fr));
       gap: 8px;
-      border-radius: 18px 18px 0 0;
-      padding: 8px 10px;
-      bottom: 28px;
-      background: linear-gradient(180deg, rgba(32, 48, 86, 0.12), rgba(46, 64, 108, 0.04));
+      padding: 10px 12px;
+      bottom: 16px;
+      border-radius: 20px;
     }
     .tab-button {
       padding: 9px 7px;
@@ -688,13 +888,11 @@
     background: linear-gradient(135deg, #5b9bff, #9984ff);
     box-shadow: 0 6px 18px rgba(104, 147, 255, 0.25);
   }
-
   .btn-secondary {
     background: rgba(26, 32, 46, 0.7);
     border-color: rgba(200, 206, 236, 0.18);
     color: rgba(236, 239, 255, 0.88);
   }
-
   .btn-secondary:hover {
     background: rgba(34, 40, 56, 0.82);
   }
@@ -857,7 +1055,6 @@
     align-items: flex-start;
     gap: 16px;
   }
-
   .status-label {
     font-size: 0.82rem;
     letter-spacing: 0.08em;
@@ -930,11 +1127,57 @@
       padding: 8px;
       border-radius: 10px;
     }
+    .coverage-legend-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .coverage-legend-collapse {
+      border: 1px solid rgba(200, 206, 236, 0.18);
+      background: rgba(28, 32, 46, 0.6);
+      color: rgba(230, 233, 255, 0.85);
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 0.68rem;
+    }
+    .coverage-legend-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .coverage-legend-filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .coverage-legend-filter {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+    }
+    .coverage-legend-filter input {
+      width: 14px;
+      height: 14px;
+    }
+    .coverage-legend-branch-btn {
+      width: 100%;
+      justify-content: center;
+      padding: 6px 10px;
+      font-size: 0.7rem;
+    }
+    .coverage-legend-branch-menu {
+      left: 0;
+      right: auto;
+    }
     .coverage-legend-helper {
       font-size: 0.7rem;
       margin-bottom: 6px;
     }
     .coverage-legend-items {
+      display: flex;
       flex-direction: column;
       gap: 5px;
     }
@@ -944,6 +1187,8 @@
       padding: 7px 9px;
       font-size: 0.74rem;
     }
+
+
     .orientation-info-panel {
       margin-top: 10px;
       padding: 10px;
@@ -1396,7 +1641,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   background: linear-gradient(135deg, rgba(163, 168, 186, 0.88), rgba(88, 95, 116, 0.88) 100%);
   box-shadow: 0 0 10px rgba(82, 88, 110, 0.35), 0 6px 14px rgba(6, 8, 16, 0.55);
 }
-
 .direction-arrow-indetermine::after {
   background: rgba(8, 10, 18, 0.75);
   box-shadow: inset 0 0 4px rgba(12, 14, 22, 0.6);
@@ -1441,11 +1685,9 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   color: rgba(226, 231, 255, 0.75);
   font-size: 0.82rem;
 }
-
 .coverage-summary-access span {
   color: rgba(156, 205, 255, 0.85);
 }
-
 .coverage-result-block {
   margin-top: 16px;
   border-radius: 14px;
@@ -1626,13 +1868,35 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   display: none;
 }
 
+.coverage-legend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.coverage-legend-collapse {
+  border: 1px solid rgba(200, 206, 236, 0.22);
+  background: rgba(28, 32, 46, 0.6);
+  color: rgba(230, 233, 255, 0.85);
+  border-radius: 10px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+  font-size: 0.78rem;
+}
+
+.coverage-legend-collapse:hover {
+  background: rgba(46, 52, 70, 0.7);
+}
+
 .coverage-legend-title {
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   font-size: 0.78rem;
   color: rgba(230, 233, 255, 0.75);
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .coverage-legend-helper {
@@ -1641,6 +1905,97 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   line-height: 1.45;
   margin-bottom: 10px;
 }
+
+.coverage-legend-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.coverage-legend-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.coverage-legend-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: rgba(236, 239, 255, 0.82);
+  user-select: none;
+}
+
+.coverage-legend-filter input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+.coverage-legend-branch {
+  position: relative;
+}
+
+.coverage-legend-branch-btn {
+  border: 1px solid rgba(200, 206, 236, 0.22);
+  background: rgba(28, 32, 46, 0.55);
+  color: rgba(236, 239, 255, 0.88);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.coverage-legend-branch.is-manual .coverage-legend-branch-btn {
+  border-color: var(--accent);
+  color: rgba(173, 209, 255, 0.95);
+}
+
+.coverage-legend-branch-btn:hover {
+  background: rgba(46, 52, 70, 0.65);
+}
+
+.coverage-legend-branch-menu {
+  position: absolute;
+  right: 0;
+  top: 110%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(18, 20, 30, 0.95);
+  border: 1px solid rgba(200, 206, 236, 0.18);
+  box-shadow: 0 12px 24px rgba(4, 6, 12, 0.45);
+  z-index: 4000;
+}
+
+.coverage-legend-branch-menu[hidden] {
+  display: none;
+}
+
+.coverage-legend-branch-menu button {
+  border: none;
+  background: rgba(28, 32, 46, 0.7);
+  color: rgba(236, 239, 255, 0.9);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.coverage-legend-branch-menu button:hover {
+  background: rgba(46, 52, 70, 0.8);
+}
+
 .coverage-legend-items {
   display: flex;
   flex-wrap: wrap;
@@ -1659,7 +2014,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   font-weight: 600;
   letter-spacing: 0.03em;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
 .coverage-legend-item:hover {
@@ -1669,6 +2024,22 @@ body[data-page-hidden="true"] .direction-arrow-moving {
 
 .coverage-legend-item:active {
   transform: translateY(0);
+}
+
+.coverage-legend-item.is-disabled {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
+.coverage-legend[data-collapsed="true"] .coverage-legend-controls,
+.coverage-legend[data-collapsed="true"] .coverage-legend-items,
+.coverage-legend[data-collapsed="true"] .coverage-legend-helper {
+  display: none;
+}
+
+.coverage-legend[data-collapsed="true"] .coverage-legend-collapse {
+  transform: rotate(180deg);
 }
 
 .coverage-guide-toggle {
@@ -1938,6 +2309,18 @@ body[data-page-hidden="true"] .direction-arrow-moving {
             <button id="btnToggleGeoloc" class="btn btn-primary btn-icon status-cta" type="button">
               <span>📍</span><span>Lancer la géoloc</span>
             </button>
+            <div class="branch-choice-control branch-choice-wrapper" style="margin-top: 12px;">
+              <span class="branch-choice-label">Forcer la branche :</span>
+              <div class="branch-choice-menu-container">
+                <button id="btnBranchGeoloc" type="button" class="branch-choice-button" aria-expanded="false">Auto</button>
+                <div id="branchMenuGeoloc" class="branch-choice-menu" hidden>
+                  <button type="button" data-branch="auto" data-context="geoloc">Auto</button>
+                  <button type="button" data-branch="central" data-context="geoloc">Tronçon central</button>
+                  <button type="button" data-branch="boissy" data-context="geoloc">Boissy</button>
+                  <button type="button" data-branch="chessy" data-context="geoloc">Chessy</button>
+                </div>
+              </div>
+            </div>
             <div class="status-list">
               <div class="status-line">
                 <span class="status-label">PK actuel</span>
@@ -2010,18 +2393,21 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                       <span>🎯</span><span>Définir</span>
                     </button>
                   </div>
+                  <div class="branch-choice-control orientation-branch-control branch-choice-wrapper">
+                    <span class="branch-choice-label">Branche :</span>
+                    <div class="branch-choice-menu-container">
+                      <button id="btnBranchTarget" type="button" class="branch-choice-button" aria-expanded="false">Tronçon central</button>
+                      <div id="branchMenuTarget" class="branch-choice-menu" hidden>
+                        <button type="button" data-branch="central" data-context="target">Tronçon central</button>
+                        <button type="button" data-branch="boissy" data-context="target">Boissy</button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div id="pkTargetInfo" class="orientation-target-info">
                   Aucun PK cible défini pour le moment.
                 </div>
               </div>
-            </div>
-            <div id="coverageLegend" class="coverage-legend">
-              <div class="coverage-legend-title">Repères calculés</div>
-              <div class="coverage-legend-helper">
-                Les repères listés sont cliquables : la carte se centre dessus et affiche le détail.
-              </div>
-              <div class="coverage-legend-items" id="coverageLegendItems"></div>
             </div>
           </div>
 
@@ -2105,6 +2491,16 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                 <label for="incidentPhoto">Photo (optionnel)</label>
                 <input id="incidentPhoto" type="file" accept="image/*" />
               </div>
+              <div class="branch-choice-control branch-choice-wrapper">
+                <span class="branch-choice-label">Branche :</span>
+                <div class="branch-choice-menu-container">
+                  <button id="btnBranchIncident" type="button" class="branch-choice-button" aria-expanded="false">Tronçon central</button>
+                  <div id="branchMenuIncident" class="branch-choice-menu" hidden>
+                    <button type="button" data-branch="central" data-context="incident">Tronçon central</button>
+                    <button type="button" data-branch="boissy" data-context="incident">Boissy</button>
+                  </div>
+                </div>
+              </div>
               <div class="field">
                 <button id="btnGenerateIncident" class="btn btn-good btn-icon" type="button">
                   <span>📣</span><span>Générer le message de signalement</span>
@@ -2121,19 +2517,28 @@ body[data-page-hidden="true"] .direction-arrow-moving {
           </div>
         </div>
       </section>
-
       <section class="tab-panel" data-tab="recherche">
         <h2 class="section-title">Calcul &amp; recherche PK</h2>
         <div class="app-content">
           <div class="card full-width">
             <div class="card-header">
-              <div class="card-title">Recherche par PK & GPS (accès le plus proche)</div>
+              <div class="card-title">Recherche PK, rues & accès</div>
             </div>
             <div class="field">
               <label for="inputPkLookup">Recherche par PK et GPS (accès le plus proche)</label>
-              <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" />
+              <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" autocomplete="off" />
+              <div class="branch-choice-control branch-choice-wrapper">
+                <span class="branch-choice-label">Branche :</span>
+                <div class="branch-choice-menu-container">
+                  <button id="btnBranchSearch" type="button" class="branch-choice-button" aria-expanded="false">Tronçon central</button>
+                  <div id="branchMenuSearch" class="branch-choice-menu" hidden>
+                    <button type="button" data-branch="central" data-context="search">Tronçon central</button>
+                    <button type="button" data-branch="boissy" data-context="search">Boissy</button>
+                  </div>
+                </div>
+              </div>
               <button id="btnPkLookup" class="btn btn-secondary btn-icon" type="button">
-                <span>🔎</span><span>Rechercher l'accès</span>
+                <span>🔎</span><span>Rechercher</span>
               </button>
             </div>
             <div class="field" id="pkLookupResultField" style="display:none;">
@@ -2161,9 +2566,22 @@ body[data-page-hidden="true"] .direction-arrow-moving {
               <label for="inputCoveragePkEnd">PK fin chantier (m)</label>
               <input id="inputCoveragePkEnd" type="number" placeholder="ex : 49000" />
             </div>
-            <div class="field">
+            <div class="branch-choice-control branch-choice-wrapper">
+              <span class="branch-choice-label">Branche :</span>
+              <div class="branch-choice-menu-container">
+                <button id="btnBranchCoverage" type="button" class="branch-choice-button" aria-expanded="false">Tronçon central</button>
+                <div id="branchMenuCoverage" class="branch-choice-menu" hidden>
+                  <button type="button" data-branch="central" data-context="coverage">Tronçon central</button>
+                  <button type="button" data-branch="boissy" data-context="coverage">Boissy</button>
+                </div>
+              </div>
+            </div>
+            <div class="field" style="display:flex; gap:10px; flex-wrap:wrap;">
               <button id="btnComputeCoverage" class="btn btn-primary btn-icon" type="button">
                 <span>🚦</span><span>Calculer rouges & pétards</span>
+              </button>
+              <button id="btnClearCoverage" class="btn btn-secondary" type="button" style="display: none;">
+                Effacer les marqueurs
               </button>
             </div>
             <div class="field coverage-guide-toggle">
@@ -2188,11 +2606,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
             </div>
             <div id="coverageResult" class="field" style="display: none; margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
               <div id="coverageResultText" style="color: #fff; line-height: 1.6;"></div>
-            </div>
-            <div class="field">
-              <button id="btnClearCoverage" class="btn btn-secondary" type="button" style="display: none;">
-                Effacer les marqueurs
-              </button>
             </div>
           </div>
         </div>
@@ -2233,7 +2646,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
             <div class="pk-calibration-section">
               <div class="field">
                 <label>Recalage PK</label>
-                <div id="pkOffsetInfo" class="muted">Offset actuel : ±0 m appliqués à tous les PK.</div>
+                <div id="pkOffsetInfo" class="muted">Décalage global : 0 m. Corrections locales enregistrées : 0.</div>
               </div>
               <div class="field">
                 <label>Position PK estimée (lecture seule)</label>
@@ -2242,7 +2655,40 @@ body[data-page-hidden="true"] .direction-arrow-moving {
               <div class="field">
                 <label for="inputPkRecal">PK exact ici (pour recaler l'appli)</label>
                 <input id="inputPkRecal" type="text" placeholder="ex : 52700 ou 52+700" />
-                <button id="btnApplyRecal" class="btn btn-primary" type="button">Recaler l'appli sur ce PK</button>
+                <div class="branch-choice-control branch-choice-wrapper">
+                  <span class="branch-choice-label">Branche :</span>
+                  <div class="branch-choice-menu-container">
+                    <button id="btnBranchRecal" type="button" class="branch-choice-button" aria-expanded="false">Tronçon central</button>
+                    <div id="branchMenuRecal" class="branch-choice-menu" hidden>
+                      <button type="button" data-branch="central" data-context="recal">Tronçon central</button>
+                      <button type="button" data-branch="boissy" data-context="recal">Boissy</button>
+                    </div>
+                  </div>
+                </div>
+                <button id="btnApplyRecal" class="btn btn-primary" type="button">Prévisualiser le recalage</button>
+              </div>
+              <div class="field recal-preview" id="recalPreview" style="display:none;">
+                <label>Aperçu du recalage</label>
+                <div class="recal-preview-content">
+                  PK estimé actuel : <span id="recalPreviewCurrent">—</span><br />
+                  PK cible (saisi) : <span id="recalPreviewNew">—</span><br />
+                  Branche appliquée : <span id="recalPreviewBranch">—</span>
+                </div>
+                <div class="recal-preview-actions">
+                  <button id="btnConfirmRecal" class="btn btn-primary" type="button">Confirmer</button>
+                  <button id="btnCancelRecal" class="btn btn-secondary" type="button">Annuler</button>
+                </div>
+              </div>
+              <div class="field">
+                <button id="btnUndoRecal" class="btn btn-secondary" type="button" style="display:none;">
+                  Annuler le dernier recalage
+                </button>
+              </div>
+              <div class="field">
+                <div id="recalMessages" class="recal-messages muted"></div>
+              </div>
+              <div class="field">
+                <div id="recalHistoryList" class="recal-history-list muted"></div>
               </div>
               <div class="field">
                 <button id="btnResetOffset" class="btn btn-secondary" type="button">
@@ -3210,13 +3656,6 @@ const accessPoints = [
     lon: 2.49329289
   },
   {
-    name: "1 av. de Condé, St Maur des fossés",
-    address: "1 av. de Condé, St Maur des fossés",
-    pk: 37050,
-    lat: null,
-    lon: null
-  },
-  {
     name: "Gare de Joinville-le-Pont",
     address: "Gare de Joinville-le-Pont",
     pk: 35800,
@@ -3635,14 +4074,42 @@ const accessPoints = [
 
   // Ligne courante utilisée pour la projection (tronc + branche selon où tu es)
 let currentBranch = "chessy";
-let linePoints = troncCommun.concat(brancheChessy);
+let linePoints = troncCommun.concat(brancheChessy); // Par défaut Chessy
 // Polylignes calibrées (remplies à partir des accessPoints + recalages)
 let linePointsBoissy = null;
 let linePointsChessy = null;
 let lastCalibrationBuildTime = 0; // Cache pour éviter de reconstruire les polylignes à chaque fois
 const CALIBRATION_CACHE_MS = 5000; // Reconstruire les polylignes toutes les 5 secondes max
+const CALIBRATION_SINGLE_RADIUS = 1200; // rayon d'influence maximum (m) pour un point isolé
+let calibrationControlPoints = { central: [], boissy: [], chessy: [] };
+let calibrationSegments = { central: [], boissy: [], chessy: [] };
 
+const COVERAGE_LEGEND_STATE_KEY = "coverageLegendState";
+const COVERAGE_LEGEND_COLLAPSE_KEY = "coverageLegendCollapsed";
+const MANUAL_BRANCH_OVERRIDE_KEY = "manualBranchOverride";
+// Mode debug : mettre à false pour désactiver les logs de débogage
+const DEBUG_MODE = false;
 
+const COMMON_BRANCH_PROMPT_MIN = 7050;
+const COMMON_BRANCH_PROMPT_MAX = 22300;
+const BRANCH_COMMON_MAX = 31400; // Fin du tronc commun
+const BRANCH_CHESSY_MIN = 31795; // Début de la branche Chessy
+const BRANCH_CHESSY_MAX = 59700; // Fin de la branche Chessy
+const BRANCH_SELECTION_STORAGE_KEY = "branchSelections";
+const BRANCH_SELECTION_CONTEXTS = {
+  search: "search",
+  coverage: "coverage",
+  target: "target",
+  incident: "incident",
+  recal: "recal",
+  geoloc: "geoloc"
+};
+const BRANCH_OPTION_LABELS = {
+  auto: "Auto",
+  central: "Tronçon central",
+  boissy: "Boissy",
+  chessy: "Chessy"
+};
 
   const sensitivityProfiles = {
     slow:   { idle: 0.15, walk: 1.5 },
@@ -3670,7 +4137,23 @@ const CALIBRATION_CACHE_MS = 5000; // Reconstruire les polylignes toutes les 5 s
   let motionSensitivity = "normal";
   let pkTarget = null;
   let lastPkLookupAccess = null;
+  let currentPkLookupTextResults = [];
+  let pendingRecal = null;
+  let recalHistory = [];
+  let manualBranchOverride = null;
+  let branchSelections = {
+    [BRANCH_SELECTION_CONTEXTS.search]: "central",
+    [BRANCH_SELECTION_CONTEXTS.coverage]: "central",
+    [BRANCH_SELECTION_CONTEXTS.target]: "central",
+    [BRANCH_SELECTION_CONTEXTS.incident]: "central",
+    [BRANCH_SELECTION_CONTEXTS.recal]: "central",
+    [BRANCH_SELECTION_CONTEXTS.geoloc]: "auto"
+  };
+  let pkTargetBranch = null;
+  let coverageLegendVisibility = { sam: true, petard: true };
+  let coverageLegendCollapsed = false;
   
+
   // === MODE COUVREUR CHEMINANT SEUL ===
   let couvreurSeulActive = false;
   let couvreurLastMovementTime = null; // Timestamp du dernier mouvement significatif (> 3m)
@@ -3776,7 +4259,7 @@ const CALIBRATION_CACHE_MS = 5000; // Reconstruire les polylignes toutes les 5 s
     }
 
     // Calculer le PK actuel si disponible
-    const currentPk = state.lastRawPk != null ? state.lastRawPk + pkOffset : null;
+    const currentPk = state.lastRawPk != null ? computePkWithCalibrations(state.lastRawPk, currentBranch) : null;
 
     const point = {
       lat: state.lastLat,
@@ -3978,15 +4461,31 @@ async function loadSharedCalibrations() {
   const pkEstimateText = document.getElementById("pkEstimateText");
   const inputPkRecal = document.getElementById("inputPkRecal");
   const btnApplyRecal = document.getElementById("btnApplyRecal");
+  const btnConfirmRecal = document.getElementById("btnConfirmRecal");
+  const btnCancelRecal = document.getElementById("btnCancelRecal");
+  const btnUndoRecal = document.getElementById("btnUndoRecal");
+  const recalPreview = document.getElementById("recalPreview");
+  const recalPreviewCurrent = document.getElementById("recalPreviewCurrent");
+  const recalPreviewNew = document.getElementById("recalPreviewNew");
+  const recalPreviewBranch = document.getElementById("recalPreviewBranch");
+  const recalMessages = document.getElementById("recalMessages");
+  const recalHistoryList = document.getElementById("recalHistoryList");
   const btnResetOffset = document.getElementById("btnResetOffset");
   const btnNoteLocation = document.getElementById("btnNoteLocation");
   const btnExportMapPoints = document.getElementById("btnExportMapPoints");
   const inputPkLookup = document.getElementById("inputPkLookup");
+  const pkLookupSuggestions = document.getElementById("pkLookupSuggestions");
   const btnPkLookup = document.getElementById("btnPkLookup");
   const pkLookupResultField = document.getElementById("pkLookupResultField");
   const pkLookupResult = document.getElementById("pkLookupResult");
   const btnPkLookupOpenMaps = document.getElementById("btnPkLookupOpenMaps");
   const btnPkLookupOpenWaze = document.getElementById("btnPkLookupOpenWaze");
+  const btnBranchSearch = document.getElementById("btnBranchSearch");
+  const btnBranchCoverage = document.getElementById("btnBranchCoverage");
+  const btnBranchTarget = document.getElementById("btnBranchTarget");
+  const btnBranchIncident = document.getElementById("btnBranchIncident");
+  const btnBranchRecal = document.getElementById("btnBranchRecal");
+  const btnBranchGeoloc = document.getElementById("btnBranchGeoloc");
 
   const selectIncidentType = document.getElementById("selectIncidentType");
   const incidentOtherField = document.getElementById("incidentOtherField");
@@ -4019,6 +4518,191 @@ async function loadSharedCalibrations() {
       return parseInt(str, 10);
     }
     return null;
+  }
+
+  const branchSelectionButtons = {
+    [BRANCH_SELECTION_CONTEXTS.search]: null,
+    [BRANCH_SELECTION_CONTEXTS.coverage]: null,
+    [BRANCH_SELECTION_CONTEXTS.target]: null,
+    [BRANCH_SELECTION_CONTEXTS.incident]: null,
+    [BRANCH_SELECTION_CONTEXTS.recal]: null
+  };
+
+  function normalizeBranchInput(value) {
+    if (value == null) return "auto";
+    const normalized = String(value)
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    if (!normalized) return "auto";
+    if (normalized === "auto" || normalized === "automatique") return "auto";
+    if (normalized.startsWith("bo")) return "boissy";
+    if (normalized.startsWith("ch")) return "chessy";
+    if (normalized.startsWith("tronc") || normalized.startsWith("centr")) return "central";
+    if (normalized === "central") return "central";
+    return null;
+  }
+
+  function branchValueToLabel(value) {
+    return BRANCH_OPTION_LABELS[value] || BRANCH_OPTION_LABELS.auto;
+  }
+
+  function updateBranchSelectionButton(context) {
+    const button = branchSelectionButtons[context];
+    if (!button) return;
+    const value = branchSelections[context] || "central";
+    button.textContent = branchValueToLabel(value);
+  }
+
+  function saveBranchSelections() {
+    try {
+      safeSetItem(BRANCH_SELECTION_STORAGE_KEY, JSON.stringify(branchSelections));
+    } catch (error) {
+      console.warn("Impossible de sauvegarder la sélection de branche", error);
+    }
+  }
+
+  function loadBranchSelections() {
+    const stored = safeGetItem(BRANCH_SELECTION_STORAGE_KEY);
+    if (!stored) {
+      Object.keys(branchSelections).forEach(context => updateBranchSelectionButton(context));
+      return;
+    }
+    try {
+      const parsed = JSON.parse(stored);
+      if (parsed && typeof parsed === "object") {
+        Object.keys(branchSelections).forEach(context => {
+          const candidate = normalizeBranchInput(parsed[context]);
+          branchSelections[context] = candidate || "central";
+        });
+      }
+    } catch (error) {
+      console.warn("Impossible de charger les sélections de branche", error);
+      Object.keys(branchSelections).forEach(context => {
+        branchSelections[context] = "central";
+      });
+    }
+    Object.keys(branchSelections).forEach(context => updateBranchSelectionButton(context));
+    // Ne pas forcer l'override au chargement : laisser la détection GPS fonctionner
+    // L'override ne sera appliqué que lors d'actions explicites (recherche, recalage, etc.)
+  }
+
+  function applyManualOverrideForBranch(value) {
+    if (value === "auto" || value == null) {
+      setManualBranchOverride("auto");
+    } else if (value === "boissy" || value === "central" || value === "chessy") {
+      setManualBranchOverride(value);
+    }
+  }
+
+  function setBranchSelection(context, value, options = {}) {
+    const normalized = normalizeBranchInput(value);
+    if (!normalized) {
+      alert("Choix de branche invalide.");
+      return;
+    }
+    debugLog("💾 setBranchSelection: contexte", context, "valeur", value, "normalisée", normalized);
+    branchSelections[context] = normalized;
+    debugLog("💾 branchSelections après mise à jour:", JSON.stringify(branchSelections));
+    updateBranchSelectionButton(context);
+    // Ne pas forcer l'override automatiquement : seulement si explicitement demandé
+    // L'override sera appliqué lors des actions (recherche, recalage, etc.) via ensureBranchForPk
+    if (!options.skipSave) {
+      saveBranchSelections();
+    }
+  }
+
+  function showBranchSelectionDialog(context, allowed = ["auto", "central", "boissy", "chessy"]) {
+    if (!branchSelections.hasOwnProperty(context)) {
+      branchSelections[context] = "central";
+    }
+    const current = branchSelections[context] || "central";
+    const labelList = allowed.map(value => branchValueToLabel(value)).join(", ");
+    const input = window.prompt(
+      `Choisis la branche pour cette action (options : ${labelList}).\nRéponds par auto, boissy, tronçon central ou chessy.`,
+      current
+    );
+    if (input == null) {
+      return;
+    }
+    const normalized = normalizeBranchInput(input);
+    if (!normalized || !allowed.includes(normalized)) {
+      alert(`Choix invalide. Options disponibles : ${labelList}.`);
+      return;
+    }
+    setBranchSelection(context, normalized);
+    // Si l'utilisateur choisit explicitement une branche (pas "auto"), appliquer l'override
+    if (normalized !== "auto") {
+      applyManualOverrideForBranch(normalized);
+    } else {
+      // Si on revient à "auto", supprimer l'override pour laisser la détection GPS fonctionner
+      setManualBranchOverride("auto");
+    }
+  }
+
+  function getContextBranch(context) {
+    const result = branchSelections[context] || "central";
+    debugLog("📖 getContextBranch: contexte", context, "retourne", result, "branchSelections:", JSON.stringify(branchSelections));
+    return result;
+  }
+
+  function promptCommonZoneBranch(context) {
+    let attempts = 0;
+    // Utiliser la branche détectée par GPS si disponible, sinon celle sauvegardée, sinon "central"
+    let currentDetected = null;
+    if (state.lastLat != null && state.lastLon != null) {
+      const detected = detectBranch(state.lastLat, state.lastLon);
+      if (detected === "boissy") {
+        currentDetected = "boissy";
+      } else if (detected === "central" || detected === "both") {
+        currentDetected = "central";
+      }
+    }
+    // Si pas de détection GPS, utiliser currentBranch (qui peut être mis à jour par la détection précédente)
+    if (!currentDetected) {
+      currentDetected = currentBranch === "boissy" ? "boissy" : (currentBranch === "central" || currentBranch === "both" ? "central" : null);
+    }
+    const defaultBranch = branchSelections[context] === "boissy" ? "boissy" : (currentDetected || "central");
+    while (attempts < 3) {
+      const input = window.prompt(
+        "Le PK se situe dans la zone commune (Boissy / Tronçon central). Indique la branche : boissy ou central.",
+        defaultBranch
+      );
+      if (input == null) {
+        break;
+      }
+      const normalized = normalizeBranchInput(input);
+      if (normalized === "boissy" || normalized === "central") {
+        setBranchSelection(context, normalized);
+        return normalized;
+      }
+      alert("Réponse non reconnue. Tape « boissy » ou « central ».");
+      attempts += 1;
+    }
+    // Si annulé, on utilise la branche détectée ou "central" par défaut, sans forcer l'override
+    const fallback = currentDetected || "central";
+    setBranchSelection(context, fallback, { skipManualOverride: true });
+    return fallback;
+  }
+
+  function ensureBranchForPk(pk, context) {
+    const contextKey = branchSelections.hasOwnProperty(context) ? context : BRANCH_SELECTION_CONTEXTS.search;
+    const selection = getContextBranch(contextKey);
+    if (selection && selection !== "auto") {
+      return selection;
+    }
+    if (Number.isFinite(pk) && pk >= COMMON_BRANCH_PROMPT_MIN && pk <= COMMON_BRANCH_PROMPT_MAX) {
+      const resolved = promptCommonZoneBranch(contextKey);
+      if (resolved && resolved !== "auto") {
+        applyManualOverrideForBranch(resolved);
+      }
+      return resolved;
+    }
+    if (selection === "auto" && manualBranchOverride) {
+      return manualBranchOverride;
+    }
+    return selection || "auto";
   }
 
   function distanceMeters(lat1, lon1, lat2, lon2) {
@@ -4112,6 +4796,213 @@ async function loadSharedCalibrations() {
     return { latProj, lonProj, pkProj, dist };
   }
 
+  function roughBranchFromLatLon(lat, lon) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      return "central";
+    }
+
+    let minTronc = Infinity;
+    let pkTronc = null;
+
+    for (let i = 0; i < troncCommun.length - 1; i++) {
+      const a = troncCommun[i];
+      const b = troncCommun[i + 1];
+      if (a.lat == null || a.lon == null || b.lat == null || b.lon == null) continue;
+
+      const proj = projectToSegment(lat, lon, a, b);
+      if (proj.dist < minTronc) {
+        minTronc = proj.dist;
+        pkTronc = proj.pkProj;
+      }
+    }
+
+    if (minTronc < 300 && pkTronc != null && pkTronc <= BRANCH_COMMON_MAX) {
+      return "central";
+    }
+
+    let dBoissy = Infinity;
+    let dChessy = Infinity;
+
+    for (let i = 0; i < Math.min(3, brancheBoissy.length); i++) {
+      const ref = brancheBoissy[i];
+      if (ref.lat == null || ref.lon == null) continue;
+      const d = distanceMeters(lat, lon, ref.lat, ref.lon);
+      if (d < dBoissy) dBoissy = d;
+    }
+
+    for (let i = 0; i < Math.min(3, brancheChessy.length); i++) {
+      const ref = brancheChessy[i];
+      if (ref.lat == null || ref.lon == null) continue;
+      const d = distanceMeters(lat, lon, ref.lat, ref.lon);
+      if (d < dChessy) dChessy = d;
+    }
+
+    if (Math.abs(dBoissy - dChessy) < 100) {
+      return "central";
+    }
+
+    return dBoissy < dChessy ? "boissy" : "chessy";
+  }
+
+  function normalizeBranchKey(branchKey) {
+    if (branchKey === "boissy" || branchKey === "chessy") {
+      return branchKey;
+    }
+    if (branchKey === "central" || branchKey === "both") {
+      return "central";
+    }
+    return "central";
+  }
+
+  function determineCalibrationBranch(pk, branchHint, lat, lon) {
+    let branch = branchHint;
+
+    if (branch === "both") {
+      branch = "central";
+    }
+
+    if (branch === "boissy" || branch === "chessy" || branch === "central") {
+      return branch;
+    }
+
+    if (Number.isFinite(pk)) {
+      if (pk <= BRANCH_COMMON_MAX) {
+        return "central";
+      }
+    }
+
+    if (Number.isFinite(lat) && Number.isFinite(lon)) {
+      const inferred = roughBranchFromLatLon(lat, lon);
+      if (inferred === "boissy" || inferred === "chessy") {
+        return inferred;
+      }
+    }
+
+    return "central";
+  }
+
+  function computeCalibrationOffsetFromEntry(entry) {
+    if (!entry || typeof entry !== "object") {
+      return null;
+    }
+    if (Number.isFinite(entry.offset)) {
+      return entry.offset;
+    }
+    if (Number.isFinite(entry.pkOffset)) {
+      return entry.pkOffset;
+    }
+    const pkExact = Number.isFinite(entry.pkExact) ? entry.pkExact : (Number.isFinite(entry.pk) ? entry.pk : null);
+    let pkRaw = null;
+    if (Number.isFinite(entry.pkRaw)) {
+      pkRaw = entry.pkRaw;
+    } else if (Number.isFinite(entry.pkExact) && Number.isFinite(entry.pkOffset)) {
+      pkRaw = entry.pkExact - entry.pkOffset;
+    }
+    if (pkExact != null && pkRaw != null) {
+      return pkExact - pkRaw;
+    }
+    return null;
+  }
+
+  function buildCalibrationSegmentsForBranch(points) {
+    if (!Array.isArray(points) || !points.length) {
+      return [];
+    }
+    if (points.length === 1) {
+      const center = points[0];
+      return [{
+        type: "single",
+        center,
+        start: center.pk - CALIBRATION_SINGLE_RADIUS,
+        end: center.pk + CALIBRATION_SINGLE_RADIUS,
+        radius: CALIBRATION_SINGLE_RADIUS
+      }];
+    }
+    const segments = [];
+    for (let i = 0; i < points.length - 1; i++) {
+      const left = points[i];
+      const right = points[i + 1];
+      if (!Number.isFinite(left.pk) || !Number.isFinite(right.pk)) continue;
+      if (right.pk <= left.pk) continue;
+      segments.push({
+        type: "pair",
+        left,
+        right,
+        start: left.pk,
+        end: right.pk
+      });
+    }
+    return segments;
+  }
+
+  function updateCalibrationAdjustments(sourceByBranch) {
+    const branches = ["central", "boissy", "chessy"];
+    branches.forEach(branch => {
+      const arr = Array.isArray(sourceByBranch[branch]) ? sourceByBranch[branch].slice() : [];
+      arr.sort((a, b) => a.pk - b.pk);
+      calibrationControlPoints[branch] = arr;
+      calibrationSegments[branch] = buildCalibrationSegmentsForBranch(arr);
+    });
+  }
+
+  function computeOffsetFromSegments(pk, segments) {
+    if (!Array.isArray(segments) || !segments.length) {
+      return null;
+    }
+    for (const segment of segments) {
+      if (segment.type === "pair") {
+        const left = segment.left;
+        const right = segment.right;
+        if (pk < left.pk || pk > right.pk) continue;
+        const span = right.pk - left.pk;
+        if (!(span > 0)) continue;
+        const t = (pk - left.pk) / span;
+        return left.offset + (right.offset - left.offset) * t;
+      } else if (segment.type === "single") {
+        if (pk < segment.start || pk > segment.end) continue;
+        const radius = segment.radius;
+        if (!(radius > 0)) {
+          return segment.center.offset;
+        }
+        const dist = Math.abs(pk - segment.center.pk);
+        const factor = Math.max(0, 1 - dist / radius);
+        return segment.center.offset * factor;
+      }
+    }
+    return null;
+  }
+
+  function getCalibrationOffsetForPk(pk, branchKey) {
+    if (!Number.isFinite(pk)) {
+      return 0;
+    }
+    const branchesToCheck = [];
+    const normalized = normalizeBranchKey(branchKey);
+    if (normalized === "boissy" || normalized === "chessy") {
+      branchesToCheck.push(normalized);
+      if (pk <= BRANCH_COMMON_MAX) {
+        branchesToCheck.push("central");
+      }
+    } else {
+      branchesToCheck.push("central");
+    }
+    for (const branch of branchesToCheck) {
+      const offset = computeOffsetFromSegments(pk, calibrationSegments[branch]);
+      if (offset != null) {
+        return offset;
+      }
+    }
+    return 0;
+  }
+
+  function computePkWithCalibrations(pkRaw, branchKey) {
+    if (!Number.isFinite(pkRaw)) {
+      return pkRaw;
+    }
+    const normalized = normalizeBranchKey(branchKey);
+    const localOffset = getCalibrationOffsetForPk(pkRaw, normalized);
+    return pkRaw + pkOffset + localOffset;
+  }
   function projectToLine(lat, lon) {
     let best = { dist: Infinity, pkProj: null, latProj: null, lonProj: null };
     
@@ -4237,7 +5128,135 @@ async function loadSharedCalibrations() {
     return best;
   }
 
-  // 👇👇 AJOUTE TOUT CE BLOC ICI 👇👇
+  branchSelectionButtons[BRANCH_SELECTION_CONTEXTS.search] = btnBranchSearch;
+  branchSelectionButtons[BRANCH_SELECTION_CONTEXTS.coverage] = btnBranchCoverage;
+  branchSelectionButtons[BRANCH_SELECTION_CONTEXTS.target] = btnBranchTarget;
+  branchSelectionButtons[BRANCH_SELECTION_CONTEXTS.incident] = btnBranchIncident;
+  branchSelectionButtons[BRANCH_SELECTION_CONTEXTS.geoloc] = btnBranchGeoloc;
+
+  // Gestion des menus déroulants pour le choix de branche (initialisé après le chargement du DOM)
+  function initBranchMenus() {
+    debugLog("🔧 Initialisation des menus de branche...");
+    const branchMenuMap = {
+      [BRANCH_SELECTION_CONTEXTS.search]: { button: btnBranchSearch, menu: document.getElementById("branchMenuSearch") },
+      [BRANCH_SELECTION_CONTEXTS.coverage]: { button: btnBranchCoverage, menu: document.getElementById("branchMenuCoverage") },
+      [BRANCH_SELECTION_CONTEXTS.target]: { button: btnBranchTarget, menu: document.getElementById("branchMenuTarget") },
+      [BRANCH_SELECTION_CONTEXTS.incident]: { button: btnBranchIncident, menu: document.getElementById("branchMenuIncident") },
+      [BRANCH_SELECTION_CONTEXTS.recal]: { button: btnBranchRecal, menu: document.getElementById("branchMenuRecal") },
+      [BRANCH_SELECTION_CONTEXTS.geoloc]: { button: btnBranchGeoloc, menu: document.getElementById("branchMenuGeoloc") }
+    };
+    
+    // Vérifier que tous les boutons et menus existent
+    Object.keys(branchMenuMap).forEach(context => {
+      const { button, menu } = branchMenuMap[context];
+      if (!button) {
+        console.error("❌ Bouton manquant pour le contexte:", context);
+      }
+      if (!menu) {
+        console.error("❌ Menu manquant pour le contexte:", context);
+      }
+      if (button && menu) {
+        debugLog("✅ Menu initialisé pour:", context, "bouton:", button.textContent);
+      }
+    });
+
+    // Fermer tous les menus sauf celui spécifié
+    function closeAllBranchMenus(exceptContext = null) {
+      Object.keys(branchMenuMap).forEach(context => {
+        if (context === exceptContext) return;
+        const { button, menu } = branchMenuMap[context];
+        if (button && menu) {
+          button.setAttribute("aria-expanded", "false");
+          menu.hidden = true;
+        }
+      });
+    }
+
+    // Gérer l'ouverture/fermeture des menus
+    Object.keys(branchMenuMap).forEach(context => {
+      const { button, menu } = branchMenuMap[context];
+      if (!button || !menu) return;
+
+      button.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isExpanded = button.getAttribute("aria-expanded") === "true";
+        closeAllBranchMenus(isExpanded ? context : null);
+        if (!isExpanded) {
+          button.setAttribute("aria-expanded", "true");
+          menu.hidden = false;
+        } else {
+          button.setAttribute("aria-expanded", "false");
+          menu.hidden = true;
+        }
+      });
+
+      // Gérer les clics sur les options du menu
+      menu.querySelectorAll("button[data-branch]").forEach(option => {
+        option.addEventListener("click", (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          const branch = option.getAttribute("data-branch");
+          const contextKey = option.getAttribute("data-context");
+          debugLog("🖱️ Clic sur option menu - branch:", branch, "contextKey:", contextKey);
+          if (branch && contextKey) {
+            debugLog("🎯 Choix de branche dans le menu:", branch, "pour le contexte:", contextKey);
+            // Sauvegarder le choix dans le contexte (cela met aussi à jour le texte du bouton)
+            setBranchSelection(contextKey, branch);
+            debugLog("✅ Choix sauvegardé, bouton mis à jour:", branchValueToLabel(branch));
+            
+            // Vérifier immédiatement après la sauvegarde
+            const verifyValue = getContextBranch(contextKey);
+            debugLog("🔍 Vérification après sauvegarde - getContextBranch retourne:", verifyValue);
+            
+            // Forcer l'override global pour que la géolocalisation l'utilise (uniquement pour le contexte geoloc)
+            if (contextKey === BRANCH_SELECTION_CONTEXTS.geoloc) {
+              if (branch !== "auto") {
+                debugLog("🔧 Application de l'override global pour géoloc:", branch);
+                setManualBranchOverride(branch);
+              } else {
+                debugLog("🔧 Suppression de l'override global (retour à auto)");
+                setManualBranchOverride("auto");
+              }
+            }
+            
+            button.setAttribute("aria-expanded", "false");
+            menu.hidden = true;
+            debugLog("✅ Branche", branch, "appliquée pour le contexte", contextKey, "- Bouton:", button.textContent);
+          } else {
+            console.error("❌ Données manquantes - branch:", branch, "contextKey:", contextKey);
+          }
+        });
+      });
+    });
+
+    // Fermer les menus quand on clique ailleurs
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".branch-choice-menu-container")) {
+        closeAllBranchMenus();
+      }
+    });
+  }
+
+  // Initialiser les menus après le chargement du DOM
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initBranchMenus);
+  } else {
+    initBranchMenus();
+  }
+
+  if (inputPkLookup) {
+    inputPkLookup.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handlePkLookup().catch(err => console.error("handlePkLookup error", err));
+      }
+    });
+    inputPkLookup.addEventListener("input", () => {
+      updatePkLookupSuggestionsList(inputPkLookup.value);
+    });
+  }
+
+  // ... (rest of the code remains unchanged)
 function buildCalibrationPolylines() {
   // Cache : ne reconstruire que si nécessaire (nouveau recalage ou cache expiré)
   const now = Date.now();
@@ -4250,80 +5269,31 @@ function buildCalibrationPolylines() {
   const calibBoissy = [];
   const calibChessy = [];
 
-  // Version améliorée pour séparer Boissy / Chessy / Tronc commun à partir d'un point
-  function roughBranchFromLatLon(lat, lon) {
-    // D'abord, vérifier si on est sur le tronc commun (PK <= 34000)
-    // On projette sur le tronc commun pour obtenir le PK estimé
-    let minTronc = Infinity;
-    let pkTronc = null;
-    
-    for (let i = 0; i < troncCommun.length - 1; i++) {
-      const a = troncCommun[i];
-      const b = troncCommun[i + 1];
-      if (a.lat == null || a.lon == null || b.lat == null || b.lon == null) continue;
-      
-      const proj = projectToSegment(lat, lon, a, b);
-      if (proj.dist < minTronc) {
-        minTronc = proj.dist;
-        pkTronc = proj.pkProj;
-      }
-    }
-    
-    // Si on est proche du tronc commun (moins de 300m) ET que le PK est <= 34000, on est sur le tronc commun
-    if (minTronc < 300 && pkTronc != null && pkTronc <= 34000) {
-      return "both"; // Tronc commun
-    }
-    
-    // Sinon, comparer la distance aux branches Boissy et Chessy
-    // On utilise plusieurs points de référence pour plus de précision
-    let dBoissy = Infinity;
-    let dChessy = Infinity;
-    
-    // Pour Boissy : utiliser les 3 premiers points de la branche
-    for (let i = 0; i < Math.min(3, brancheBoissy.length); i++) {
-      const ref = brancheBoissy[i];
-      if (ref.lat == null || ref.lon == null) continue;
-      const d = distanceMeters(lat, lon, ref.lat, ref.lon);
-      if (d < dBoissy) dBoissy = d;
-    }
-    
-    // Pour Chessy : utiliser les 3 premiers points de la branche
-    for (let i = 0; i < Math.min(3, brancheChessy.length); i++) {
-      const ref = brancheChessy[i];
-      if (ref.lat == null || ref.lon == null) continue;
-      const d = distanceMeters(lat, lon, ref.lat, ref.lon);
-      if (d < dChessy) dChessy = d;
-    }
-    
-    // Si les distances sont très proches (< 100m de différence), on reste neutre
-    if (Math.abs(dBoissy - dChessy) < 100) {
-      return "both"; // Indéterminé, on reste sur tronc commun
-    }
-    
-    return dBoissy < dChessy ? "boissy" : "chessy";
-  }
+  const calibrationPointsByBranch = { central: [], boissy: [], chessy: [] };
 
   // Ajoute un point de calibration dans les bons tableaux
   function addCalibPoint(pk, lat, lon, branchHint) {
-    if (pk == null || lat == null || lon == null) return;
+    if (pk == null || lat == null || lon == null) return null;
     const calPoint = { pk, lat, lon };
 
-    // Tronc commun → [0, 34000] comme pour les accès
-    if (pk <= 34000) {
+    if (pk <= BRANCH_COMMON_MAX) {
       calibTronc.push(calPoint);
-      return;
+      return "central";
     }
 
-    let branch = branchHint;
-    if (!branch || branch === "both") {
-      branch = roughBranchFromLatLon(lat, lon);
-    }
+    const resolved = determineCalibrationBranch(pk, branchHint, lat, lon);
 
-    if (branch === "boissy") {
+    if (resolved === "boissy") {
       calibBoissy.push(calPoint);
-    } else if (branch === "chessy") {
-      calibChessy.push(calPoint);
+      return "boissy";
     }
+    if (resolved === "chessy") {
+      calibChessy.push(calPoint);
+      return "chessy";
+    }
+
+    calibTronc.push(calPoint);
+    return "central";
   }
 
   // 1) Points issus des accessPoints eux-mêmes (tes 191 accès + les gares ajoutées)
@@ -4339,8 +5309,19 @@ function buildCalibrationPolylines() {
   for (const c of allCals) {
     if (!c) continue;
     const pk = c.pkExact != null ? c.pkExact : c.pk;
-    addCalibPoint(pk, c.lat, c.lon, c.branch);
+    if (pk == null) continue;
+    const branchUsed = addCalibPoint(pk, c.lat, c.lon, c.branch);
+    const offset = computeCalibrationOffsetFromEntry(c);
+    if (branchUsed && Number.isFinite(offset)) {
+      const normalized = normalizeBranchKey(branchUsed);
+      if (!calibrationPointsByBranch[normalized]) {
+        calibrationPointsByBranch[normalized] = [];
+      }
+      calibrationPointsByBranch[normalized].push({ pk, offset });
+    }
   }
+
+  updateCalibrationAdjustments(calibrationPointsByBranch);
 
   // Tri par PK
   calibTronc.sort((a, b) => a.pk - b.pk);
@@ -4356,6 +5337,15 @@ function buildCalibrationPolylines() {
   linePointsChessy = troncCommun
     .concat(calibTronc, brancheChessy, calibChessy)
     .sort((a, b) => a.pk - b.pk);
+  
+  // Initialiser linePoints par défaut si pas encore défini
+  if (!linePoints || linePoints.length === 0) {
+    linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+    console.log("linePoints initialisé par défaut (Chessy), longueur:", linePoints.length);
+  }
+  
+  console.log("Polylignes construites - Boissy:", linePointsBoissy ? linePointsBoissy.length : 0, 
+              "Chessy:", linePointsChessy ? linePointsChessy.length : 0);
 }
   function findNearestStation(pk, branch) {
     if (pk == null) return null;
@@ -4453,11 +5443,21 @@ function buildCalibrationPolylines() {
     return Math.round(meters) + " m";
   }
 
-  function getNearestAccessDetails(lat, lon, pk) {
+  function getNearestAccessDetails(lat, lon, pk, branchHint = null) {
     let nearest = null;
     let distanceText = null;
 
-    if (lat != null && lon != null) {
+    // Si une branche est spécifiée, privilégier findNearestAccess avec la branche
+    // car findNearestAccessGeo ne filtre pas par branche
+    if (branchHint && branchHint !== "auto" && pk != null) {
+      debugLog("🔍 getNearestAccessDetails : branche spécifiée", branchHint, "→ utilisation de findNearestAccess avec filtre");
+      nearest = findNearestAccess(pk, branchHint);
+      if (nearest && nearest.lat != null && nearest.lon != null && lat != null && lon != null) {
+        const dist = distanceMeters(lat, lon, nearest.lat, nearest.lon);
+        distanceText = formatMetersReadable(dist);
+      }
+    } else if (lat != null && lon != null) {
+      // Sinon, utiliser findNearestAccessGeo (sans filtre de branche)
       nearest = findNearestAccessGeo(lat, lon);
       if (nearest && nearest.lat != null && nearest.lon != null) {
         const dist = distanceMeters(lat, lon, nearest.lat, nearest.lon);
@@ -4465,8 +5465,9 @@ function buildCalibrationPolylines() {
       }
     }
 
+    // Fallback : si toujours pas d'accès et qu'on a un PK, essayer sans filtre
     if (!nearest && pk != null) {
-      nearest = findNearestAccess(pk);
+      nearest = findNearestAccess(pk, branchHint);
     }
 
     if (!nearest) {
@@ -4611,18 +5612,57 @@ function buildCalibrationPolylines() {
   }
 
   // Nearest access uniquement par PK (utilisé pour la recherche manuelle)
-  function findNearestAccess(pk) {
+  // branchHint : branche choisie par l'utilisateur (boissy, central, chessy, ou null pour auto)
+  function findNearestAccess(pk, branchHint = null) {
     if (pk == null) return null;
     let best = null;
     let bestDiff = Infinity;
+    
     for (const acc of accessPoints) {
       if (acc.pk == null) continue;
+      
+      // Si une branche est spécifiée, filtrer les accès selon leur branche
+      if (branchHint && branchHint !== "auto") {
+        // Déterminer la branche de l'accès selon son PK
+        let accBranch = null;
+        if (acc.pk <= BRANCH_COMMON_MAX) {
+          accBranch = "central";
+        } else if (acc.pk >= BRANCH_CHESSY_MIN && acc.pk <= BRANCH_CHESSY_MAX) {
+          // PK entre 31795 et 59700 = Chessy
+          accBranch = "chessy";
+        } else {
+          // PK > 31400 mais < 31795 ou > 59700 = Boissy
+          accBranch = "boissy";
+        }
+        
+        // Si la branche de l'accès ne correspond pas à celle demandée, l'ignorer
+        if (branchHint === "central" && accBranch !== "central") continue;
+        if (branchHint === "boissy" && accBranch !== "boissy") continue;
+        if (branchHint === "chessy" && accBranch !== "chessy") continue;
+        
+        console.log("  Accès", acc.name, "PK", acc.pk, "branche", accBranch, "→ accepté");
+      }
+      
       const d = Math.abs(acc.pk - pk);
       if (d < bestDiff) {
         bestDiff = d;
         best = acc;
       }
     }
+    
+    // Si aucun accès trouvé avec le filtre de branche, chercher sans filtre
+    if (!best && branchHint && branchHint !== "auto") {
+      console.log("Aucun accès trouvé sur la branche", branchHint, ", recherche sans filtre");
+      for (const acc of accessPoints) {
+        if (acc.pk == null) continue;
+        const d = Math.abs(acc.pk - pk);
+        if (d < bestDiff) {
+          bestDiff = d;
+          best = acc;
+        }
+      }
+    }
+    
     return best;
   }
 
@@ -4641,7 +5681,6 @@ function buildCalibrationPolylines() {
     }
     return best;
   }
-
   // Top N accès par distance GPS (utilisé pour "Top 2 en PK")
   function getNearestAccessesGeo(lat, lon, pk, maxCount = 2) {
     if (lat == null || lon == null) return [];
@@ -4701,7 +5740,7 @@ function detectBranch(lat, lon) {
     return "both";
   }
 
-  // ÉTAPE 1 : Vérifier d'abord si on est sur le TRONC COMMUN (PK 0-34000)
+  // ÉTAPE 1 : Vérifier d'abord si on est sur le TRONC COMMUN (PK 0-31400)
   // On projette sur le tronc commun pour obtenir la distance et le PK estimé
   let minTronc = Infinity;
   let pkTronc = null;
@@ -4718,8 +5757,8 @@ function detectBranch(lat, lon) {
     }
   }
 
-  // Si on est très proche du tronc commun (moins de 200m) ET que le PK est <= 34000, on est sur le tronc commun
-  if (minTronc < 200 && pkTronc != null && pkTronc <= 34000) {
+  // Si on est très proche du tronc commun (moins de 200m) ET que le PK est <= 31400, on est sur le tronc commun
+  if (minTronc < 200 && pkTronc != null && pkTronc <= BRANCH_COMMON_MAX) {
     return "both"; // Tronc commun
   }
 
@@ -4765,16 +5804,19 @@ function detectBranch(lat, lon) {
   
   if (diff < 50 && pkBoissy != null && pkChessy != null) {
     // Si les distances sont très proches, on utilise le PK pour déterminer la branche
-    // Si on est proche de la bifurcation (PK ~34000), on privilégie la distance
-    if (pkBoissy > 34000 && pkChessy > 34000) {
+    // Si on est proche de la bifurcation (PK ~31400), on privilégie la distance
+    if (pkBoissy > BRANCH_COMMON_MAX && pkChessy > BRANCH_COMMON_MAX) {
       // On est clairement sur une branche, on utilise la distance la plus proche
+      // Mais si le PK est >= 31795, on est sur Chessy
+      if (pkChessy >= BRANCH_CHESSY_MIN) return "chessy";
+      if (pkBoissy >= BRANCH_CHESSY_MIN) return "boissy";
       return minBoissy < minChessy ? "boissy" : "chessy";
-    } else if (pkBoissy <= 34000 && pkChessy <= 34000) {
+    } else if (pkBoissy <= BRANCH_COMMON_MAX && pkChessy <= BRANCH_COMMON_MAX) {
       // On est sur le tronc commun
       return "both";
     } else {
-      // Une branche a un PK > 34000, l'autre non : on choisit celle avec PK > 34000
-      return pkBoissy > 34000 ? "boissy" : "chessy";
+      // Une branche a un PK > 31400, l'autre non : on choisit celle avec PK > 31400
+      return pkBoissy > BRANCH_COMMON_MAX ? "boissy" : "chessy";
     }
   }
 
@@ -4783,8 +5825,11 @@ function detectBranch(lat, lon) {
   if (diff < 30) {
     // Si la différence est très faible, on vérifie le PK pour trancher
     if (pkBoissy != null && pkChessy != null) {
-      if (pkBoissy > 34000 && pkChessy <= 34000) return "boissy";
-      if (pkChessy > 34000 && pkBoissy <= 34000) return "chessy";
+      // Si le PK est >= 31795, on est sur Chessy
+      if (pkChessy >= BRANCH_CHESSY_MIN) return "chessy";
+      if (pkBoissy >= BRANCH_CHESSY_MIN) return "boissy";
+      if (pkBoissy > BRANCH_COMMON_MAX && pkChessy <= BRANCH_COMMON_MAX) return "boissy";
+      if (pkChessy > BRANCH_COMMON_MAX && pkBoissy <= BRANCH_COMMON_MAX) return "chessy";
     }
     // Sinon, on reste neutre si vraiment indéterminé
     return "both";
@@ -4828,6 +5873,51 @@ function detectBranch(lat, lon) {
       ? storedTab
       : fallbackTab;
     activateTab(initialTab, { skipStore: true });
+
+    const storedPkLookup = safeGetItem("pkLookupQuery");
+    if (storedPkLookup && inputPkLookup) {
+      inputPkLookup.value = storedPkLookup;
+      updatePkLookupSuggestionsList(storedPkLookup);
+    }
+
+    const storedLastAccess = safeGetItem("pkLookupLastAccess");
+    const storedLastTarget = safeGetItem("pkLookupLastTargetPk");
+    if (storedLastAccess) {
+      try {
+        const parsed = JSON.parse(storedLastAccess);
+        if (parsed && parsed.name) {
+          const match = accessPoints.find(acc => acc.name === parsed.name && (parsed.pk == null || acc.pk === parsed.pk));
+          if (match) {
+            const targetPk = storedLastTarget ? parseFloat(storedLastTarget) : null;
+            if (Number.isFinite(targetPk)) {
+              ensureBranchForPk(targetPk, BRANCH_SELECTION_CONTEXTS.search);
+            }
+            renderPkLookupSummary({
+              access: match,
+              targetPk: Number.isFinite(targetPk) ? targetPk : null,
+              branchChoice: (() => {
+                const contextBranch = getContextBranch(BRANCH_SELECTION_CONTEXTS.search);
+                return contextBranch !== "auto" ? contextBranch : null;
+              })()
+            });
+          }
+        }
+      } catch (error) {
+        console.warn("Impossible de restaurer le dernier accès sélectionné", error);
+      }
+    }
+
+    loadRecalHistory();
+    loadCoverageLegendState();
+    if (manualBranchOverride) {
+      setManualBranchOverride(manualBranchOverride);
+    } else {
+      updateLegendBranchUI();
+    }
+    setCoverageLegendCollapsed(coverageLegendCollapsed, { skipSave: true });
+    applyCoverageLegendFilters();
+    setRecalMessage("");
+
     generateFermeturesNocturnesContent();
   }
 
@@ -4855,11 +5945,468 @@ function detectBranch(lat, lon) {
     }
   }
 
+  function setRecalMessage(message, tone = "info") {
+    if (!recalMessages) return;
+    if (!message) {
+      recalMessages.textContent = "";
+      recalMessages.classList.remove("is-error", "is-success");
+      return;
+    }
+    recalMessages.textContent = message;
+    recalMessages.classList.remove("is-error", "is-success");
+    if (tone === "error") {
+      recalMessages.classList.add("is-error");
+    } else if (tone === "success") {
+      recalMessages.classList.add("is-success");
+    }
+  }
+
+  function saveRecalHistory() {
+    try {
+      const subset = recalHistory.slice(0, 10);
+      safeSetItem("pkRecalHistory", JSON.stringify(subset));
+    } catch (error) {
+      console.warn("Impossible de sauvegarder l'historique de recalage", error);
+    }
+  }
+
+  function renderRecalHistoryList() {
+    if (!recalHistoryList) return;
+    if (!recalHistory.length) {
+      recalHistoryList.innerHTML = "Aucun recalage récent.";
+      if (btnUndoRecal) btnUndoRecal.style.display = "none";
+      return;
+    }
+    const items = recalHistory.slice(0, 5).map(entry => {
+      const date = new Date(entry.timestamp).toLocaleString("fr-FR", {
+        day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+      });
+      const branch = entry.branch ? getBranchLabel(entry.branch) : "branche inconnue";
+      const delta = Math.round(entry.offset);
+      return `<div class="recal-history-item"><strong>${date}</strong> · ${entry.pkExact != null ? "PK " + formatPk(entry.pkExact) : "PK ?"} · Offset ${delta > 0 ? '+' + delta : delta} m · ${branch}</div>`;
+    }).join("");
+    recalHistoryList.innerHTML = items;
+    if (btnUndoRecal) btnUndoRecal.style.display = "inline-flex";
+  }
+
+  function loadRecalHistory() {
+    const stored = safeGetItem("pkRecalHistory");
+    if (!stored) {
+      recalHistory = [];
+      renderRecalHistoryList();
+      return;
+    }
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        recalHistory = parsed.filter(item => item && typeof item === "object");
+      } else {
+        recalHistory = [];
+      }
+    } catch (error) {
+      console.warn("Impossible de lire l'historique de recalage", error);
+      recalHistory = [];
+    }
+    if (recalHistory.length > 10) {
+      recalHistory = recalHistory.slice(0, 10);
+    }
+    renderRecalHistoryList();
+  }
+
+  function loadCoverageLegendState() {
+    try {
+      const raw = safeGetItem(COVERAGE_LEGEND_STATE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          coverageLegendVisibility.sam = parsed.sam !== false;
+          coverageLegendVisibility.petard = parsed.petard !== false;
+        }
+      }
+    } catch (error) {
+      console.warn("Impossible de lire l'état de la légende", error);
+      coverageLegendVisibility = { sam: true, petard: true };
+    }
+
+    const collapseStored = safeGetItem(COVERAGE_LEGEND_COLLAPSE_KEY);
+    if (collapseStored === null || collapseStored === undefined || collapseStored === "") {
+      coverageLegendCollapsed = window.innerWidth <= 640;
+    } else {
+      coverageLegendCollapsed = collapseStored === "true";
+    }
+
+    const manualBranchStored = safeGetItem(MANUAL_BRANCH_OVERRIDE_KEY);
+    if (manualBranchStored) {
+      manualBranchOverride = manualBranchStored === "auto" ? null : manualBranchStored;
+    } else {
+      manualBranchOverride = null;
+    }
+  }
+
+  function saveCoverageLegendState() {
+    try {
+      safeSetItem(COVERAGE_LEGEND_STATE_KEY, JSON.stringify({
+        sam: coverageLegendVisibility.sam !== false,
+        petard: coverageLegendVisibility.petard !== false
+      }));
+    } catch (error) {
+      console.warn("Impossible de sauvegarder l'état de la légende", error);
+    }
+  }
+
+  function isLegendKindVisible(kind) {
+    if (kind === "petard") {
+      return coverageLegendVisibility.petard !== false;
+    }
+    return coverageLegendVisibility.sam !== false;
+  }
+
+  function applyCoverageLegendFilters() {
+    const showSam = coverageLegendVisibility.sam !== false;
+    const showPetard = coverageLegendVisibility.petard !== false;
+
+    if (legendToggleSam) {
+      legendToggleSam.checked = showSam;
+    }
+    if (legendTogglePetard) {
+      legendTogglePetard.checked = showPetard;
+    }
+
+    if (orientationMap) {
+      coverageSamMarkers.forEach(marker => {
+        if (!marker) return;
+        const hasLayer = orientationMap.hasLayer(marker);
+        if (showSam && !hasLayer) {
+          marker.addTo(orientationMap);
+        } else if (!showSam && hasLayer) {
+          orientationMap.removeLayer(marker);
+        }
+      });
+      coveragePetardMarkers.forEach(marker => {
+        if (!marker) return;
+        const hasLayer = orientationMap.hasLayer(marker);
+        if (showPetard && !hasLayer) {
+          marker.addTo(orientationMap);
+        } else if (!showPetard && hasLayer) {
+          orientationMap.removeLayer(marker);
+        }
+      });
+    }
+
+    if (!coverageLegendItems) {
+      return;
+    }
+    const items = coverageLegendItems.querySelectorAll('.coverage-legend-item');
+    items.forEach(item => {
+      const kind = item.getAttribute('data-legend-kind') || 'sam';
+      const visible = isLegendKindVisible(kind);
+      item.classList.toggle('is-disabled', !visible);
+      item.setAttribute('aria-disabled', visible ? 'false' : 'true');
+    });
+  }
+
+
+  function setLegendToggleState(kind, value) {
+    if (kind !== 'sam' && kind !== 'petard') return;
+    coverageLegendVisibility[kind] = !!value;
+    saveCoverageLegendState();
+    applyCoverageLegendFilters();
+  }
+
+  function setCoverageLegendCollapsed(collapsed, options = {}) {
+    if (!coverageLegend) {
+      coverageLegendCollapsed = !!collapsed;
+      return;
+    }
+     coverageLegendCollapsed = !!collapsed;
+     if (coverageLegend) {
+       coverageLegend.setAttribute('data-collapsed', coverageLegendCollapsed ? 'true' : 'false');
+     }
+     if (btnLegendCollapse) {
+       btnLegendCollapse.setAttribute('aria-expanded', coverageLegendCollapsed ? 'false' : 'true');
+       btnLegendCollapse.textContent = coverageLegendCollapsed ? '⤴' : '⤵';
+     }
+     if (coverageLegendCollapsed) {
+       closeLegendBranchMenu();
+     }
+     if (!options.skipSave) {
+       safeSetItem(COVERAGE_LEGEND_COLLAPSE_KEY, coverageLegendCollapsed ? 'true' : 'false');
+     }
+  }
+
+  function closeLegendBranchMenu() {
+    if (!legendBranchMenu) return;
+    legendBranchMenu.hidden = true;
+    if (btnLegendBranch) {
+      btnLegendBranch.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  function toggleLegendBranchMenu(forceOpen) {
+    if (!legendBranchMenu || !btnLegendBranch) return;
+    const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : legendBranchMenu.hidden;
+    legendBranchMenu.hidden = !shouldOpen;
+    btnLegendBranch.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+  }
+
+  function updateLegendBranchUI() {
+    if (legendBranchLabel) {
+      const branchKeyRaw = manualBranchOverride || currentBranch || 'central';
+      const branchKey = branchKeyRaw === 'both' ? 'central' : branchKeyRaw;
+      legendBranchLabel.textContent = getBranchLabel(branchKey);
+    }
+    if (legendBranchControls) {
+      legendBranchControls.classList.toggle('is-manual', !!manualBranchOverride);
+    }
+  }
+
+  function recomputeAfterBranchChange() {
+    if (state.lastRawPk != null) {
+      const correctedPk = computePkWithCalibrations(state.lastRawPk, currentBranch);
+      state.lastPk = correctedPk;
+      state.nearestStation = findNearestStation(correctedPk, currentBranch);
+      state.nearestAccess = (state.lastLat != null && state.lastLon != null)
+        ? findNearestAccessGeo(state.lastLat, state.lastLon)
+        : findNearestAccess(correctedPk, currentBranch);
+      updateNearestStation(correctedPk, state.nearestStation);
+      updateNextStation(correctedPk);
+      updateOrientationPanel();
+      updateSmsPreview();
+      updatePkEstimateInSettings();
+    } else {
+      updateOrientationPanel();
+    }
+  }
+
+  function setManualBranchOverride(branchKey) {
+    debugLog("setManualBranchOverride appelé avec:", branchKey);
+    
+    // S'assurer que les polylignes sont construites
+    if (!linePointsBoissy || !linePointsChessy) {
+      buildCalibrationPolylines();
+    }
+    
+    if (!branchKey || branchKey === 'auto') {
+      manualBranchOverride = null;
+      safeSetItem(MANUAL_BRANCH_OVERRIDE_KEY, '');
+      debugLog("Override supprimé, retour à la détection automatique");
+    } else if (branchKey === 'boissy' || branchKey === 'central') {
+      manualBranchOverride = branchKey;
+      safeSetItem(MANUAL_BRANCH_OVERRIDE_KEY, branchKey);
+      currentBranch = branchKey;
+      debugLog("✅ Override manuel défini:", branchKey, "currentBranch:", currentBranch);
+      
+      // Mettre à jour linePoints immédiatement
+      if (branchKey === 'boissy') {
+        linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+      } else if (branchKey === 'central') {
+        linePoints = troncCommun.slice();
+      }
+      debugLog("linePoints mis à jour pour", branchKey, ", longueur:", linePoints ? linePoints.length : 0);
+      
+      // Si la géolocalisation est active, forcer une nouvelle projection avec la nouvelle branche
+      if (geolocActive && state.lastLat != null && state.lastLon != null) {
+        debugLog("🔄 Recalcul du PK avec la nouvelle branche:", branchKey);
+        // Mettre à jour linePoints AVANT de projeter
+        if (branchKey === 'boissy') {
+          linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+        } else if (branchKey === 'central') {
+          linePoints = troncCommun.slice();
+        }
+        
+        const proj = projectToLine(state.lastLat, state.lastLon);
+        if (proj.pkProj != null) {
+          const correctedPk = computePkWithCalibrations(proj.pkProj, currentBranch);
+          state.lastRawPk = proj.pkProj;
+          state.lastPk = correctedPk;
+          state.lastDist = proj.dist;
+          debugLog("✅ Nouveau PK calculé:", correctedPk, "pour la branche", currentBranch, "PK brut:", proj.pkProj);
+          
+          // Mettre à jour la gare la plus proche avec la nouvelle branche
+          const nearest = findNearestStation(correctedPk, currentBranch);
+          state.nearestStation = nearest;
+          updateNearestStation(correctedPk, nearest);
+          updateNextStation(correctedPk);
+          
+          // Mettre à jour l'interface immédiatement
+          if (pkCurrentValue) {
+            const pkText = "PK " + formatPk(correctedPk);
+            pkCurrentValue.textContent = pkText;
+            debugLog("✅ PK actuel mis à jour:", pkText);
+          }
+          if (pkCurrentDetails) {
+            const distText = proj.dist != null ? "±" + Math.round(proj.dist) + " m de la voie" : "";
+            pkCurrentDetails.textContent = distText;
+          }
+          
+          // Mettre à jour toutes les autres vues
+          updatePkTargetView();
+          updateSmsPreview();
+          updatePkEstimateInSettings();
+          updateOrientationPanel();
+          
+          debugLog("✅ Toutes les vues mises à jour avec la branche", currentBranch);
+        } else {
+          console.error("❌ Impossible de projeter avec la nouvelle branche");
+        }
+      } else {
+        debugLog("ℹ️ Géolocalisation non active, override sauvegardé pour la prochaine utilisation");
+      }
+    } else {
+      console.warn("Branche invalide:", branchKey);
+      return;
+    }
+    updateLegendBranchUI();
+    recomputeAfterBranchChange();
+  }
+  function handleLegendBranchChoice(branchKey) {
+    setManualBranchOverride(branchKey);
+    closeLegendBranchMenu();
+  }
+
+  function showRecalPreview(entry) {
+    if (!recalPreview) return;
+    const branchKey = entry.branch || currentBranch || "central";
+    if (recalPreviewCurrent) {
+      if (entry.pkRaw != null) {
+        const currentEstimate = computePkWithCalibrations(entry.pkRaw, branchKey);
+        recalPreviewCurrent.textContent = Number.isFinite(currentEstimate) ? formatPk(currentEstimate) : "—";
+      } else {
+        recalPreviewCurrent.textContent = "—";
+      }
+    }
+    if (recalPreviewNew) {
+      recalPreviewNew.textContent = entry.pkExact != null ? formatPk(entry.pkExact) : "—";
+    }
+    if (recalPreviewBranch) {
+      recalPreviewBranch.textContent = getBranchLabel(branchKey);
+    }
+    recalPreview.style.display = "block";
+  }
+
+  function hideRecalPreview() {
+    if (!recalPreview) return;
+    recalPreview.style.display = "none";
+    pendingRecal = null;
+  }
+
+  function applyPendingRecal(entry) {
+    if (!entry) {
+      setRecalMessage("Aucun recalage en attente.", "error");
+      return;
+    }
+    const timestamp = entry.timestamp || new Date().toISOString();
+    entry.timestamp = timestamp;
+
+    const appliedOffset = entry.offset;
+    const branchForCal = entry.branch || currentBranch || "central";
+
+    const recalLat = entry.lat;
+    const recalLon = entry.lon;
+    const recalAccuracy = entry.accuracy;
+
+    let calibrationTimestamp = null;
+    if (recalLat != null && recalLon != null) {
+      const calib = {
+        pkExact: entry.pkExact,
+        pkRaw: entry.pkRaw,
+        pkOffset: appliedOffset,
+        lat: recalLat,
+        lon: recalLon,
+        accuracy: recalAccuracy,
+        branch: branchForCal,
+        timestamp
+      };
+      localCalibrations.push(calib);
+      saveLocalCalibrations();
+      calibrationTimestamp = timestamp;
+    }
+
+    lastCalibrationBuildTime = 0;
+    buildCalibrationPolylines();
+
+    safeSetItem("pkOffset", pkOffset);
+    updateOffsetInfo();
+
+    recomputeAfterBranchChange();
+    updatePkTargetView();
+
+    const historyEntry = {
+      pkExact: entry.pkExact,
+      pkRaw: entry.pkRaw,
+      offset: appliedOffset,
+      previousOffset: entry.previousOffset,
+      branch: branchForCal,
+      lat: recalLat,
+      lon: recalLon,
+      accuracy: recalAccuracy,
+      timestamp,
+      calibrationTimestamp
+    };
+    recalHistory.unshift(historyEntry);
+    if (recalHistory.length > 10) {
+      recalHistory.length = 10;
+    }
+    saveRecalHistory();
+    renderRecalHistoryList();
+
+    hideRecalPreview();
+    if (inputPkRecal) {
+      inputPkRecal.value = "";
+    }
+    const offsetRounded = Math.round(appliedOffset);
+    const offsetLabel = offsetRounded > 0 ? "+" + offsetRounded : String(offsetRounded);
+    const pkLabel = entry.pkExact != null ? formatPk(entry.pkExact) : "—";
+    const branchLabel = getBranchLabel(branchForCal);
+    let message = `Correction locale appliquée : ΔPK ${offsetLabel} m autour du PK ${pkLabel}. Branche : ${branchLabel}.`;
+    if (!calibrationTimestamp) {
+      message += " ⚠️ Coordonnées GPS indisponibles, point non enregistré.";
+    }
+    setRecalMessage(message.trim(), "success");
+  }
+
+  function undoLastRecal() {
+    if (!recalHistory.length) {
+      setRecalMessage("Aucun recalage à annuler.", "error");
+      return;
+    }
+    const entry = recalHistory.shift();
+    const newOffset = Number.isFinite(entry.previousOffset) ? entry.previousOffset : pkOffset;
+    pkOffset = newOffset;
+
+    if (entry.calibrationTimestamp && Array.isArray(localCalibrations) && localCalibrations.length) {
+      const index = localCalibrations.findIndex(cal => cal && cal.timestamp === entry.calibrationTimestamp);
+      if (index !== -1) {
+        localCalibrations.splice(index, 1);
+        saveLocalCalibrations();
+      }
+    }
+
+    lastCalibrationBuildTime = 0;
+    buildCalibrationPolylines();
+
+    safeSetItem("pkOffset", pkOffset);
+    updateOffsetInfo();
+
+    recomputeAfterBranchChange();
+    updatePkTargetView();
+
+    saveRecalHistory();
+    renderRecalHistoryList();
+    hideRecalPreview();
+    if (inputPkRecal) {
+      inputPkRecal.value = "";
+    }
+    const offsetRounded = Math.round(entry.offset || 0);
+    const offsetLabel = offsetRounded > 0 ? "+" + offsetRounded : String(offsetRounded);
+    setRecalMessage(`Dernier recalage annulé. Correction locale ${offsetLabel} m retirée.`, "info");
+  }
+
   function updateOffsetInfo() {
     const val = Math.round(pkOffset);
     const sign = val === 0 ? "0" : (val > 0 ? "+"+val : ""+val);
     const calibCount = localCalibrations ? localCalibrations.length : 0;
-    pkOffsetInfo.textContent = "Offset actuel : " + sign + " m appliqués à tous les PK. | " + calibCount + " recalage(s) enregistré(s).";
+    pkOffsetInfo.textContent = "Décalage global : " + sign + " m. Corrections locales enregistrées : " + calibCount + ".";
   }
 
   function savePhoneNumber() {
@@ -4949,7 +6496,7 @@ function detectBranch(lat, lon) {
       return;
     }
 
-    const corrected = state.lastRawPk + pkOffset;
+    const corrected = computePkWithCalibrations(state.lastRawPk, currentBranch);
     const pkText = "PK " + formatPk(corrected);
     const distText = state.lastDist != null
       ? "±" + Math.round(state.lastDist) + " m de la voie"
@@ -5016,6 +6563,9 @@ function detectBranch(lat, lon) {
     }
     if (geolocActive) return;
 
+    // S'assurer que les polylignes sont initialisées avant de démarrer la géolocalisation
+    buildCalibrationPolylines();
+
     geolocActive = true;
     updateGeolocButton();
     setGpsStatus("search", "Recherche du signal GPS…");
@@ -5026,9 +6576,9 @@ function detectBranch(lat, lon) {
       handlePosition,
       handleGeolocError,
       { 
-        enableHighAccuracy: true, 
-        maximumAge: 5000, // Utiliser les positions en cache jusqu'à 5 secondes (au lieu de 1)
-        timeout: 15000 
+        enableHighAccuracy: false, // Désactivé pour économiser la batterie (suffisant pour la plupart des cas)
+        maximumAge: 10000, // Utiliser les positions en cache jusqu'à 10 secondes (économie batterie)
+        timeout: 20000 // Timeout plus long pour éviter les reconnexions fréquentes
       }
     );
   }
@@ -5054,8 +6604,15 @@ function detectBranch(lat, lon) {
   }
   // Throttle pour limiter la fréquence des mises à jour (économie batterie)
   let lastUpdateTime = 0;
-  const UPDATE_THROTTLE_MS = 600; // Mise à jour max toutes les 0,6 seconde
-  const HEADING_MIN_DISTANCE_M = 1.5; // Distance mini (m) avant de recalculer le cap
+  const UPDATE_THROTTLE_MS = 1000; // Mise à jour max toutes les 1 seconde (optimisation batterie)
+  const HEADING_MIN_DISTANCE_M = 3; // Distance mini (m) avant de recalculer le cap (augmenté pour économiser)
+  
+  // Fonction helper pour les logs de debug
+  function debugLog(...args) {
+    if (DEBUG_MODE) {
+      console.log(...args);
+    }
+  }
 
   function handlePosition(pos) {
     const lat = pos.coords.latitude;
@@ -5080,24 +6637,215 @@ function detectBranch(lat, lon) {
     }
     lastUpdateTime = now;
 
-    // Détection de la branche avec la géo + polylignes calibrées
-    currentBranch = detectBranch(lat, lon);
-
-    // On choisit la bonne poly-ligne pour la projection PK
-    if (currentBranch === "boissy") {
-      linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
-    } else if (currentBranch === "chessy") {
-      linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
-    } else {
-      // Sécurité : si "both" ou autre, on reste sur Chessy par défaut
-      linePoints = troncCommun.concat(brancheChessy);
+    // S'assurer que les polylignes sont construites
+    if (!linePointsBoissy || !linePointsChessy) {
+      buildCalibrationPolylines();
     }
 
-    const proj = projectToLine(lat, lon);
-    if (proj.pkProj == null) return;
+    // Variables pour stocker les projections
+    let bestProj = null;
+    
+    // D'abord, projeter sur les deux branches pour obtenir les PKs
+    // On a besoin des PKs pour appliquer la règle absolue : PK >= 31795 = Chessy
+    const savedLinePoints = linePoints;
+    linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+    const projBoissyTemp = projectToLine(lat, lon);
+    linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+    const projChessyTemp = projectToLine(lat, lon);
+    linePoints = savedLinePoints;
+    
+    // RÈGLE ABSOLUE : Si le PK projeté est >= 31795, on est FORCÉMENT sur Chessy
+    // Cette règle prime sur tout, y compris l'override manuel
+    if (projChessyTemp && projChessyTemp.pkProj != null && projChessyTemp.pkProj >= BRANCH_CHESSY_MIN) {
+      debugLog("🔴 RÈGLE ABSOLUE : PK", projChessyTemp.pkProj, ">= 31795 → FORCÉMENT Chessy (ex: Noisy-Champs)");
+      currentBranch = "chessy";
+      linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+      bestProj = projChessyTemp;
+      console.log("✅ Branche Chessy forcée, PK:", bestProj.pkProj);
+    } else if (manualBranchOverride && manualBranchOverride !== "auto" && manualBranchOverride !== null) {
+      // Si pas de règle absolue, vérifier l'override manuel
+      let testProj = null;
+      if (manualBranchOverride === "boissy") {
+        linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+        testProj = projectToLine(lat, lon);
+      } else if (manualBranchOverride === "chessy") {
+        linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+        testProj = projectToLine(lat, lon);
+      } else if (manualBranchOverride === "central") {
+        linePoints = troncCommun.slice();
+        testProj = projectToLine(lat, lon);
+      }
+      linePoints = savedLinePoints;
+      
+      // Vérifier la cohérence
+      if (testProj && testProj.pkProj != null && testProj.pkProj > BRANCH_COMMON_MAX && manualBranchOverride === "central" && testProj.dist > 10000) {
+        console.warn("Override 'central' incohérent avec PK > 31400 et distance > 10km, annulation de l'override");
+        manualBranchOverride = null;
+        safeSetItem(MANUAL_BRANCH_OVERRIDE_KEY, '');
+      } else if (testProj && testProj.dist > 10000) {
+        console.warn("Override", manualBranchOverride, "donne une distance très grande (", testProj.dist, "m), annulation");
+        manualBranchOverride = null;
+        safeSetItem(MANUAL_BRANCH_OVERRIDE_KEY, '');
+      } else if (testProj) {
+        // L'override est cohérent, l'utiliser
+        currentBranch = manualBranchOverride;
+        debugLog("✅ Utilisation de l'override manuel:", manualBranchOverride, "PK projeté:", testProj?.pkProj, "distance:", testProj?.dist);
+        
+        // Utiliser la projection correspondante à l'override
+        if (manualBranchOverride === "boissy") {
+          linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+          bestProj = testProj;
+        } else if (manualBranchOverride === "chessy") {
+          linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+          bestProj = testProj;
+        } else if (manualBranchOverride === "central") {
+          linePoints = troncCommun.slice();
+          bestProj = testProj;
+        }
+        
+        if (bestProj) {
+          debugLog("✅ Override appliqué, utilisation de la projection:", bestProj.pkProj, "branche:", currentBranch);
+        }
+      }
+    }
+    
+    // Si pas d'override ou override annulé, détecter automatiquement
+    if ((!manualBranchOverride || manualBranchOverride === "auto" || manualBranchOverride === null) && !bestProj) {
+      // Utiliser les projections déjà calculées
+      const projBoissy = projBoissyTemp;
+      const projChessy = projChessyTemp;
+      
+      // Choisir la meilleure branche selon :
+      // 1. La distance à la voie (plus proche = mieux)
+      // 2. La cohérence du PK avec les gares de la branche
+      let bestBranch = "chessy"; // Par défaut
+      bestProj = projChessy;
+      
+      if (projBoissy.pkProj != null && projChessy.pkProj != null) {
+        const pkBoissy = projBoissy.pkProj;
+        const pkChessy = projChessy.pkProj;
+        
+        // Si le PK est > 31400, on est forcément sur une branche
+        if (pkBoissy > BRANCH_COMMON_MAX && pkChessy > BRANCH_COMMON_MAX) {
+          // PRIORITÉ 1 : Si le PK Chessy est >= 31795, on est sur Chessy (règle absolue)
+          // Noisy-Champs est à PK 41000, donc Chessy
+          if (pkChessy >= BRANCH_CHESSY_MIN) {
+            bestBranch = "chessy";
+            bestProj = projChessy;
+            debugLog("✅ Chessy choisi : PK", pkChessy, ">= 31795 (branche Chessy) - Ex: Noisy-Champs");
+          } else if (pkBoissy < BRANCH_CHESSY_MIN && pkChessy < BRANCH_CHESSY_MIN) {
+            // PK entre 31400 et 31795, utiliser la distance à la voie
+            if (projChessy.dist < projBoissy.dist) {
+              bestBranch = "chessy";
+              bestProj = projChessy;
+              const distDiff = projBoissy.dist - projChessy.dist;
+              debugLog("✅ Chessy choisi : plus proche de la voie (", projChessy.dist, "m vs", projBoissy.dist, "m, diff:", distDiff.toFixed(1), "m)");
+            } else {
+              bestBranch = "boissy";
+              bestProj = projBoissy;
+              const distDiff = projChessy.dist - projBoissy.dist;
+              debugLog("✅ Boissy choisi : plus proche de la voie (", projBoissy.dist, "m vs", projChessy.dist, "m, diff:", distDiff.toFixed(1), "m)");
+            }
+          } else {
+            // PK Boissy < 31795 mais Chessy >= 31795 : impossible, on choisit Chessy
+            // Ou PK Boissy >= 31795 : Boissy (mais ce cas ne devrait pas arriver)
+            if (pkBoissy >= BRANCH_CHESSY_MIN) {
+              bestBranch = "boissy";
+              bestProj = projBoissy;
+              console.log("⚠️ Boissy choisi : PK", pkBoissy, ">= 31795 (cas inhabituel)");
+            } else {
+              bestBranch = "chessy";
+              bestProj = projChessy;
+              debugLog("✅ Chessy choisi : PK", pkChessy, ">= 31795");
+            }
+          }
+        } else if (pkBoissy > BRANCH_COMMON_MAX && pkChessy <= BRANCH_COMMON_MAX) {
+          // Boissy est cohérent, Chessy non
+          bestBranch = "boissy";
+          bestProj = projBoissy;
+        } else if (pkChessy > BRANCH_COMMON_MAX && pkBoissy <= BRANCH_COMMON_MAX) {
+          // Chessy est cohérent, Boissy non
+          // Si le PK est >= 31795, on est sur Chessy
+          if (pkChessy >= BRANCH_CHESSY_MIN) {
+            bestBranch = "chessy";
+            bestProj = projChessy;
+            debugLog("✅ Chessy choisi : PK", pkChessy, ">= 31795 (branche Chessy)");
+          } else {
+            bestBranch = "chessy";
+            bestProj = projChessy;
+          }
+        } else {
+          // Les deux sont <= 31400, on est sur le tronc commun
+          // Comparer les distances pour choisir la meilleure projection
+          if (projChessy.dist < projBoissy.dist) {
+            bestBranch = "central";
+            linePoints = troncCommun.slice();
+            bestProj = projectToLine(lat, lon);
+            debugLog("✅ Tronc commun choisi (PK <= 31400), Chessy plus proche (", projChessy.dist, "m vs", projBoissy.dist, "m)");
+          } else {
+            bestBranch = "central";
+            linePoints = troncCommun.slice();
+            bestProj = projectToLine(lat, lon);
+            debugLog("✅ Tronc commun choisi (PK <= 31400), Boissy plus proche (", projBoissy.dist, "m vs", projChessy.dist, "m)");
+          }
+        }
+      } else if (projBoissy.pkProj != null) {
+        bestBranch = "boissy";
+        bestProj = projBoissy;
+      } else if (projChessy.pkProj != null) {
+        bestBranch = "chessy";
+        bestProj = projChessy;
+      } else {
+        // Aucune projection valide, utiliser la détection GPS
+        const detectedBranch = detectBranch(lat, lon);
+        currentBranch = detectedBranch === "both" ? "central" : detectedBranch;
+        console.log("Aucune projection valide, utilisation de la détection GPS:", currentBranch);
+      }
+      
+      currentBranch = bestBranch;
+      console.log("Branche déterminée par comparaison des projections:", currentBranch, 
+                  "PK Boissy:", projBoissy.pkProj, "dist:", projBoissy.dist,
+                  "PK Chessy:", projChessy.pkProj, "dist:", projChessy.dist);
+    }
+
+    // On choisit la bonne poly-ligne pour la projection PK finale
+    if (currentBranch === "boissy") {
+      linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+      debugLog("Utilisation de la polyligne Boissy, longueur:", linePoints.length);
+    } else if (currentBranch === "chessy") {
+      linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+      debugLog("Utilisation de la polyligne Chessy, longueur:", linePoints.length);
+    } else if (currentBranch === "central") {
+      linePoints = troncCommun.slice();
+      debugLog("Utilisation du tronc commun uniquement, longueur:", linePoints.length);
+    } else {
+      // Sécurité : si "both" ou autre, on reste sur Chessy par défaut
+      linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+      debugLog("Branche inconnue, utilisation de Chessy par défaut, longueur:", linePoints.length);
+    }
+    updateLegendBranchUI();
+
+    // Utiliser la projection déjà calculée si disponible, sinon recalculer
+    let proj;
+    if (bestProj) {
+      // Utiliser la projection déjà calculée (override ou détection automatique)
+      proj = bestProj;
+      debugLog("✅ Utilisation de la projection déjà calculée:", proj.pkProj, "branche:", currentBranch);
+    } else if (manualBranchOverride && manualBranchOverride !== "auto" && manualBranchOverride !== null) {
+      // Recalculer avec la branche choisie
+      proj = projectToLine(lat, lon);
+    } else {
+      // Utiliser la meilleure projection déjà calculée
+      proj = bestProj || projectToLine(lat, lon);
+    }
+    if (proj.pkProj == null) {
+      console.warn("projectToLine a retourné null. linePoints:", linePoints ? linePoints.length : 0, "currentBranch:", currentBranch);
+      return;
+    }
+    debugLog("Projection réussie - PK:", proj.pkProj, "distance:", proj.dist, "branche:", currentBranch);
 
     const rawPk = proj.pkProj;
-    const correctedPk = rawPk + pkOffset;
+    const correctedPk = computePkWithCalibrations(rawPk, currentBranch);
     const nowSeconds = Date.now() / 1000;
 
     if (state.lastPk != null && state.lastPkTime != null) {
@@ -5129,6 +6877,17 @@ function detectBranch(lat, lon) {
     state.nearestStation = nearest;
     state.nearestAccess  = nearestAccess;
 
+    // Mettre à jour le PK actuel dans l'interface principale
+    if (pkCurrentValue) {
+      const pkText = "PK " + formatPk(correctedPk);
+      pkCurrentValue.textContent = pkText;
+      debugLog("PK actuel mis à jour dans l'interface:", pkText);
+    }
+    if (pkCurrentDetails) {
+      const distText = proj.dist != null ? "±" + Math.round(proj.dist) + " m de la voie" : "";
+      pkCurrentDetails.textContent = distText;
+    }
+
     updateNearestStation(correctedPk, nearest);
     updateNextStation(correctedPk);
     updatePkTargetView();
@@ -5136,7 +6895,6 @@ function detectBranch(lat, lon) {
     updatePkEstimateInSettings();
     updateOrientationPanel();
   }
-
   function updateMovement(dPk, dt, lat, lon) {
     const profile = sensitivityProfiles[motionSensitivity] || sensitivityProfiles.normal;
     const speed = Math.abs(dPk) / dt;
@@ -5203,7 +6961,6 @@ function detectBranch(lat, lon) {
     nextStationInfo.textContent =
       "PK " + formatPk(next.pk) + " · ≈ " + delta + " m " + dir;
   }
-
  function updatePkTargetView() {
   if (!pkTarget) {
     if (pkTargetInfo) {
@@ -5219,7 +6976,10 @@ function detectBranch(lat, lon) {
   const delta = pkTarget - state.lastPk;
   const dist = Math.round(Math.abs(delta));
   const dir = delta >= 0 ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
-  if (pkTargetInfo) pkTargetInfo.textContent = "PK " + formatPk(pkTarget) + " · ≈ " + dist + " m " + dir;
+  if (pkTargetInfo) {
+    const branchLabel = getBranchLabel(pkTargetBranch || currentBranch);
+    pkTargetInfo.textContent = "PK " + formatPk(pkTarget) + " · ≈ " + dist + " m " + dir + " · " + branchLabel;
+  }
 }
   // Variables globales pour la carte Leaflet
   let orientationMap = null;
@@ -5678,7 +7438,6 @@ function detectBranch(lat, lon) {
       (sosPhone ? sosPhone : "aucun (à définir dans Paramètres).");
     smsPreview.textContent = base + numPart;
   }
-
   function sendSms() {
     if (state.lastPk == null || state.lastLat == null) {
       alert("Position GPS insuffisante pour préparer le SMS.");
@@ -5923,7 +7682,6 @@ function detectBranch(lat, lon) {
       }
     }
   }
-
   // Fonction pour arrêter la sonnerie
   function stopAlarm() {
     if (alarmOscillator) {
@@ -6103,28 +7861,311 @@ function detectBranch(lat, lon) {
     }
   }
 
-  function handlePkLookup() {
-    const val = parsePkInput(inputPkLookup.value);
-    if (val == null) {
-      alert("PK invalide. Utilise 32400 ou 32+400.");
+  const PK_LOOKUP_SUGGESTION_LIMIT = 6;
+
+  function normalizeTextForSearch(str) {
+    if (!str) return "";
+    return str
+      .toString()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s]/gi, " ")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function levenshteinDistance(a, b) {
+    if (a === b) return 0;
+    if (!a) return b ? b.length : 0;
+    if (!b) return a.length;
+    const lenA = a.length;
+    const lenB = b.length;
+    const prev = new Array(lenB + 1);
+    const curr = new Array(lenB + 1);
+    for (let j = 0; j <= lenB; j++) prev[j] = j;
+    for (let i = 1; i <= lenA; i++) {
+      curr[0] = i;
+      const charA = a.charAt(i - 1);
+      for (let j = 1; j <= lenB; j++) {
+        const cost = charA === b.charAt(j - 1) ? 0 : 1;
+        curr[j] = Math.min(
+          prev[j] + 1,
+          curr[j - 1] + 1,
+          prev[j - 1] + cost
+        );
+      }
+      for (let j = 0; j <= lenB; j++) prev[j] = curr[j];
+    }
+    return curr[lenB];
+  }
+
+  function computeTokenScore(token, target) {
+    if (!token || !target) return 0;
+    if (target.includes(token)) {
+      const idx = target.indexOf(token);
+      return 90 - Math.min(idx, 60);
+    }
+    let bestRatio = 0;
+    const parts = target.split(/[\s,/'"()\-]+/);
+    for (const part of parts) {
+      if (!part) continue;
+      const maxLen = Math.max(token.length, part.length);
+      const dist = levenshteinDistance(token, part.slice(0, token.length + 2));
+      const ratio = 1 - dist / Math.max(maxLen, 1);
+      if (ratio > bestRatio) bestRatio = ratio;
+    }
+    if (bestRatio === 0) {
+      const maxLen = Math.max(token.length, target.length);
+      const dist = levenshteinDistance(token, target.slice(0, token.length + 4));
+      bestRatio = 1 - dist / Math.max(maxLen, 1);
+    }
+    return Math.max(0, bestRatio * 75);
+  }
+  function computeFieldScore(queryTokens, field) {
+    const target = normalizeTextForSearch(field);
+    if (!target) return 0;
+    let score = 0;
+    for (const token of queryTokens) {
+      score += computeTokenScore(token, target);
+    }
+    if (target.startsWith(queryTokens[0] || "")) {
+      score += 20;
+    }
+    return score;
+  }
+
+  function formatDistanceLabel(distance) {
+    if (!Number.isFinite(distance)) return null;
+    if (distance < 1000) {
+      return Math.round(distance) + " m";
+    }
+    const km = distance / 1000;
+    return km.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " km";
+  }
+
+  function searchAccessPointsByText(query) {
+    const normalizedQuery = normalizeTextForSearch(query);
+    if (!normalizedQuery) return [];
+    const tokens = normalizedQuery.split(" ").filter(Boolean);
+    if (!tokens.length) return [];
+    const results = [];
+    const seen = new Set();
+    for (const acc of accessPoints) {
+      const fields = [acc.name, acc.address];
+      if (Array.isArray(acc.aliases)) {
+        for (const alias of acc.aliases) fields.push(alias);
+      }
+      let bestScore = -Infinity;
+      for (const field of fields) {
+        const score = computeFieldScore(tokens, field);
+        if (score > bestScore) bestScore = score;
+      }
+      if (bestScore > 35) {
+        const key = `${acc.name}|${acc.address || ""}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          const distance = (state.lastLat != null && state.lastLon != null && acc.lat != null && acc.lon != null)
+            ? distanceMeters(state.lastLat, state.lastLon, acc.lat, acc.lon)
+            : null;
+          results.push({
+            access: acc,
+            score: bestScore,
+            distance,
+            distanceLabel: formatDistanceLabel(distance)
+          });
+        }
+      }
+    }
+    results.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (a.distance != null && b.distance != null) return a.distance - b.distance;
+      if (a.access.pk != null && b.access.pk != null) return a.access.pk - b.access.pk;
+      return a.access.name.localeCompare(b.access.name);
+    });
+    return results;
+  }
+
+  function updatePkLookupSuggestionsList(value) {
+    if (!pkLookupSuggestions) return;
+    pkLookupSuggestions.innerHTML = "";
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    if (/^[0-9+\s]+$/.test(trimmed)) {
+      const option = document.createElement("option");
+      option.value = trimmed.replace(/\s+/g, "");
+      pkLookupSuggestions.appendChild(option);
       return;
     }
-    const acc = findNearestAccess(val);
-    if (!acc) {
-      pkLookupResultField.style.display = "none";
-      alert("Aucun accès disponible pour ce PK.");
-      return;
+    const suggestions = searchAccessPointsByText(trimmed).slice(0, PK_LOOKUP_SUGGESTION_LIMIT);
+    suggestions.forEach(entry => {
+      const opt = document.createElement("option");
+      opt.value = entry.access.name;
+      if (entry.access.address) {
+        opt.label = entry.access.address;
+      }
+      pkLookupSuggestions.appendChild(opt);
+    });
+  }
+
+  function getBranchLabel(branch) {
+    switch (branch) {
+      case "boissy":
+        return "branche Boissy-Saint-Léger";
+      case "chessy":
+        return "branche Marne-la-Vallée – Chessy";
+      case "central":
+      case "both":
+        return "tronçon central";
+      default:
+        return "branche inconnue";
     }
-    lastPkLookupAccess = acc;
-    const delta = Math.round(Math.abs(acc.pk - val));
-    const dir = acc.pk >= val ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
+  }
 
-    pkLookupResult.innerHTML =
-      "<strong>Accès le plus proche :</strong> " + acc.name + "<br>" +
-      "PK " + formatPk(acc.pk) + " (ΔPK ≈ " + delta + " m " + dir + ")<br>" +
-      "<span class='muted'>" + acc.address + "</span>";
+  function renderPkLookupSummary({ access, targetPk = null, distanceLabel = null, branchChoice = null }) {
+    if (!pkLookupResult || !pkLookupResultField || !access) return;
+    const details = [];
+    details.push(`<strong>Accès :</strong> ${access.name}`);
+    if (Number.isFinite(access.pk)) {
+      if (Number.isFinite(targetPk)) {
+        const delta = Math.round(Math.abs(access.pk - targetPk));
+        const dir = access.pk >= targetPk ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
+        details.push(`PK ${formatPk(access.pk)} (ΔPK ≈ ${delta} m ${dir})`);
+      } else {
+        details.push(`PK ${formatPk(access.pk)}`);
+      }
+    }
+    const branchLabel = getBranchLabel(branchChoice || currentBranch);
+    details.push(`<span class="muted">${branchLabel}</span>`);
+    if (access.address) {
+      details.push(`<span class="muted">${access.address}</span>`);
+    }
+    if (distanceLabel) {
+      details.push(`<span class="muted">À ≈ ${distanceLabel}</span>`);
+    }
 
+    pkLookupResult.innerHTML = details.join("<br>");
     pkLookupResultField.style.display = "block";
+    lastPkLookupAccess = access;
+    try {
+      safeSetItem("pkLookupLastAccess", JSON.stringify({
+        name: access.name,
+        pk: access.pk,
+        address: access.address || null
+      }));
+      if (Number.isFinite(targetPk)) {
+        safeSetItem("pkLookupLastTargetPk", String(targetPk));
+      } else {
+        safeSetItem("pkLookupLastTargetPk", "");
+      }
+    } catch (error) {
+      console.warn("Impossible d'enregistrer le dernier accès recherché", error);
+    }
+  }
+
+  function showPkLookupNoResultMessage() {
+    currentPkLookupTextResults = [];
+    lastPkLookupAccess = null;
+    if (!pkLookupResult || !pkLookupResultField) return;
+    pkLookupResult.innerHTML = "<span class='muted'>Aucun accès trouvé. Essaie un autre PK, une rue ou un nom d'accès.</span>";
+    pkLookupResultField.style.display = "block";
+  }
+
+  function showPkLookupChoices(results) {
+    if (!pkLookupResult || !pkLookupResultField) return;
+    currentPkLookupTextResults = results.slice(0, 8);
+    if (!currentPkLookupTextResults.length) {
+      showPkLookupNoResultMessage();
+      return;
+    }
+    const list = currentPkLookupTextResults.map((entry, index) => {
+      const access = entry.access;
+      const meta = [];
+      if (access.pk != null) {
+        meta.push(`PK ${formatPk(access.pk)}`);
+      }
+      if (access.address) {
+        meta.push(access.address);
+      }
+      if (entry.distanceLabel) {
+        meta.push(`≈ ${entry.distanceLabel}`);
+      }
+      const metaHtml = meta.map(text => `<span class="muted">${text}</span>`).join(" ");
+      return `<button type="button" class="pk-lookup-choice" data-index="${index}">
+        <strong>${access.name}</strong>
+        ${metaHtml}
+      </button>`;
+    }).join("");
+    pkLookupResult.innerHTML = list;
+    pkLookupResultField.style.display = "block";
+    lastPkLookupAccess = null;
+  }
+
+  async function handlePkLookupChoice(entry) {
+    const access = entry.access;
+    if (Number.isFinite(access.pk)) {
+      ensureBranchForPk(access.pk, BRANCH_SELECTION_CONTEXTS.search);
+    }
+    const contextBranch = getContextBranch(BRANCH_SELECTION_CONTEXTS.search);
+    renderPkLookupSummary({
+      access,
+      distanceLabel: entry.distanceLabel,
+      branchChoice: contextBranch !== "auto" ? contextBranch : null
+    });
+    currentPkLookupTextResults = [];
+  }
+
+  async function handlePkLookup() {
+    if (!inputPkLookup) return;
+    const rawInput = inputPkLookup.value.trim();
+    currentPkLookupTextResults = [];
+    if (!rawInput) {
+      alert("Saisis un PK, une rue ou un nom d'accès.");
+      return;
+    }
+
+    safeSetItem("pkLookupQuery", rawInput);
+
+    const numericLike = /^[0-9+\s]+$/.test(rawInput);
+    const numericCandidate = parsePkInput(rawInput);
+    if (numericLike && numericCandidate != null) {
+      // Utiliser la branche choisie dans le menu pour ce contexte
+      const searchBranch = getContextBranch(BRANCH_SELECTION_CONTEXTS.search);
+      debugLog("🔍 Recherche PK - branche choisie:", searchBranch);
+      
+      let branchForLookup = searchBranch;
+      // Si on est dans la zone commune (7050-22300), demander confirmation si nécessaire
+      if (numericCandidate >= COMMON_BRANCH_PROMPT_MIN && numericCandidate <= COMMON_BRANCH_PROMPT_MAX) {
+        branchForLookup = ensureBranchForPk(numericCandidate, BRANCH_SELECTION_CONTEXTS.search);
+      }
+      
+      const branchChoice = branchForLookup || null;
+      debugLog("🔍 Recherche de l'accès le plus proche pour PK", numericCandidate, "sur la branche", branchChoice || "auto");
+      const access = findNearestAccess(numericCandidate, branchChoice);
+      if (!access) {
+        console.warn("❌ Aucun accès trouvé pour PK", numericCandidate, "sur la branche", branchChoice || "auto");
+        showPkLookupNoResultMessage();
+        return;
+      }
+      debugLog("✅ Accès trouvé:", access.name, "PK", access.pk, "pour la branche", branchChoice || "auto");
+      renderPkLookupSummary({
+        access,
+        targetPk: numericCandidate,
+        branchChoice
+      });
+      return;
+    }
+
+    const textResults = searchAccessPointsByText(rawInput);
+    if (!textResults.length) {
+      showPkLookupNoResultMessage();
+      return;
+    }
+    if (textResults.length === 1) {
+      await handlePkLookupChoice(textResults[0]);
+    } else {
+      showPkLookupChoices(textResults);
+    }
   }
 
   function openPkLookupInMaps() {
@@ -6183,6 +8224,7 @@ function detectBranch(lat, lon) {
       alert("Position GPS non disponible. Lance la géoloc avant de signaler.");
       return;
     }
+    ensureBranchForPk(state.lastPk, BRANCH_SELECTION_CONTEXTS.incident);
       let type = selectIncidentType ? selectIncidentType.value : "";
     if (!type) {
         alert("Choisis un type d'incident avant de générer le message.");
@@ -6261,11 +8303,18 @@ function detectBranch(lat, lon) {
   });
   }
 
+  // Attacher l'event listener au bouton de géolocalisation (si le bouton existe déjà)
   if (btnToggleGeoloc) {
-  btnToggleGeoloc.addEventListener("click", () => {
-    if (geolocActive) stopGeoloc();
-    else startGeoloc();
-  });
+    btnToggleGeoloc.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Bouton géoloc cliqué (première tentative)");
+      if (geolocActive) {
+        stopGeoloc();
+      } else {
+        startGeoloc();
+      }
+    });
   }
 
   // === README / TUTORIEL ===
@@ -6362,6 +8411,8 @@ function detectBranch(lat, lon) {
       alert("PK cible invalide. Utilise 32400 ou 32+400.");
       return;
     }
+    const branchForTarget = ensureBranchForPk(val, BRANCH_SELECTION_CONTEXTS.target);
+    pkTargetBranch = branchForTarget && branchForTarget !== "auto" ? branchForTarget : null;
     pkTarget = val;
     updatePkTargetView();
     updateOrientationPanel();
@@ -6384,91 +8435,77 @@ function detectBranch(lat, lon) {
   }
   if (btnResetOffset) {
   btnResetOffset.addEventListener("click", () => {
+    hideRecalPreview();
+    pendingRecal = null;
     pkOffset = 0;
     safeSetItem("pkOffset", pkOffset);
     updateOffsetInfo();
     if (state.lastRawPk != null) {
-      state.lastPk = state.lastRawPk;
+      state.lastPk = computePkWithCalibrations(state.lastRawPk, currentBranch);
       state.nearestStation = findNearestStation(state.lastPk, currentBranch);
-        state.nearestAccess = (state.lastLat != null && state.lastLon != null) 
-          ? findNearestAccessGeo(state.lastLat, state.lastLon)
-          : findNearestAccess(state.lastPk);
+      state.nearestAccess = (state.lastLat != null && state.lastLon != null)
+        ? findNearestAccessGeo(state.lastLat, state.lastLon)
+        : findNearestAccess(state.lastPk, currentBranch);
       updateNearestStation(state.lastPk, state.nearestStation);
       updateNextStation(state.lastPk);
       updatePkTargetView();
       updateSmsPreview();
-      updatePkEstimateInSettings();
-    } else {
-      updatePkEstimateInSettings();
+      updateOrientationPanel();
     }
+    updatePkEstimateInSettings();
+    setRecalMessage("Offset remis à zéro.", "info");
   });
-  }
-  if (btnApplyRecal && inputPkRecal) {
+}
+if (btnApplyRecal && inputPkRecal) {
   btnApplyRecal.addEventListener("click", () => {
     const exactPk = parsePkInput(inputPkRecal.value);
     if (exactPk == null) {
-      alert("PK invalide. Utilise 52700 ou 52+700.");
+      setRecalMessage("PK invalide. Utilise 52700 ou 52+700.", "error");
       return;
     }
     if (state.lastRawPk == null) {
-        alert("Pas de position GPS pour recaler. Lance la géoloc d'abord.");
+      setRecalMessage("Pas de position GPS pour recaler. Lance la géoloc d'abord.", "error");
       return;
     }
-    pkOffset = exactPk - state.lastRawPk;
-    safeSetItem("pkOffset", pkOffset);
-    updateOffsetInfo();
-    updatePkEstimateInSettings();
-
-    // AJOUT CALIBRAGE : on enregistre ce recalage comme un point de calibration
-    if (state.lastLat != null && state.lastLon != null) {
-      const calib = {
-        // PK exact saisi par toi
-        pkExact: exactPk,
-          // PK brut estimé par l'algorithme avant offset
-        pkRaw: state.lastRawPk,
-        // offset appliqué
-        pkOffset: pkOffset,
-        // coordonnées GPS au moment du recalage
-        lat: state.lastLat,
-        lon: state.lastLon,
-        accuracy: state.lastAccuracy,
-        branch: currentBranch,
-        timestamp: new Date().toISOString()
-      };
-      localCalibrations.push(calib);
-      saveLocalCalibrations();
-      console.log("Nouveau recalage enregistré :", calib);
-        
-        // Forcer la reconstruction des polylignes calibrées avec le nouveau point
-        lastCalibrationBuildTime = 0; // Invalider le cache
-        buildCalibrationPolylines();
-        
-        // Vérification que le recalage a bien été enregistré
-        const saved = safeGetItem("pkCalibrations");
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            const found = parsed.some(c => 
-              c.pkExact === exactPk && 
-              Math.abs(c.lat - state.lastLat) < 0.0001 && 
-              Math.abs(c.lon - state.lastLon) < 0.0001
-            );
-            if (found) {
-              alert("✅ Recalage enregistré avec succès !\n\nPK exact : " + exactPk + " m\nOffset appliqué : " + Math.round(pkOffset) + " m\nTotal recalages : " + localCalibrations.length);
-            } else {
-              console.warn("Le recalage n'a pas été trouvé dans le localStorage après sauvegarde.");
-            }
-          } catch (e) {
-            console.warn("Erreur lors de la vérification du recalage :", e);
-          }
-        }
-      } else {
-        alert("⚠️ Attention : Impossible d'enregistrer le recalage car les coordonnées GPS ne sont pas disponibles.");
-    }
-    // FIN AJOUT CALIBRAGE
+    const offset = exactPk - state.lastRawPk;
+    const recalBranch = ensureBranchForPk(exactPk, BRANCH_SELECTION_CONTEXTS.recal);
+    pendingRecal = {
+      pkExact: exactPk,
+      pkRaw: state.lastRawPk,
+      offset,
+      previousOffset: pkOffset,
+      branch: recalBranch && recalBranch !== "auto" ? recalBranch : currentBranch,
+      lat: state.lastLat,
+      lon: state.lastLon,
+      accuracy: state.lastAccuracy,
+      timestamp: new Date().toISOString()
+    };
+    showRecalPreview(pendingRecal);
+    const delta = Math.round(offset);
+    const prefix = delta >= 0 ? "+" + delta : String(delta);
+    setRecalMessage(`Prévisualisation : offset ${prefix} m. Confirme ou annule.`, "info");
   });
-  }
-
+}
+if (btnConfirmRecal) {
+  btnConfirmRecal.addEventListener("click", () => {
+    if (!pendingRecal) {
+      setRecalMessage("Aucun recalage en attente à confirmer.", "error");
+      return;
+    }
+    applyPendingRecal(pendingRecal);
+  });
+}
+if (btnCancelRecal) {
+  btnCancelRecal.addEventListener("click", () => {
+    hideRecalPreview();
+    setRecalMessage("Recalage annulé.", "info");
+  });
+}
+if (btnUndoRecal) {
+  btnUndoRecal.addEventListener("click", () => {
+    undoLastRecal();
+  });
+}
   if (btnSavePhone) {
     btnSavePhone.addEventListener("click", () => {
       savePhoneNumber();
@@ -6532,7 +8569,31 @@ function generateFermeturesNocturnesContent() {
 // Gestion de l'affichage du bloc Fermetures nocturnes
 // (affichage déclenché via l'onglet dédié)
 if (btnPkLookup) {
-  btnPkLookup.addEventListener("click", handlePkLookup);
+  btnPkLookup.addEventListener("click", () => {
+    handlePkLookup().catch(err => console.error("handlePkLookup error", err));
+  });
+}
+if (inputPkLookup) {
+  inputPkLookup.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handlePkLookup().catch(err => console.error("handlePkLookup error", err));
+    }
+  });
+  inputPkLookup.addEventListener("input", () => {
+    updatePkLookupSuggestionsList(inputPkLookup.value);
+  });
+}
+if (pkLookupResult) {
+  pkLookupResult.addEventListener("click", event => {
+    const choice = event.target.closest(".pk-lookup-choice");
+    if (!choice) return;
+    const index = Number(choice.getAttribute("data-index"));
+    if (!Number.isFinite(index)) return;
+    const entry = currentPkLookupTextResults[index];
+    if (!entry) return;
+    handlePkLookupChoice(entry).catch(err => console.error("handlePkLookupChoice error", err));
+  });
 }
 if (btnPkLookupOpenMaps) {
   btnPkLookupOpenMaps.addEventListener("click", openPkLookupInMaps);
@@ -6565,6 +8626,13 @@ const coverageResultText = document.getElementById("coverageResultText");
 const coverageResultsLine = document.getElementById("coverageResultsLine");
 const coverageLegend = document.getElementById("coverageLegend");
 const coverageLegendItems = document.getElementById("coverageLegendItems");
+const btnLegendCollapse = document.getElementById("btnLegendCollapse");
+const legendToggleSam = document.getElementById("legendToggleSam");
+const legendTogglePetard = document.getElementById("legendTogglePetard");
+const btnLegendBranch = document.getElementById("btnLegendBranch");
+const legendBranchLabel = document.getElementById("legendBranchLabel");
+const legendBranchMenu = document.getElementById("legendBranchMenu");
+const legendBranchControls = document.getElementById("legendBranchControls");
 const toggleCoverageGuide = document.getElementById("toggleCoverageGuide");
 const coverageGuide = document.getElementById("coverageGuide");
 const ARROW_DISTANCE_METERS = 45;
@@ -6572,6 +8640,30 @@ const ARROW_DISTANCE_METERS = 45;
 if (toggleCoverageGuide && coverageGuide) {
   toggleCoverageGuide.addEventListener("change", () => {
     coverageGuide.classList.toggle("is-visible", toggleCoverageGuide.checked);
+  });
+}
+
+if (legendToggleSam) {
+  legendToggleSam.addEventListener("change", () => setLegendToggleState("sam", legendToggleSam.checked));
+}
+if (legendTogglePetard) {
+  legendTogglePetard.addEventListener("change", () => setLegendToggleState("petard", legendTogglePetard.checked));
+}
+if (btnLegendCollapse) {
+  btnLegendCollapse.addEventListener("click", () => {
+    setCoverageLegendCollapsed(!coverageLegendCollapsed);
+  });
+}
+if (btnLegendBranch) {
+  btnLegendBranch.addEventListener("click", () => {
+    toggleLegendBranchMenu();
+  });
+}
+if (legendBranchMenu) {
+  legendBranchMenu.addEventListener("click", event => {
+    const choice = event.target.closest("button[data-branch]");
+    if (!choice) return;
+    handleLegendBranchChoice(choice.getAttribute("data-branch"));
   });
 }
 
@@ -6607,18 +8699,27 @@ function renderCoverageLegend(entries) {
   if (!coverageLegendEntries.length) {
     coverageLegend.style.display = "none";
     coverageLegendItems.innerHTML = "";
+    closeLegendBranchMenu();
     return;
   }
 
-  const items = coverageLegendEntries.map((entry, index) => `
-    <button type="button" class="coverage-legend-item" data-legend-index="${index}">
-      <span class="coverage-legend-swatch coverage-legend-swatch--${entry.kind === "petard" ? "petard" : "sam"}"></span>
+  const showSam = coverageLegendVisibility.sam !== false;
+  const showPetard = coverageLegendVisibility.petard !== false;
+
+  const items = coverageLegendEntries.map((entry, index) => {
+    const kind = entry.kind === "petard" ? "petard" : "sam";
+    const visible = kind === "petard" ? showPetard : showSam;
+    const disabledClass = visible ? "" : " is-disabled";
+    const ariaDisabled = visible ? "false" : "true";
+    return `<button type="button" class="coverage-legend-item${disabledClass}" data-legend-index="${index}" data-legend-kind="${kind}" aria-disabled="${ariaDisabled}">
+      <span class="coverage-legend-swatch coverage-legend-swatch--${kind}"></span>
       <span>${entry.label}</span>
-    </button>
-  `);
+    </button>`;
+  });
 
   coverageLegendItems.innerHTML = items.join("");
   coverageLegend.style.display = "block";
+  applyCoverageLegendFilters();
 }
 
 function focusLegendEntry(index) {
@@ -6716,7 +8817,10 @@ if (orientGareValueEl) {
     }
   });
 }
-function addCoverageMarkersToMap(result) {
+function addCoverageMarkersToMap(result, branchHint = null) {
+  // CRITIQUE : Sauvegarder linePoints AVANT le try pour qu'il soit accessible dans finally
+  const savedLinePoints = linePoints;
+  
   try {
     ensureOrientationMapReady();
 
@@ -6726,10 +8830,24 @@ function addCoverageMarkersToMap(result) {
 
     removeCoverageMarkersFromMap();
 
+    // CRITIQUE : Mettre à jour linePoints selon la branche choisie AVANT d'appeler getGpsFromPk
+    if (branchHint === "boissy") {
+      linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+      debugLog("✅ addCoverageMarkersToMap : utilisation de la branche Boissy pour getGpsFromPk");
+    } else if (branchHint === "chessy") {
+      linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+      debugLog("✅ addCoverageMarkersToMap : utilisation de la branche Chessy pour getGpsFromPk");
+    } else {
+      linePoints = troncCommun.slice();
+      debugLog("✅ addCoverageMarkersToMap : utilisation du tronc commun pour getGpsFromPk");
+    }
+
     const sideSummaries = result.bySide.map(sideResult => {
       const sideLabel = sideResult.side === "pkStart" ? "Début" : "Fin";
       const samGps = getGpsFromPk(sideResult.pkSamRep);
-      const samAccess = samGps ? getNearestAccessDetails(samGps.lat, samGps.lon, sideResult.pkSamRep) : null;
+      debugLog("🔍 SAM PK:", sideResult.pkSamRep, "GPS:", samGps, "branche:", branchHint);
+      const samAccess = samGps ? getNearestAccessDetails(samGps.lat, samGps.lon, sideResult.pkSamRep, branchHint) : null;
+      debugLog("🔍 SAM accès trouvé:", samAccess ? samAccess.name : "aucun", "PK:", samAccess ? samAccess.pk : "N/A");
       const samEntry = {
         type: "sam",
         side: sideResult.side,
@@ -6742,7 +8860,8 @@ function addCoverageMarkersToMap(result) {
       };
       const petards = sideResult.petards.map(petard => {
         const petardGps = getGpsFromPk(petard.pk);
-        const petardAccess = petardGps ? getNearestAccessDetails(petardGps.lat, petardGps.lon, petard.pk) : null;
+        const petardAccess = petardGps ? getNearestAccessDetails(petardGps.lat, petardGps.lon, petard.pk, branchHint) : null;
+        debugLog("🔍 Pétard PK:", petard.pk, "GPS:", petardGps, "accès:", petardAccess ? petardAccess.name : "aucun");
         return {
           type: "petard",
           order: petard.order,
@@ -6911,9 +9030,17 @@ function addCoverageMarkersToMap(result) {
       orientationMap.fitBounds(bounds.pad(0.25));
       manualMapFocusUntil = Date.now() + 5000;
     }
+    
+    // Restaurer linePoints
+    linePoints = savedLinePoints;
   } catch (error) {
     console.error("Erreur dans addCoverageMarkersToMap :", error);
     alert("Erreur lors de l'affichage des résultats : " + error.message);
+  } finally {
+    // S'assurer de restaurer linePoints même en cas d'erreur
+    if (savedLinePoints) {
+      linePoints = savedLinePoints;
+    }
   }
 }
 
@@ -6953,14 +9080,49 @@ if (btnComputeCoverage) {
         return;
       }
 
+      // Utiliser la branche choisie dans le menu pour ce contexte
+      debugLog("🔍 Avant getContextBranch - branchSelections:", JSON.stringify(branchSelections));
+      debugLog("🔍 BRANCH_SELECTION_CONTEXTS.coverage =", BRANCH_SELECTION_CONTEXTS.coverage);
+      debugLog("🔍 branchSelections[coverage] =", branchSelections[BRANCH_SELECTION_CONTEXTS.coverage]);
+      
+      // Lire directement depuis branchSelections pour éviter tout problème
+      let coverageBranch = branchSelections[BRANCH_SELECTION_CONTEXTS.coverage];
+      if (!coverageBranch) {
+        coverageBranch = "central"; // Valeur par défaut
+        console.warn("⚠️ Pas de branche trouvée pour coverage, utilisation de 'central' par défaut");
+      }
+      
+      debugLog("🔍 Calcul de couverture - branche choisie:", coverageBranch);
+      debugLog("✅ Utilisation de la branche", coverageBranch, "pour le calcul de couverture");
+      
+      // Forcer l'override pour ce calcul
+      const savedOverride = manualBranchOverride;
+      manualBranchOverride = coverageBranch;
+      currentBranch = coverageBranch;
+      debugLog("🔧 Override temporairement défini à", coverageBranch, "pour le calcul");
+      
+      if (hasStart) {
+        ensureBranchForPk(pkStart, BRANCH_SELECTION_CONTEXTS.coverage);
+      }
+      if (hasEnd) {
+        ensureBranchForPk(pkEnd, BRANCH_SELECTION_CONTEXTS.coverage);
+      }
+      
       const result = computeCoverageMarkers(pkStart, pkEnd);
+      
+      // Restaurer l'override précédent
+      manualBranchOverride = savedOverride;
+      if (savedOverride) {
+        currentBranch = savedOverride;
+      }
+      
       if (!result || !result.bySide) {
         console.error("Erreur : computeCoverageMarkers n'a pas retourné un résultat valide", result);
         alert("Erreur lors du calcul. Veuillez réessayer.");
         return;
       }
       
-      addCoverageMarkersToMap(result);
+      addCoverageMarkersToMap(result, coverageBranch);
     } catch (error) {
       console.error("Erreur lors du calcul des rouges et pétards :", error);
       alert("Une erreur est survenue : " + error.message);
@@ -6978,6 +9140,10 @@ if (btnClearCoverage) {
 }
 
 document.addEventListener("click", (event) => {
+  if (legendBranchControls && !legendBranchControls.contains(event.target)) {
+    closeLegendBranchMenu();
+  }
+
   const legendTarget = event.target.closest("[data-legend-index]");
   if (legendTarget) {
     const index = parseInt(legendTarget.getAttribute("data-legend-index"), 10);
@@ -7014,6 +9180,13 @@ document.addEventListener("click", (event) => {
     openNavigationApp(provider, lat, lon);
   }
 });
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") {
+    closeLegendBranchMenu();
+  }
+});
+
 
 if (selectIncidentType) {
   selectIncidentType.dispatchEvent(new Event("change"));
@@ -7086,6 +9259,53 @@ setGpsStatus("off");
 
 document.addEventListener("DOMContentLoaded", () => {
   initAccessGate();
+  // Charger les sélections de branche depuis localStorage
+  loadBranchSelections();
+  // Initialiser les polylignes après le chargement du DOM
+  buildCalibrationPolylines();
+  
+  // Attacher l'event listener au bouton de géolocalisation
+  const btnToggleGeolocEl = document.getElementById("btnToggleGeoloc");
+  if (btnToggleGeolocEl) {
+    // Supprimer tous les event listeners existants pour éviter les doublons
+    const newBtn = btnToggleGeolocEl.cloneNode(true);
+    btnToggleGeolocEl.parentNode.replaceChild(newBtn, btnToggleGeolocEl);
+    
+    // Attacher le nouvel event listener
+    newBtn.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Bouton géoloc cliqué !");
+      
+      // Vérifier que les fonctions existent
+      if (typeof startGeoloc !== 'function') {
+        console.error("startGeoloc n'est pas une fonction !");
+        alert("Erreur : la fonction startGeoloc n'est pas disponible");
+        return;
+      }
+      if (typeof stopGeoloc !== 'function') {
+        console.error("stopGeoloc n'est pas une fonction !");
+        alert("Erreur : la fonction stopGeoloc n'est pas disponible");
+        return;
+      }
+      
+      try {
+        if (geolocActive) {
+          console.log("Arrêt de la géoloc");
+          stopGeoloc();
+        } else {
+          console.log("Démarrage de la géoloc");
+          startGeoloc();
+        }
+      } catch (error) {
+        console.error("Erreur lors du clic sur le bouton géoloc:", error);
+        alert("Erreur : " + error.message);
+      }
+    });
+    console.log("Event listener attaché au bouton géoloc dans DOMContentLoaded");
+  } else {
+    console.error("Le bouton btnToggleGeoloc n'a pas été trouvé dans DOMContentLoaded !");
+  }
 });
 console.log("PK Assistant RER A – script chargé sans erreur ✅");
 
@@ -7116,9 +9336,9 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
           handlePosition,
           handleGeolocError,
           { 
-            enableHighAccuracy: true, 
-            maximumAge: 5000,
-            timeout: 15000 
+            enableHighAccuracy: false, // Désactivé pour économiser la batterie
+            maximumAge: 10000, // Utiliser le cache jusqu'à 10 secondes (économie batterie)
+            timeout: 20000 
           }
         );
       }
