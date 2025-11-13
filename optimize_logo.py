@@ -180,7 +180,53 @@ def optimize_logo(input_path, output_path):
             0, 255
         ).astype(np.uint8)
     
-    # Pas d'ajout de blanc ni d'ombres - on garde le logo original
+    # Étape 3.6 : Ajouter du blanc à l'intérieur des lettres pour meilleure lisibilité
+    print("Ajout de blanc à l'intérieur des lettres...")
+    # Détecter les zones sombres (probablement le texte)
+    # Les lettres sont généralement plus sombres que le fond neon
+    r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
+    brightness = (r.astype(float) + g.astype(float) + b.astype(float)) / 3.0
+    
+    # Identifier les zones sombres (lettres) qui ont de l'alpha
+    text_mask = (alpha) & (brightness < 100)  # Zones sombres avec transparence
+    
+    # Ajouter du blanc progressif dans les zones sombres (renforcé pour meilleure visibilité)
+    white_boost = 0.6  # Intensité du blanc à ajouter (augmenté de 0.4 à 0.6)
+    for c in range(3):  # RGB
+        img_array[text_mask, c] = np.clip(
+            img_array[text_mask, c].astype(float) * (1 - white_boost) + 
+            255 * white_boost,
+            0, 255
+        ).astype(np.uint8)
+    
+    # Étape 3.7 : Ajouter des ombres internes dans le dessin
+    print("Ajout d'ombres internes...")
+    # Créer des ombres internes en assombrissant les bords supérieurs et gauches
+    # Utiliser des opérations vectorisées numpy pour la performance
+    
+    # Créer un masque des zones non-transparentes
+    mask = alpha.astype(float)
+    h, w = img_array.shape[:2]
+    
+    # Créer un gradient d'ombre avec numpy vectorisé (beaucoup plus rapide)
+    # Distance depuis le bord supérieur et gauche (normalisée)
+    y_coords, x_coords = np.mgrid[0:h, 0:w].astype(float)
+    dist_top = y_coords / max(h, 1)
+    dist_left = x_coords / max(w, 1)
+    
+    # Combiner pour créer un gradient d'ombre (seulement dans les zones non-transparentes)
+    shadow_map = (dist_top * 0.6 + dist_left * 0.4) * 0.4 * (mask > 0.5)
+    
+    # Appliquer l'ombre interne en assombrissant progressivement (vectorisé)
+    shadow_strength = 0.25
+    shadow_factor = 1 - shadow_map * shadow_strength
+    
+    # Appliquer à tous les canaux RGB en une seule opération
+    img_array[:, :, :3] = np.clip(
+        img_array[:, :, :3].astype(float) * shadow_factor[:, :, np.newaxis],
+        0, 255
+    ).astype(np.uint8)
+    
     img = Image.fromarray(img_array)
     
     # Étape 4 : Redimensionner le logo à une taille optimale pour le web
