@@ -180,52 +180,7 @@ def optimize_logo(input_path, output_path):
             0, 255
         ).astype(np.uint8)
     
-    # Étape 3.6 : Ajouter un ombrage noir uniquement autour du contour du logo
-    print("Ajout d'ombrage noir autour du logo...")
-    # Créer un ombrage noir en dilatant légèrement le masque alpha
-    alpha_channel = img.split()[3]
-    # Dilater une seule fois pour créer un contour fin
-    alpha_dilated = alpha_channel.filter(ImageFilter.MaxFilter(size=3))
-    alpha_dilated_array = np.array(alpha_dilated)
-    
-    # Identifier uniquement les pixels du contour (dans la zone dilatée mais pas dans l'original)
-    # On veut seulement le contour immédiat, pas toute la zone dilatée
-    contour_mask = (alpha_dilated_array > 128) & (alpha < 128)
-    
-    # Appliquer du noir sur le contour uniquement
-    img_array[contour_mask, 0] = 0  # R
-    img_array[contour_mask, 1] = 0  # G
-    img_array[contour_mask, 2] = 0  # B
-    img_array[contour_mask, 3] = 255  # Alpha opaque
-    
-    # Étape 3.7 : Ajouter un contour blanc autour de "RER A"
-    print("Ajout de contour blanc autour de RER A...")
-    # Détecter les zones sombres (probablement le texte "RER A")
-    r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
-    brightness = (r.astype(float) + g.astype(float) + b.astype(float)) / 3.0
-    
-    # Identifier les zones sombres (lettres) qui ont de l'alpha
-    # "RER A" est généralement dans la partie inférieure du logo
-    h, w = img_array.shape[:2]
-    lower_half = h // 2  # Partie inférieure du logo
-    
-    # Masque pour les lettres sombres dans la partie inférieure (où se trouve "RER A")
-    text_mask = (alpha > 128) & (brightness < 120) & (np.arange(h)[:, np.newaxis] > lower_half)
-    
-    # Dilater le masque des lettres pour créer un contour blanc
-    text_mask_img = Image.fromarray(text_mask.astype(np.uint8) * 255)
-    text_contour = text_mask_img.filter(ImageFilter.MaxFilter(size=3))
-    text_contour_array = np.array(text_contour)
-    
-    # Identifier les pixels du contour blanc (dans la zone dilatée mais pas dans l'original)
-    white_contour_mask = (text_contour_array > 128) & (~text_mask)
-    
-    # Appliquer du blanc sur le contour
-    img_array[white_contour_mask, 0] = 255  # R
-    img_array[white_contour_mask, 1] = 255  # G
-    img_array[white_contour_mask, 2] = 255  # B
-    img_array[white_contour_mask, 3] = 255  # Alpha
-    
+    # Pas de modifications - on garde le logo original
     img = Image.fromarray(img_array)
     
     # Étape 4 : Redimensionner le logo à une taille optimale pour le web
