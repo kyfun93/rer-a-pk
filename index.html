@@ -3080,7 +3080,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     </nav>
    </div>
 
-  <script src="config/access-config.js"></script>
+  <script src="config/access-config.js" onerror="console.log('Fichier access-config.js non trouvé, utilisation du code par défaut.')"></script>
 
   <script>
 
@@ -3090,7 +3090,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     const ACCESS_LAST_USED_CODE_KEY = "lastUsedCode";
     const ACCESS_CODE = typeof window !== "undefined" && typeof window.__PK_ACCESS_CODE__ === "string"
       ? window.__PK_ACCESS_CODE__
-      : null;
+      : "3615"; // Code par défaut si non configuré
 
   // === DONNÉES DE LIGNE AVEC BIFURCATION ================================
 
@@ -5955,7 +5955,28 @@ function buildCalibrationPolylines() {
   // Constantes pour le calcul de couverture travaux
   const PETARD_SPACING = 30; // m
   const SAM_OFFSET = 100;    // m (SAM à 100m du PK de chantier)
-  const DISTANCE_RULE = 800;   // m (premier pétard à 800m du SAM)
+  const DISTANCE_RULE_STANDARD = 800;   // m (premier pétard à 800m du SAM)
+  const DISTANCE_RULE_TORCY_CHESSY = 1000; // m (premier pétard à 1000m du SAM entre Torcy PK 48000 et Chessy)
+  const TORCY_CHESSY_ZONE_START = 48000; // PK de début de la zone spéciale (Torcy)
+  const TORCY_CHESSY_ZONE_END = 59300;    // PK de fin de la zone spéciale (Chessy)
+
+  // Détermine la distance à utiliser selon la position
+  function getPetardDistance(pkSam, direction, pkChantier) {
+    // direction = "est" (PK augmente) ou "ouest" (PK diminue)
+    // Vérifier si le SAM ou le chantier sont dans la zone Torcy-Chessy
+    // La zone spéciale s'applique entre Torcy (PK 48000) et Chessy (PK 59300)
+    const pkToCheck = pkChantier != null ? pkChantier : pkSam;
+    
+    // Si le SAM ou le chantier sont dans la zone Torcy-Chessy, utiliser 1000m
+    if (pkToCheck >= TORCY_CHESSY_ZONE_START && pkToCheck <= TORCY_CHESSY_ZONE_END) {
+      return DISTANCE_RULE_TORCY_CHESSY;
+    }
+    // Vérifier aussi si le SAM lui-même est dans la zone
+    if (pkSam >= TORCY_CHESSY_ZONE_START && pkSam <= TORCY_CHESSY_ZONE_END) {
+      return DISTANCE_RULE_TORCY_CHESSY;
+    }
+    return DISTANCE_RULE_STANDARD;
+  }
 
   // Crée les 3 pétards espacés de 30 m
   function makePetards(basePk, direction) {
@@ -5986,9 +6007,12 @@ function buildCalibrationPolylines() {
       // Arrondir si dans la zone de saut (découpage strict)
       pkSamStart = roundPkToDiscontinuityBounds(pkSamStart, branchForCoverage);
       
-      // Premier pétard à 800m du SAM (donc 800m en amont du SAM)
-      // Exemple : SAM 47900 → premier pétard à 47100 (47900 - 800)
-      let pkPetardsStart = pkSamStart - DISTANCE_RULE;
+      // Déterminer la distance à utiliser selon la zone
+      const distanceStart = getPetardDistance(pkSamStart, "ouest", pkStart);
+      
+      // Premier pétard à distance du SAM (donc en amont du SAM)
+      // Exemple : SAM 47900 → premier pétard à 47100 (47900 - 800) ou 46900 (47900 - 1000)
+      let pkPetardsStart = pkSamStart - distanceStart;
       // Arrondir si dans la zone de saut
       pkPetardsStart = roundPkToDiscontinuityBounds(pkPetardsStart, branchForCoverage);
       
@@ -5998,7 +6022,8 @@ function buildCalibrationPolylines() {
         side: "pkStart",
         pkSamRep: pkSamStart,
         petards: petardsStart,
-        rationale: `SAM à ${SAM_OFFSET} m en direction St-Germain, 3 pétards espacés de ${PETARD_SPACING} m en amont`,
+        distanceRule: distanceStart,
+        rationale: `SAM à ${SAM_OFFSET} m en direction St-Germain, 3 pétards espacés de ${PETARD_SPACING} m en amont à ${distanceStart} m`,
       });
     }
 
@@ -6009,9 +6034,12 @@ function buildCalibrationPolylines() {
       // Arrondir si dans la zone de saut (découpage strict)
       pkSamEnd = roundPkToDiscontinuityBounds(pkSamEnd, branchForCoverage);
       
-      // Premier pétard à 800m du SAM (donc 800m en amont du SAM)
-      // Exemple : SAM 49100 → premier pétard à 49900 (49100 + 800)
-      let pkPetardsEnd = pkSamEnd + DISTANCE_RULE;
+      // Déterminer la distance à utiliser selon la zone
+      const distanceEnd = getPetardDistance(pkSamEnd, "est", pkEnd);
+      
+      // Premier pétard à distance du SAM (donc en amont du SAM)
+      // Exemple : SAM 49100 → premier pétard à 49900 (49100 + 800) ou 50100 (49100 + 1000)
+      let pkPetardsEnd = pkSamEnd + distanceEnd;
       // Arrondir si dans la zone de saut
       pkPetardsEnd = roundPkToDiscontinuityBounds(pkPetardsEnd, branchForCoverage);
       
@@ -6021,7 +6049,8 @@ function buildCalibrationPolylines() {
         side: "pkEnd",
         pkSamRep: pkSamEnd,
         petards: petardsEnd,
-        rationale: `SAM à ${SAM_OFFSET} m en direction Chessy/Boissy, 3 pétards espacés de ${PETARD_SPACING} m en amont`,
+        distanceRule: distanceEnd,
+        rationale: `SAM à ${SAM_OFFSET} m en direction Chessy/Boissy, 3 pétards espacés de ${PETARD_SPACING} m en amont à ${distanceEnd} m`,
       });
     }
 
@@ -6029,10 +6058,13 @@ function buildCalibrationPolylines() {
       throw new Error("Aucun PK valide fourni pour le calcul.");
     }
 
+    // Calculer la distance maximale utilisée pour l'affichage
+    const maxDistance = Math.max(...results.map(r => r.distanceRule || DISTANCE_RULE_STANDARD));
+
     return {
       lineId: "RERA",
       bySide: results,
-      distanceRule: DISTANCE_RULE,
+      distanceRule: maxDistance,
     };
   }
 
@@ -8707,6 +8739,10 @@ function detectBranch(lat, lon) {
   }
 
   function searchAccessPointsByText(query) {
+    if (!accessPoints || !Array.isArray(accessPoints)) {
+      console.error("❌ accessPoints n'est pas défini ou n'est pas un tableau");
+      return [];
+    }
     const normalizedQuery = normalizeTextForSearch(query);
     if (!normalizedQuery) return [];
     const tokens = normalizedQuery.split(" ").filter(Boolean);
@@ -8918,8 +8954,15 @@ function detectBranch(lat, lon) {
       return;
     }
 
-    const textResults = searchAccessPointsByText(rawInput);
-    if (!textResults.length) {
+    let textResults;
+    try {
+      textResults = searchAccessPointsByText(rawInput);
+    } catch (error) {
+      console.error("❌ Erreur lors de la recherche textuelle:", error);
+      alert("Erreur lors de la recherche. Vérifiez la console pour plus de détails.");
+      return;
+    }
+    if (!textResults || !textResults.length) {
       showPkLookupNoResultMessage();
       return;
     }
@@ -10004,11 +10047,6 @@ function initAccessGate() {
 
   if (!overlay || !input || !btn) return;
 
-  if (!ACCESS_CODE) {
-    console.warn("⚠️ Aucun code d'accès n'est configuré. Crée `config/access-config.js` et définis `window.__PK_ACCESS_CODE__`.");
-    overlay.style.display = "none";
-    return;
-  }
 
   const storedCode = safeGetItem(ACCESS_LAST_USED_CODE_KEY);
   const requiresFreshValidation = !storedCode || storedCode !== ACCESS_CODE;
