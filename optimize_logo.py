@@ -180,25 +180,7 @@ def optimize_logo(input_path, output_path):
             0, 255
         ).astype(np.uint8)
     
-    # Étape 3.6 : Ajouter un ombrage noir uniquement autour du contour du logo
-    print("Ajout d'ombrage noir autour du logo...")
-    # Créer un ombrage noir en dilatant légèrement le masque alpha
-    alpha_channel = img.split()[3]
-    # Dilater une seule fois pour créer un contour fin
-    alpha_dilated = alpha_channel.filter(ImageFilter.MaxFilter(size=3))
-    alpha_dilated_array = np.array(alpha_dilated)
-    
-    # Identifier uniquement les pixels du contour (dans la zone dilatée mais pas dans l'original)
-    # On veut seulement le contour immédiat, pas toute la zone dilatée
-    contour_mask = (alpha_dilated_array > 128) & (alpha < 128)
-    
-    # Appliquer du noir sur le contour uniquement
-    img_array[contour_mask, 0] = 0  # R
-    img_array[contour_mask, 1] = 0  # G
-    img_array[contour_mask, 2] = 0  # B
-    img_array[contour_mask, 3] = 255  # Alpha opaque
-    
-    # Étape 3.7 : Ajouter un contour blanc autour de "RER A"
+    # Étape 3.6 : Ajouter un contour blanc autour de "RER A"
     print("Ajout de contour blanc autour de RER A...")
     # Détecter les zones sombres (probablement le texte "RER A")
     r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
