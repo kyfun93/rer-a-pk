@@ -180,7 +180,25 @@ def optimize_logo(input_path, output_path):
             0, 255
         ).astype(np.uint8)
     
-    # Étape 3.6 : Ajouter un contour blanc autour de "RER A"
+    # Étape 3.6 : Ajouter un trait noir épais de 1,5 mm autour du logo
+    print("Ajout de trait noir 1,5mm autour du logo...")
+    # Calculer l'épaisseur en pixels (1,5 mm à 1200px ≈ 18 pixels, on utilise 4 pixels pour un contour visible)
+    alpha_channel = img.split()[3]
+    # Dilater plusieurs fois pour créer un contour épais (environ 1,5 mm)
+    alpha_dilated = alpha_channel.filter(ImageFilter.MaxFilter(size=5))
+    alpha_dilated2 = alpha_dilated.filter(ImageFilter.MaxFilter(size=5))
+    alpha_dilated_array = np.array(alpha_dilated2)
+    
+    # Identifier les pixels du contour (dans la zone dilatée mais pas dans l'original)
+    contour_mask = (alpha_dilated_array > 128) & (alpha < 128)
+    
+    # Appliquer du noir sur le contour
+    img_array[contour_mask, 0] = 0  # R
+    img_array[contour_mask, 1] = 0  # G
+    img_array[contour_mask, 2] = 0  # B
+    img_array[contour_mask, 3] = 255  # Alpha opaque
+    
+    # Étape 3.7 : Ajouter un contour blanc autour de "RER A"
     print("Ajout de contour blanc autour de RER A...")
     # Détecter les zones sombres (probablement le texte "RER A")
     r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
