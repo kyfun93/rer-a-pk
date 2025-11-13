@@ -702,17 +702,55 @@
 
   .title-wrapper {
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 16px;
-    padding: 10px 20px;
+    gap: 0;
+    padding: 0;
     margin: 0 auto 10px;
     width: fit-content;
-    border-radius: 36px;
-    background: rgba(12, 14, 24, 0.55);
-    border: 1px solid rgba(200, 206, 236, 0.16);
-    box-shadow: 0 20px 42px rgba(4, 6, 15, 0.5);
-    backdrop-filter: blur(14px);
+    border-radius: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .title-logo {
+    width: auto;
+    height: auto;
+    height: 500px;
+    width: auto;
+    display: block;
+    object-fit: contain;
+    margin: 0 auto;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    filter: 
+      drop-shadow(0 0 2px #fff) 
+      drop-shadow(0 0 2px #fff) 
+      drop-shadow(0 0 2px #fff) 
+      drop-shadow(0 0 2px #fff)
+      drop-shadow(0 0 4px #000) 
+      drop-shadow(0 0 4px #000) 
+      drop-shadow(0 0 4px #000) 
+      drop-shadow(0 0 4px #000)
+      drop-shadow(0 0 4px #000)
+      drop-shadow(0 0 4px #000)
+      drop-shadow(0 0 8px rgba(255, 0, 166, 0.4)) 
+      drop-shadow(0 0 12px rgba(0, 212, 255, 0.3));
+  }
+
+  @media (max-width: 640px) {
+    .title-logo {
+      height: 375px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .title-logo {
+      height: 312px;
+    }
   }
 
   .hero-gyro {
@@ -805,7 +843,7 @@
   .subtitle {
     color: var(--muted-strong);
     font-size: 1rem;
-    margin: 10px 0 6px;
+    margin: -50px 0 6px;
     line-height: 1.6;
     font-weight: 500;
   }
@@ -2515,14 +2553,9 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   <div class="app">
     <div class="header">
       <div class="title-wrapper">
-        <span class="hero-gyro" aria-hidden="true"></span>
-        <div class="title-pill">
-          <div class="title-main">PK ASSISTANT</div>
-          <div class="title-sub">RER A</div>
-        </div>
-        <span class="hero-gyro" aria-hidden="true"></span>
+        <img src="images/pk-assist-logo.png" alt="PK-ASSIST RER A" class="title-logo" />
+        <div class="subtitle">⚠️ Avertissement</div>
       </div>
-      <div class="subtitle">⚠️ Avertissement</div>
       <div class="note">
         Cette application est une aide à l'orientation sur la voie, destinée à un usage informatif uniquement.<br>
         Elle ne remplace en aucun cas les consignes de sécurité, les procédures internes de la RATP ou la vigilance des agents sur le terrain.<br>
@@ -4422,7 +4455,7 @@ const accessPoints = [
       pk_before: 10800,
       pk_after: 11300,
       split_ref: { lat: 48.898, lon: 2.218 }, // Point milieu approximatif entre Nanterre-Université et Nanterre-Préfecture
-      window_m: 120, // Fenêtre ± mètres autour de split_ref pour appliquer la règle
+      window_m: 100, // Fenêtre ± mètres autour de split_ref pour appliquer la règle
       jump: 500 // pk_after - pk_before
     }
   ];
@@ -5542,22 +5575,42 @@ async function loadSharedCalibrations() {
     if (!Number.isFinite(pk)) {
       return 0;
     }
-    const branchesToCheck = [];
     const normalized = normalizeBranchKey(branchKey);
-    if (normalized === "boissy" || normalized === "chessy") {
-      branchesToCheck.push(normalized);
+    
+    // Filtrage strict par branche : ne chercher QUE dans la branche demandée
+    // Exception : si on est sur le tronc commun (pk <= 30000), on peut utiliser "central"
+    // Mais pour Boissy/Chessy, on ne cherche QUE dans leur branche respective
+    
+    if (normalized === "boissy") {
+      // Pour Boissy : uniquement si PK > 30000 (hors tronc commun)
+      if (pk > BRANCH_COMMON_MAX && pk >= BRANCH_BOISSY_MIN && pk <= BRANCH_BOISSY_MAX) {
+        const offset = computeOffsetFromSegments(pk, calibrationSegments["boissy"]);
+        if (offset != null) return offset;
+      }
+      // Si dans le tronc commun, utiliser central
       if (pk <= BRANCH_COMMON_MAX) {
-        branchesToCheck.push("central");
+        const offset = computeOffsetFromSegments(pk, calibrationSegments["central"]);
+        if (offset != null) return offset;
+      }
+    } else if (normalized === "chessy") {
+      // Pour Chessy : uniquement si PK > 30000 (hors tronc commun)
+      if (pk > BRANCH_COMMON_MAX && pk >= BRANCH_CHESSY_MIN && pk <= BRANCH_CHESSY_MAX) {
+        const offset = computeOffsetFromSegments(pk, calibrationSegments["chessy"]);
+        if (offset != null) return offset;
+      }
+      // Si dans le tronc commun, utiliser central
+      if (pk <= BRANCH_COMMON_MAX) {
+        const offset = computeOffsetFromSegments(pk, calibrationSegments["central"]);
+        if (offset != null) return offset;
       }
     } else {
-      branchesToCheck.push("central");
-    }
-    for (const branch of branchesToCheck) {
-      const offset = computeOffsetFromSegments(pk, calibrationSegments[branch]);
-      if (offset != null) {
-        return offset;
+      // Pour central : uniquement le tronc commun
+      if (pk <= BRANCH_COMMON_MAX) {
+        const offset = computeOffsetFromSegments(pk, calibrationSegments["central"]);
+        if (offset != null) return offset;
       }
     }
+    
     return 0;
   }
 
@@ -5893,9 +5946,14 @@ function buildCalibrationPolylines() {
     if (!c) continue;
     const pk = c.pkExact != null ? c.pkExact : c.pk;
     if (pk == null) continue;
-    const branchUsed = addCalibPoint(pk, c.lat, c.lon, c.branch);
+    
+    // Déterminer la branche du point de calibration de manière stricte
+    const calBranch = determineCalibrationBranch(pk, c.branch, c.lat, c.lon);
+    const branchUsed = addCalibPoint(pk, c.lat, c.lon, calBranch);
     const offset = computeCalibrationOffsetFromEntry(c);
-    if (branchUsed && Number.isFinite(offset)) {
+    
+    // Filtrer strictement : n'ajouter que si la branche déterminée correspond
+    if (branchUsed && Number.isFinite(offset) && branchUsed === calBranch) {
       const normalized = normalizeBranchKey(branchUsed);
       if (!calibrationPointsByBranch[normalized]) {
         calibrationPointsByBranch[normalized] = [];
@@ -7011,7 +7069,13 @@ function detectBranch(lat, lon) {
     entry.timestamp = timestamp;
 
     const appliedOffset = entry.offset;
-    const branchForCal = entry.branch || currentBranch || "central";
+    // Déterminer la branche de manière stricte en utilisant le PK et les coordonnées GPS
+    const branchForCal = determineCalibrationBranch(
+      entry.pkExactMetric != null ? entry.pkExactMetric : entry.pkExact,
+      entry.branch || currentBranch,
+      entry.lat,
+      entry.lon
+    );
 
     const recalLat = entry.lat;
     const recalLon = entry.lon;
