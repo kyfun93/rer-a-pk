@@ -190,8 +190,8 @@ def optimize_logo(input_path, output_path):
     # Identifier les zones sombres (lettres) qui ont de l'alpha
     text_mask = (alpha) & (brightness < 100)  # Zones sombres avec transparence
     
-    # Ajouter du blanc progressif dans les zones sombres
-    white_boost = 0.4  # Intensité du blanc à ajouter
+    # Ajouter du blanc progressif dans les zones sombres (renforcé pour meilleure visibilité)
+    white_boost = 0.6  # Intensité du blanc à ajouter (augmenté de 0.4 à 0.6)
     for c in range(3):  # RGB
         img_array[text_mask, c] = np.clip(
             img_array[text_mask, c].astype(float) * (1 - white_boost) + 
@@ -230,9 +230,9 @@ def optimize_logo(input_path, output_path):
     img = Image.fromarray(img_array)
     
     # Étape 4 : Redimensionner le logo à une taille optimale pour le web
-    # Taille cible : 2000x2000 pixels (haute qualité mais léger)
+    # Taille cible : 1200x1200 pixels (optimisé pour mobile)
     original_size = img.size
-    target_size = 2000
+    target_size = 1200
     if img.width < target_size or img.height < target_size:
         # Si l'image est plus petite, on l'agrandit proportionnellement
         ratio = max(target_size / img.width, target_size / img.height)
