@@ -704,18 +704,19 @@
 
   .title-wrapper {
     display: inline-flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0;
-    padding: 0;
+    gap: 16px;
+    padding: 10px 20px;
     margin: 0 auto 20px;
     width: fit-content;
-    border-radius: 0;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    backdrop-filter: none;
+    border-radius: 999px;
+    background: radial-gradient(circle at 0% 0%, rgba(255, 159, 123, 0.96) 0%, rgba(255, 75, 107, 0.88) 25%, rgba(102, 125, 255, 0.82) 70%, rgba(24, 28, 60, 0.95) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(12, 12, 28, 0.58);
   }
 
   .title-logo {
@@ -2545,7 +2546,12 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   <div class="app">
     <div class="header">
       <div class="title-wrapper">
-        <img src="images/pk-assist-logo.png?v=21" alt="PK-ASSIST RER A" class="title-logo" loading="eager" fetchpriority="high" />
+        <span class="hero-gyro" aria-hidden="true"></span>
+        <div class="title-pill">
+          <div class="title-main">PK ASSISTANT</div>
+          <div class="title-sub">RER A</div>
+        </div>
+        <span class="hero-gyro" aria-hidden="true"></span>
       </div>
       <div class="subtitle">⚠️ Avertissement</div>
       <div class="note">
