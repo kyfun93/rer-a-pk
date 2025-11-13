@@ -228,23 +228,7 @@ def optimize_logo(input_path, output_path):
         0, 255
     ).astype(np.uint8)
     
-    # Étape 3.8 : Ajouter un contour noir directement dans l'image (pour iPhone)
-    print("Ajout de contour noir dans l'image...")
-    # Créer un contour noir en utilisant une dilatation du masque alpha
-    # Utiliser PIL ImageFilter qui est déjà importé en haut du fichier
-    alpha_channel = img.split()[3]
-    alpha_dilated = alpha_channel.filter(ImageFilter.MaxFilter(size=3))
-    alpha_dilated_array = np.array(alpha_dilated)
-    
-    # Identifier les pixels du contour (dans la zone dilatée mais pas dans l'original)
-    contour_mask = (alpha_dilated_array > 128) & (alpha < 128)
-    
-    # Appliquer du noir sur le contour
-    img_array[contour_mask, 0] = 0  # R
-    img_array[contour_mask, 1] = 0  # G
-    img_array[contour_mask, 2] = 0  # B
-    img_array[contour_mask, 3] = 255  # Alpha
-    
+    # Pas de contour noir intégré dans l'image - on utilise uniquement le CSS
     img = Image.fromarray(img_array)
     
     # Étape 4 : Redimensionner le logo à une taille optimale pour le web
