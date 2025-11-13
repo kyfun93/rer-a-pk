@@ -213,7 +213,7 @@ def optimize_logo(input_path, output_path):
     print(f"   Format : PNG avec transparence")
 
 if __name__ == "__main__":
-    input_file = "images/2.png"
+    input_file = "images/1.png"
     output_file = "images/pk-assist-logo.png"
     
     if not os.path.exists(input_file):
