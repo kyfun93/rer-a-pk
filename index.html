@@ -4646,7 +4646,7 @@ const BRANCH_OPTION_LABELS = {
   let couvreurLastPosition = null; // Dernière position avec mouvement significatif {lat, lon, time}
   let couvreurCheckInterval = null; // Intervalle de vérification
   const COUVREUR_NO_MOVEMENT_THRESHOLD = 3; // mètres (large de 3m)
-  const COUVREUR_ALERT_DELAY = 5 * 60 * 1000; // 5 minutes en millisecondes
+  const COUVREUR_ALERT_DELAY = 1 * 60 * 1000; // 1 minute en millisecondes
   const COUVREUR_CHECK_INTERVAL = 30 * 1000; // Vérifier toutes les 30 secondes
   
 
@@ -8593,12 +8593,12 @@ function detectBranch(lat, lon) {
     }
 
     // Si on est ici, on n'a pas bougé de plus de 3m
-    // Vérifier si on est resté immobile pendant 5 minutes
+    // Vérifier si on est resté immobile pendant 1 minute
     if (couvreurLastMovementTime != null) {
       const timeSinceLastMovement = now - couvreurLastMovementTime;
       if (timeSinceLastMovement >= COUVREUR_ALERT_DELAY) {
-        // 5 minutes sans mouvement : envoyer le SMS automatiquement
-        console.log("Alerte couvreur cheminant seul : pas de mouvement depuis 5 minutes, envoi du SMS automatique.");
+        // 1 minute sans mouvement : envoyer le SMS automatiquement
+        console.log("Alerte couvreur cheminant seul : pas de mouvement depuis 1 minute, envoi du SMS automatique.");
         sendSmsAuto();
         // Désactiver le mode après l'envoi
         stopCouvreurSeul();
@@ -9187,7 +9187,7 @@ function detectBranch(lat, lon) {
         <h3 style="color: var(--text); margin-top: 25px; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🚨 Urgence &amp; avaries</h3>
         <ul style="margin-left: 20px; margin-top: 8px;">
           <li><strong>SMS d'urgence</strong> : génère un message complet (PK, branche, accès, coordonnées) prêt à envoyer.</li>
-          <li><strong>Couvreur cheminant seul</strong> : surveillance automatique. Après 5 minutes sans mouvement, le SMS part automatiquement (avec alarme au-delà de 30 s).</li>
+          <li><strong>Couvreur cheminant seul</strong> : surveillance automatique. Après 1 minute sans mouvement, le SMS part automatiquement (avec alarme au-delà de 30 s).</li>
           <li><strong>Signalement d'avarie / incident</strong> : formulaire avec photo optionnelle + message pré-rempli copiable d'un clic.</li>
         </ul>
 
