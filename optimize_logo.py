@@ -180,23 +180,38 @@ def optimize_logo(input_path, output_path):
             0, 255
         ).astype(np.uint8)
     
-    # Étape 3.6 : Ajouter un trait noir épais de 1,5 mm autour du logo
-    print("Ajout de trait noir 1,5mm autour du logo...")
-    # Calculer l'épaisseur en pixels (1,5 mm à 1200px ≈ 18 pixels, on utilise 4 pixels pour un contour visible)
+    # Étape 3.6 : Ajouter un trait noir épais de 1,5 mm autour du logo (détourage)
+    print("Ajout de trait noir 1,5mm autour du logo (détourage)...")
+    # Sauvegarder l'image originale avant modification
+    img_original = img_array.copy()
+    alpha_original = alpha.copy()
+    
+    # Créer un détourage en dilatant le masque alpha
     alpha_channel = img.split()[3]
-    # Dilater plusieurs fois pour créer un contour épais (environ 1,5 mm)
-    alpha_dilated = alpha_channel.filter(ImageFilter.MaxFilter(size=5))
-    alpha_dilated2 = alpha_dilated.filter(ImageFilter.MaxFilter(size=5))
+    # Dilater plusieurs fois pour créer un contour épais (environ 1,5 mm = ~18 pixels à 1200px)
+    # On dilate progressivement pour créer un contour uniforme
+    alpha_dilated = alpha_channel.filter(ImageFilter.MaxFilter(size=7))
+    alpha_dilated2 = alpha_dilated.filter(ImageFilter.MaxFilter(size=7))
     alpha_dilated_array = np.array(alpha_dilated2)
     
-    # Identifier les pixels du contour (dans la zone dilatée mais pas dans l'original)
-    contour_mask = (alpha_dilated_array > 128) & (alpha < 128)
+    # Identifier uniquement les pixels du contour (dans la zone dilatée mais pas dans l'original)
+    # On veut seulement le contour, pas l'intérieur
+    contour_mask = (alpha_dilated_array > 128) & (alpha_original < 128)
     
-    # Appliquer du noir sur le contour
-    img_array[contour_mask, 0] = 0  # R
-    img_array[contour_mask, 1] = 0  # G
-    img_array[contour_mask, 2] = 0  # B
-    img_array[contour_mask, 3] = 255  # Alpha opaque
+    # Créer une nouvelle image avec le contour noir
+    # On garde l'image originale et on ajoute juste le contour noir autour
+    img_with_contour = img_original.copy()
+    img_with_contour[contour_mask, 0] = 0  # R
+    img_with_contour[contour_mask, 1] = 0  # G
+    img_with_contour[contour_mask, 2] = 0  # B
+    img_with_contour[contour_mask, 3] = 255  # Alpha opaque
+    
+    # Mettre à jour l'alpha pour inclure le contour
+    new_alpha = np.maximum(alpha_original, (alpha_dilated_array > 128).astype(np.uint8) * 255)
+    img_with_contour[:, :, 3] = new_alpha
+    
+    img_array = img_with_contour
+    alpha = new_alpha
     
     # Étape 3.7 : Ajouter un contour blanc autour de "RER A"
     print("Ajout de contour blanc autour de RER A...")
