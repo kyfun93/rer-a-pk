@@ -229,13 +229,26 @@ def optimize_logo(input_path, output_path):
     
     img = Image.fromarray(img_array)
     
-    # Étape 4 : Agrandir le logo de 10 fois
-    # Garder les proportions exactes
+    # Étape 4 : Redimensionner le logo à une taille optimale pour le web
+    # Taille cible : 2000x2000 pixels (haute qualité mais léger)
     original_size = img.size
-    new_width = img.width * 10
-    new_height = img.height * 10
+    target_size = 2000
+    if img.width < target_size or img.height < target_size:
+        # Si l'image est plus petite, on l'agrandit proportionnellement
+        ratio = max(target_size / img.width, target_size / img.height)
+        new_width = int(img.width * ratio)
+        new_height = int(img.height * ratio)
+    else:
+        # Si l'image est plus grande, on la réduit à la taille cible
+        if img.width > img.height:
+            new_width = target_size
+            new_height = int(img.height * (target_size / img.width))
+        else:
+            new_height = target_size
+            new_width = int(img.width * (target_size / img.height))
+    
     img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-    print(f"Agrandissement de {original_size} à : {img.size} (x10)")
+    print(f"Redimensionnement de {original_size} à : {img.size}")
     
     # Étape 5 : Sauvegarder en PNG transparent
     print(f"Sauvegarde vers : {output_path}")
