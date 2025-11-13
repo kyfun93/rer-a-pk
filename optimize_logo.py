@@ -180,67 +180,7 @@ def optimize_logo(input_path, output_path):
             0, 255
         ).astype(np.uint8)
     
-    # Étape 3.6 : Ajouter un trait noir épais de 1,5 mm autour du logo (détourage)
-    print("Ajout de trait noir 1,5mm autour du logo (détourage)...")
-    # Sauvegarder l'image originale avant modification
-    img_original = img_array.copy()
-    alpha_original = alpha.copy()
-    
-    # Créer un détourage en dilatant le masque alpha
-    alpha_channel = img.split()[3]
-    # Dilater plusieurs fois pour créer un contour épais (environ 1,5 mm = ~18 pixels à 1200px)
-    # On dilate progressivement pour créer un contour uniforme
-    alpha_dilated = alpha_channel.filter(ImageFilter.MaxFilter(size=7))
-    alpha_dilated2 = alpha_dilated.filter(ImageFilter.MaxFilter(size=7))
-    alpha_dilated_array = np.array(alpha_dilated2)
-    
-    # Identifier uniquement les pixels du contour (dans la zone dilatée mais pas dans l'original)
-    # On veut seulement le contour, pas l'intérieur
-    contour_mask = (alpha_dilated_array > 128) & (alpha_original < 128)
-    
-    # Créer une nouvelle image avec le contour noir
-    # On garde l'image originale et on ajoute juste le contour noir autour
-    img_with_contour = img_original.copy()
-    img_with_contour[contour_mask, 0] = 0  # R
-    img_with_contour[contour_mask, 1] = 0  # G
-    img_with_contour[contour_mask, 2] = 0  # B
-    img_with_contour[contour_mask, 3] = 255  # Alpha opaque
-    
-    # Mettre à jour l'alpha pour inclure le contour
-    new_alpha = np.maximum(alpha_original, (alpha_dilated_array > 128).astype(np.uint8) * 255)
-    img_with_contour[:, :, 3] = new_alpha
-    
-    img_array = img_with_contour
-    alpha = new_alpha
-    
-    # Étape 3.7 : Ajouter un contour blanc autour de "RER A"
-    print("Ajout de contour blanc autour de RER A...")
-    # Détecter les zones sombres (probablement le texte "RER A")
-    r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
-    brightness = (r.astype(float) + g.astype(float) + b.astype(float)) / 3.0
-    
-    # Identifier les zones sombres (lettres) qui ont de l'alpha
-    # "RER A" est généralement dans la partie inférieure du logo
-    h, w = img_array.shape[:2]
-    lower_half = h // 2  # Partie inférieure du logo
-    
-    # Masque pour les lettres sombres dans la partie inférieure (où se trouve "RER A")
-    text_mask = (alpha > 128) & (brightness < 120) & (np.arange(h)[:, np.newaxis] > lower_half)
-    
-    # Dilater le masque des lettres pour créer un contour blanc
-    text_mask_img = Image.fromarray(text_mask.astype(np.uint8) * 255)
-    text_contour = text_mask_img.filter(ImageFilter.MaxFilter(size=3))
-    text_contour_array = np.array(text_contour)
-    
-    # Identifier les pixels du contour blanc (dans la zone dilatée mais pas dans l'original)
-    white_contour_mask = (text_contour_array > 128) & (~text_mask)
-    
-    # Appliquer du blanc sur le contour
-    img_array[white_contour_mask, 0] = 255  # R
-    img_array[white_contour_mask, 1] = 255  # G
-    img_array[white_contour_mask, 2] = 255  # B
-    img_array[white_contour_mask, 3] = 255  # Alpha
-    
+    # Pas de modifications - on garde le logo original
     img = Image.fromarray(img_array)
     
     # Étape 4 : Redimensionner le logo à une taille optimale pour le web
