@@ -2644,6 +2644,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                       <div id="branchMenuTarget" class="branch-choice-menu" hidden>
                         <button type="button" data-branch="central" data-context="target">Tronçon central</button>
                         <button type="button" data-branch="boissy" data-context="target">Boissy</button>
+                        <button type="button" data-branch="chessy" data-context="target">Chessy</button>
                       </div>
                     </div>
                   </div>
@@ -2766,6 +2767,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   <div id="branchMenuIncident" class="branch-choice-menu" hidden>
                     <button type="button" data-branch="central" data-context="incident">Tronçon central</button>
                     <button type="button" data-branch="boissy" data-context="incident">Boissy</button>
+                    <button type="button" data-branch="chessy" data-context="incident">Chessy</button>
                   </div>
                 </div>
               </div>
@@ -2802,6 +2804,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   <div id="branchMenuSearch" class="branch-choice-menu" hidden>
                     <button type="button" data-branch="central" data-context="search">Tronçon central</button>
                     <button type="button" data-branch="boissy" data-context="search">Boissy</button>
+                    <button type="button" data-branch="chessy" data-context="search">Chessy</button>
                   </div>
                 </div>
               </div>
@@ -2841,6 +2844,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                 <div id="branchMenuCoverage" class="branch-choice-menu" hidden>
                   <button type="button" data-branch="central" data-context="coverage">Tronçon central</button>
                   <button type="button" data-branch="boissy" data-context="coverage">Boissy</button>
+                  <button type="button" data-branch="chessy" data-context="coverage">Chessy</button>
                 </div>
               </div>
             </div>
@@ -2930,6 +2934,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                     <div id="branchMenuRecal" class="branch-choice-menu" hidden>
                       <button type="button" data-branch="central" data-context="recal">Tronçon central</button>
                       <button type="button" data-branch="boissy" data-context="recal">Boissy</button>
+                      <button type="button" data-branch="chessy" data-context="recal">Chessy</button>
                     </div>
                   </div>
                 </div>
@@ -3085,45 +3090,53 @@ body[data-page-hidden="true"] .direction-arrow-moving {
   // === DONNÉES DE LIGNE AVEC BIFURCATION ================================
 
   const troncCommun = [
-    { name: "St-Germain-en-Laye",          lat: 48.8984745677, lon: 2.0946251970, pk:     0 },
-    { name: "Le Vésinet – Le Pecq",        lat: 48.8984530458, lon: 2.1222846835, pk:  2000 },
-    { name: "Le Vésinet – Centre",         lat: 48.8901555110, lon: 2.1347027835, pk:  4000 },
-    { name: "Chatou – Croissy",            lat: 48.8854638305, lon: 2.1564040970, pk:  6000 },
-    { name: "Rueil-Malmaison",             lat: 48.8877403423, lon: 2.1725468932, pk:  7000 },
-    { name: "Nanterre-Ville",              lat: 48.8952086355, lon: 2.1957210472, pk:  8000 },
-    { name: "Nanterre-Université",         lat: 48.9009541230, lon: 2.2128683712, pk: 11000 },
-    { name: "Nanterre-Préfecture",         lat: 48.8958449352, lon: 2.2230702306, pk: 12000 },
-    { name: "La Défense – Grande Arche",   lat: 48.8919045058, lon: 2.2385616258, pk: 13000 },
-    { name: "Charles-de-Gaulle – Étoile",  lat: 48.8742900059, lon: 2.2948848393, pk: 18000 },
-    { name: "Auber",                       lat: 48.8725358497, lon: 2.3298119681, pk: 20000 },
-    { name: "Châtelet – Les Halles",       lat: 48.8619752528, lon: 2.3469363528, pk: 22000 },
-    { name: "Gare de Lyon",                lat: 48.8444873499, lon: 2.3743558393, pk: 25000 },
-    { name: "Nation",                      lat: 48.8488218026, lon: 2.3970239229, pk: 27000 },
-    { name: "Vincennes",                   lat: 48.8475419027, lon: 2.4332766909, pk: 30000 },
-    { name: "Fontenay-sous-Bois",          lat: 48.8457834716, lon: 2.4641534958, pk: 31500 },
-    { name: "Val de Fontenay",             lat: 48.8544183594, lon: 2.4890884591, pk: 34000 }
+    { name: "St-Germain-en-Laye",          lat: 48.8984745677, lon: 2.0946251970, pk: 125, pkStart: 0, pkEnd: 250 }, // Vers Vincennes / Vers St-Germain
+    { name: "Le Vésinet – Le Pecq",        lat: 48.8984530458, lon: 2.1222846835, pk: 2625, pkStart: 2500, pkEnd: 2750 }, // Vers Vincennes / Vers St-Germain
+    { name: "Le Vésinet – Centre",         lat: 48.8901555110, lon: 2.1347027835, pk: 3900, pkStart: 3800, pkEnd: 4000 }, // Vers Vincennes / Vers St-Germain
+    { name: "Chatou – Croissy",            lat: 48.8854638305, lon: 2.1564040970, pk: 5600, pkStart: 5500, pkEnd: 5700 }, // Vers Vincennes / Vers St-Germain
+    { name: "Rueil-Malmaison",             lat: 48.8877403423, lon: 2.1725468932, pk: 6850, pkStart: 6700, pkEnd: 7000 }, // Vers Vincennes / Vers St-Germain
+    { name: "Nanterre-Ville",              lat: 48.8952086355, lon: 2.1957210472, pk: 8725, pkStart: 8600, pkEnd: 8850 }, // Vers Vincennes / Vers St-Germain
+    { name: "Nanterre-Université",         lat: 48.9009541230, lon: 2.2128683712, pk: 10200, pkStart: 10100, pkEnd: 10300 }, // Vers Vincennes / Vers St-Germain
+    { name: "Nanterre-Préfecture",        lat: 48.8958449352, lon: 2.2230702306, pk: 12000, pkStart: 12000, pkEnd: 12000 }, // PK moyen (pas de données fournies, on garde l'ancien)
+    { name: "La Défense – Grande Arche",   lat: 48.8919045058, lon: 2.2385616258, pk: 13100, pkStart: 13000, pkEnd: 13200 }, // Vers Vincennes / Vers St-Germain
+    { name: "Charles-de-Gaulle – Étoile",  lat: 48.8742900059, lon: 2.2948848393, pk: 17650, pkStart: 17500, pkEnd: 17800 }, // Vers Vincennes / Vers St-Germain
+    { name: "Auber",                       lat: 48.8725358497, lon: 2.3298119681, pk: 20300, pkStart: 20200, pkEnd: 20400 }, // Vers Vincennes / Vers St-Germain
+    { name: "Châtelet – Les Halles",       lat: 48.8619752528, lon: 2.3469363528, pk: 22200, pkStart: 22100, pkEnd: 22300 }, // Vers Vincennes / Vers St-Germain
+    { name: "Gare de Lyon",                lat: 48.8444873499, lon: 2.3743558393, pk: 25000, pkStart: 24900, pkEnd: 25100 }, // Vers Vincennes / Vers St-Germain
+    { name: "Nation",                      lat: 48.8488218026, lon: 2.3970239229, pk: 27000, pkStart: 26900, pkEnd: 27100 }, // Vers Vincennes / Vers St-Germain
+    { name: "Vincennes",                   lat: 48.8475419027, lon: 2.4332766909, pk: 30000, pkStart: 29900, pkEnd: 30100 } // Vers Vincennes / Vers St-Germain
   ];
 
+  // Branche Boissy : PK relatifs depuis 6500, convertis en absolus
+  // Formule : PK absolu = 31500 (fourche) + (PK relatif - 6500)
+  // Exemple : PK relatif 7750 → PK absolu = 31500 + (7750 - 6500) = 31500 + 1250 = 32750
+  const BOISSY_BRANCH_OFFSET = 31500; // Point de fourche après Vincennes
+  const BOISSY_PK_START = 6500; // PK relatif de départ de la branche Boissy
+  
   const brancheBoissy = [
-    { name: "Nogent-sur-Marne",            lat: 48.8353972244, lon: 2.4716593319, pk: 35500 },
-    { name: "Joinville-le-Pont",           lat: 48.8211820545, lon: 2.4641431755, pk: 37000 },
-    { name: "Saint-Maur – Créteil",        lat: 48.8088207060, lon: 2.4708026167, pk: 38500 },
-    { name: "La Varenne – Chennevières",   lat: 48.7941968899, lon: 2.5135124577, pk: 40000 },
-    { name: "Sucy – Bonneuil",             lat: 48.7709911746, lon: 2.5083777258, pk: 41500 },
-    { name: "Boissy-Saint-Léger",          lat: 48.7539872386, lon: 2.5059802969, pk: 43000 }
+    { name: "Fontenay-sous-Bois",          lat: 48.84448287866945, lon: 2.464306353806553, pk: 32750, pkStart: 32750, pkEnd: 32500 }, // PK relatif 7750 → absolu 32750, 7500 → 32500
+    { name: "Nogent-sur-Marne",            lat: 48.8353972244, lon: 2.4716593319, pk: 34000, pkStart: 34000, pkEnd: 33700 }, // PK relatif 9000 → absolu 34000, 8700 → 33700
+    { name: "Joinville-le-Pont",           lat: 48.8211820545, lon: 2.4641431755, pk: 35600, pkStart: 35600, pkEnd: 35300 }, // PK relatif 10600 → absolu 35600, 10300 → 35300
+    { name: "Saint-Maur – Créteil",        lat: 48.8088207060, lon: 2.4708026167, pk: 37500, pkStart: 37500, pkEnd: 37200 }, // PK relatif 12500 → absolu 37500, 12200 → 37200
+    { name: "Parc de Saint-Maur",           lat: null, lon: null, pk: 38500, pkStart: 38500, pkEnd: 38250 }, // PK relatif 13500 → absolu 38500, 13250 → 38250
+    { name: "Champigny",                   lat: null, lon: null, pk: 40300, pkStart: 40300, pkEnd: 40100 }, // PK relatif 15300 → absolu 40300, 15100 → 40100
+    { name: "La Varenne – Chennevières",   lat: 48.7941968899, lon: 2.5135124577, pk: 41800, pkStart: 41800, pkEnd: 41500 }, // PK relatif 16800 → absolu 41800, 16500 → 41500
+    { name: "Sucy – Bonneuil",             lat: 48.7709911746, lon: 2.5083777258, pk: 44500, pkStart: 44500, pkEnd: 44200 }, // PK relatif 19500 → absolu 44500, 19200 → 44200
+    { name: "Boissy-Saint-Léger",          lat: 48.7539872386, lon: 2.5059802969, pk: 47200, pkStart: 47200, pkEnd: 46900 } // PK relatif 22200 → absolu 47200, 21900 → 46900
   ];
 
   const brancheChessy = [
-    { name: "Neuilly-Plaisance",           lat: 48.8534646981, lon: 2.5138398779, pk: 35500 },
-    { name: "Bry-sur-Marne",               lat: 48.8442657465, lon: 2.5261924528, pk: 37000 },
-    { name: "Noisy-le-Grand – Mont d'Est", lat: 48.8410135149, lon: 2.5527359297, pk: 39000 },
-    { name: "Noisy – Champs",              lat: 48.8429502416, lon: 2.5788366796, pk: 41000 },
-    { name: "Noisiel",                     lat: 48.8437650426, lon: 2.6160790153, pk: 43000 },
-    { name: "Lognes",                      lat: 48.8393611271, lon: 2.6335250335, pk: 45000 },
-    { name: "Torcy",                       lat: 48.8390276009, lon: 2.6550584298, pk: 47000 },
-    { name: "Bussy-Saint-Georges",         lat: 48.8371826388, lon: 2.7125386010, pk: 52000 },
-    { name: "Val d'Europe",                lat: 48.8561684149, lon: 2.7738274672, pk: 57000 },
-    { name: "Marne-la-Vallée – Chessy",    lat: 48.8707237150, lon: 2.7826307507, pk: 59000 }
+    { name: "Val de Fontenay",             lat: 48.8544183594, lon: 2.4890884591, pk: 34525, pkStart: 34650, pkEnd: 34400 }, // Direction Chessy / Vers Paris
+    { name: "Neuilly-Plaisance",           lat: 48.8534646981, lon: 2.5138398779, pk: 36750, pkStart: 36900, pkEnd: 36600 }, // Direction Chessy / Vers Paris
+    { name: "Bry-sur-Marne",               lat: 48.8442657465, lon: 2.5261924528, pk: 37950, pkStart: 38100, pkEnd: 37800 }, // Direction Chessy / Vers Paris
+    { name: "Noisy-le-Grand – Mont d'Est", lat: 48.8410135149, lon: 2.5527359297, pk: 39850, pkStart: 40000, pkEnd: 39700 }, // Direction Chessy / Vers Paris
+    { name: "Noisy – Champs",              lat: 48.8429502416, lon: 2.5788366796, pk: 42150, pkStart: 42300, pkEnd: 42000 }, // Direction Chessy / Vers Paris
+    { name: "Noisiel",                     lat: 48.8437650426, lon: 2.6160790153, pk: 44850, pkStart: 45000, pkEnd: 44700 }, // Direction Chessy / Vers Paris
+    { name: "Lognes",                      lat: 48.8393611271, lon: 2.6335250335, pk: 46225, pkStart: 46350, pkEnd: 46100 }, // Direction Chessy / Vers Paris
+    { name: "Torcy",                       lat: 48.8390276009, lon: 2.6550584298, pk: 47875, pkStart: 48000, pkEnd: 47750 }, // Direction Chessy / Vers Paris
+    { name: "Bussy-Saint-Georges",         lat: 48.8371826388, lon: 2.7125386010, pk: 52200, pkStart: 52300, pkEnd: 52100 }, // Direction Chessy / Vers Paris
+    { name: "Val d'Europe",                lat: 48.8561684149, lon: 2.7738274672, pk: 57250, pkStart: 57400, pkEnd: 57100 }, // Direction Chessy / Vers Paris
+    { name: "Marne-la-Vallée – Chessy",    lat: 48.8707237150, lon: 2.7826307507, pk: 59150, pkStart: 59000, pkEnd: 59300 } // Direction Chessy / Vers Paris (inversé : vers Paris est plus grand)
   ];
   // Tous les points de gare (pour recherche la plus proche, tri, etc.)
   const stations = troncCommun.concat(brancheBoissy, brancheChessy);
@@ -4323,22 +4336,81 @@ const accessPoints = [
 ];
 
   // On ajoute automatiquement chaque gare comme un "accès" supplémentaire
+  // Vérifier d'abord si la gare existe déjà dans accessPoints pour éviter les doublons
   for (const st of stations) {
-    accessPoints.push({
-      name: "Gare de " + st.name,
-      // Adresse à affiner plus tard à partir de ton fichier complet
-      address: "Gare RER A " + st.name,
-      pk: st.pk,
-      lat: st.lat,
-      lon: st.lon,
-      nearestStation: st.name
+    if (!st || !st.name) continue; // Sécurité : ignorer les entrées invalides
+    const gareName = "Gare de " + st.name;
+    // Normaliser le nom pour la comparaison (enlever les accents, espaces, etc.)
+    // Utiliser une fonction de normalisation compatible
+    const normalizeString = (str) => {
+      if (!str) return "";
+      try {
+        return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ");
+      } catch (e) {
+        // Fallback si normalize n'est pas supporté
+        return str.toLowerCase().replace(/\s+/g, " ");
+      }
+    };
+    
+    const normalizedGareName = normalizeString(gareName);
+    const stationNameNormalized = normalizeString(st.name);
+    
+    const existingGare = accessPoints.find(acc => {
+      if (!acc || !acc.name) return false;
+      const normalizedAccName = normalizeString(acc.name);
+      // Extraire le nom de la gare de l'accès (enlever "gare de" et variations)
+      const accStationName = normalizedAccName.replace(/^gare\s+(de\s+)?/i, "").trim();
+      
+      // Vérifier si le nom de la gare correspond (même après normalisation)
+      const nameMatches = accStationName === stationNameNormalized ||
+                         accStationName.includes(stationNameNormalized) ||
+                         stationNameNormalized.includes(accStationName) ||
+                         // Vérifier les mots-clés communs (ex: "nanterre universite" vs "nanterre-universite")
+                         accStationName.split(/[\s-]+/).some(word => word.length > 3 && stationNameNormalized.includes(word)) ||
+                         stationNameNormalized.split(/[\s-]+/).some(word => word.length > 3 && accStationName.includes(word));
+      
+      // Vérifier aussi si le PK est très proche (moins de 200m) comme fallback
+      const pkClose = acc.pk != null && st.pk != null && Math.abs(acc.pk - st.pk) < 200;
+      
+      return normalizedAccName.includes("gare") && (nameMatches || pkClose);
     });
+    
+    // Si la gare n'existe pas déjà, l'ajouter
+    if (!existingGare) {
+      accessPoints.push({
+        name: gareName,
+        address: "Gare RER A " + st.name,
+        pk: st.pk,
+        lat: st.lat,
+        lon: st.lon,
+        nearestStation: st.name
+      });
+    } else {
+      // Si elle existe mais avec un PK différent, mettre à jour le PK pour correspondre à la gare officielle
+      if (existingGare.pk !== st.pk && st.pk != null) {
+        existingGare.pk = st.pk;
+        if (st.lat != null && st.lon != null) {
+          existingGare.lat = st.lat;
+          existingGare.lon = st.lon;
+        }
+        existingGare.nearestStation = st.name;
+      }
+    }
   }
+
+  // === CONSTANTES DE BRANCHES (définies avant utilisation) ===
+  const BRANCH_COMMON_MAX = 30000; // Fin du tronc commun (après Vincennes)
+  const BRANCH_CHESSY_MIN = 34000; // Début de la branche Chessy (Val de Fontenay)
+  const BRANCH_CHESSY_MAX = 59700; // Fin de la branche Chessy
+  const BRANCH_BOISSY_MIN = 32750; // Début de la branche Boissy (Fontenay-sous-Bois)
+  const BRANCH_BOISSY_MAX = 47200; // Fin de la branche Boissy (Boissy-Saint-Léger)
+  const COMMON_BRANCH_PROMPT_MIN = 7050;
+  const COMMON_BRANCH_PROMPT_MAX = 22300;
 
    // Attribue une branche simple à chaque accès
   // (tronc commun = both, le reste on laissera null)
   for (const acc of accessPoints) {
-    if (acc.pk <= 34000) {
+    if (acc.pk <= BRANCH_COMMON_MAX) {
       acc.branch = "both"; // tronc commun
     } else {
       acc.branch = null;   // on déterminera la branche à la volée si besoin
@@ -4362,12 +4434,6 @@ const COVERAGE_LEGEND_COLLAPSE_KEY = "coverageLegendCollapsed";
 const MANUAL_BRANCH_OVERRIDE_KEY = "manualBranchOverride";
 // Mode debug : mettre à false pour désactiver les logs de débogage
 const DEBUG_MODE = false;
-
-const COMMON_BRANCH_PROMPT_MIN = 7050;
-const COMMON_BRANCH_PROMPT_MAX = 22300;
-const BRANCH_COMMON_MAX = 31400; // Fin du tronc commun
-const BRANCH_CHESSY_MIN = 31795; // Début de la branche Chessy
-const BRANCH_CHESSY_MAX = 59700; // Fin de la branche Chessy
 const BRANCH_SELECTION_STORAGE_KEY = "branchSelections";
 const BRANCH_SELECTION_CONTEXTS = {
   search: "search",
@@ -5987,11 +6053,14 @@ function buildCalibrationPolylines() {
         if (acc.pk <= BRANCH_COMMON_MAX) {
           accBranch = "central";
         } else if (acc.pk >= BRANCH_CHESSY_MIN && acc.pk <= BRANCH_CHESSY_MAX) {
-          // PK entre 31795 et 59700 = Chessy
+          // PK entre 34000 et 59700 = Chessy
           accBranch = "chessy";
-        } else {
-          // PK > 31400 mais < 31795 ou > 59700 = Boissy
+        } else if (acc.pk >= BRANCH_BOISSY_MIN && acc.pk <= BRANCH_BOISSY_MAX) {
+          // PK entre 32750 et 47200 = Boissy
           accBranch = "boissy";
+        } else {
+          // PK entre 30000 et 34000 (zone de transition après Vincennes)
+          accBranch = null; // À déterminer selon le contexte
         }
         
         // Si la branche de l'accès ne correspond pas à celle demandée, l'ignorer
@@ -6099,7 +6168,7 @@ function detectBranch(lat, lon) {
     return "both";
   }
 
-  // ÉTAPE 1 : Vérifier d'abord si on est sur le TRONC COMMUN (PK 0-31400)
+  // ÉTAPE 1 : Vérifier d'abord si on est sur le TRONC COMMUN (PK 0-30000, jusqu'à Vincennes)
   // On projette sur le tronc commun pour obtenir la distance et le PK estimé
   let minTronc = Infinity;
   let pkTronc = null;
@@ -6116,7 +6185,7 @@ function detectBranch(lat, lon) {
     }
   }
 
-  // Si on est très proche du tronc commun (moins de 200m) ET que le PK est <= 31400, on est sur le tronc commun
+  // Si on est très proche du tronc commun (moins de 200m) ET que le PK est <= 30000, on est sur le tronc commun
   if (minTronc < 200 && pkTronc != null && pkTronc <= BRANCH_COMMON_MAX) {
     return "both"; // Tronc commun
   }
@@ -6163,18 +6232,19 @@ function detectBranch(lat, lon) {
   
   if (diff < 50 && pkBoissy != null && pkChessy != null) {
     // Si les distances sont très proches, on utilise le PK pour déterminer la branche
-    // Si on est proche de la bifurcation (PK ~31400), on privilégie la distance
+    // Si on est proche de la bifurcation (PK ~30000, après Vincennes), on privilégie la distance
     if (pkBoissy > BRANCH_COMMON_MAX && pkChessy > BRANCH_COMMON_MAX) {
       // On est clairement sur une branche, on utilise la distance la plus proche
-      // Mais si le PK est >= 31795, on est sur Chessy
+      // Mais si le PK est >= 34000, on est sur Chessy (Val de Fontenay)
       if (pkChessy >= BRANCH_CHESSY_MIN) return "chessy";
-      if (pkBoissy >= BRANCH_CHESSY_MIN) return "boissy";
+      // Si le PK est >= 32750, on est sur Boissy (Fontenay-sous-Bois)
+      if (pkBoissy >= BRANCH_BOISSY_MIN) return "boissy";
       return minBoissy < minChessy ? "boissy" : "chessy";
     } else if (pkBoissy <= BRANCH_COMMON_MAX && pkChessy <= BRANCH_COMMON_MAX) {
       // On est sur le tronc commun
       return "both";
     } else {
-      // Une branche a un PK > 31400, l'autre non : on choisit celle avec PK > 31400
+      // Une branche a un PK > 30000, l'autre non : on choisit celle avec PK > 30000
       return pkBoissy > BRANCH_COMMON_MAX ? "boissy" : "chessy";
     }
   }
@@ -6184,9 +6254,10 @@ function detectBranch(lat, lon) {
   if (diff < 30) {
     // Si la différence est très faible, on vérifie le PK pour trancher
     if (pkBoissy != null && pkChessy != null) {
-      // Si le PK est >= 31795, on est sur Chessy
+      // Si le PK est >= 34000, on est sur Chessy (Val de Fontenay)
       if (pkChessy >= BRANCH_CHESSY_MIN) return "chessy";
-      if (pkBoissy >= BRANCH_CHESSY_MIN) return "boissy";
+      // Si le PK est >= 32750, on est sur Boissy (Fontenay-sous-Bois)
+      if (pkBoissy >= BRANCH_BOISSY_MIN) return "boissy";
       if (pkBoissy > BRANCH_COMMON_MAX && pkChessy <= BRANCH_COMMON_MAX) return "boissy";
       if (pkChessy > BRANCH_COMMON_MAX && pkBoissy <= BRANCH_COMMON_MAX) return "chessy";
     }
@@ -6550,7 +6621,7 @@ function detectBranch(lat, lon) {
       manualBranchOverride = null;
       safeSetItem(MANUAL_BRANCH_OVERRIDE_KEY, '');
       debugLog("Override supprimé, retour à la détection automatique");
-    } else if (branchKey === 'boissy' || branchKey === 'central') {
+    } else if (branchKey === 'boissy' || branchKey === 'central' || branchKey === 'chessy') {
       manualBranchOverride = branchKey;
       safeSetItem(MANUAL_BRANCH_OVERRIDE_KEY, branchKey);
       currentBranch = branchKey;
@@ -6559,6 +6630,8 @@ function detectBranch(lat, lon) {
       // Mettre à jour linePoints immédiatement
       if (branchKey === 'boissy') {
         linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+      } else if (branchKey === 'chessy') {
+        linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
       } else if (branchKey === 'central') {
         linePoints = troncCommun.slice();
       }
@@ -6570,6 +6643,8 @@ function detectBranch(lat, lon) {
         // Mettre à jour linePoints AVANT de projeter
         if (branchKey === 'boissy') {
           linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+        } else if (branchKey === 'chessy') {
+          linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
         } else if (branchKey === 'central') {
           linePoints = troncCommun.slice();
         }
@@ -7053,7 +7128,7 @@ function detectBranch(lat, lon) {
     let bestProj = null;
     
     // D'abord, projeter sur les deux branches pour obtenir les PKs
-    // On a besoin des PKs pour appliquer la règle absolue : PK >= 31795 = Chessy
+    // On a besoin des PKs pour appliquer la règle absolue : PK >= 34000 = Chessy (Val de Fontenay)
     const savedLinePoints = linePoints;
     linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
     const projBoissyTemp = projectToLine(lat, lon);
@@ -7061,10 +7136,10 @@ function detectBranch(lat, lon) {
     const projChessyTemp = projectToLine(lat, lon);
     linePoints = savedLinePoints;
     
-    // RÈGLE ABSOLUE : Si le PK projeté est >= 31795, on est FORCÉMENT sur Chessy
+    // RÈGLE ABSOLUE : Si le PK projeté est >= 34000, on est FORCÉMENT sur Chessy
     // Cette règle prime sur tout, y compris l'override manuel
     if (projChessyTemp && projChessyTemp.pkProj != null && projChessyTemp.pkProj >= BRANCH_CHESSY_MIN) {
-      debugLog("🔴 RÈGLE ABSOLUE : PK", projChessyTemp.pkProj, ">= 31795 → FORCÉMENT Chessy (ex: Noisy-Champs)");
+      debugLog("🔴 RÈGLE ABSOLUE : PK", projChessyTemp.pkProj, ">= 34000 → FORCÉMENT Chessy (ex: Val de Fontenay, Noisy-Champs)");
       currentBranch = "chessy";
       linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
       bestProj = projChessyTemp;
@@ -7086,7 +7161,7 @@ function detectBranch(lat, lon) {
       
       // Vérifier la cohérence
       if (testProj && testProj.pkProj != null && testProj.pkProj > BRANCH_COMMON_MAX && manualBranchOverride === "central" && testProj.dist > 10000) {
-        console.warn("Override 'central' incohérent avec PK > 31400 et distance > 10km, annulation de l'override");
+        console.warn("Override 'central' incohérent avec PK > 30000 et distance > 10km, annulation de l'override");
         manualBranchOverride = null;
         safeSetItem(MANUAL_BRANCH_OVERRIDE_KEY, '');
       } else if (testProj && testProj.dist > 10000) {
@@ -7132,16 +7207,16 @@ function detectBranch(lat, lon) {
         const pkBoissy = projBoissy.pkProj;
         const pkChessy = projChessy.pkProj;
         
-        // Si le PK est > 31400, on est forcément sur une branche
+        // Si le PK est > 30000, on est forcément sur une branche
         if (pkBoissy > BRANCH_COMMON_MAX && pkChessy > BRANCH_COMMON_MAX) {
-          // PRIORITÉ 1 : Si le PK Chessy est >= 31795, on est sur Chessy (règle absolue)
-          // Noisy-Champs est à PK 41000, donc Chessy
+          // PRIORITÉ 1 : Si le PK Chessy est >= 34000, on est sur Chessy (règle absolue)
+          // Val de Fontenay est à PK 34000, Noisy-Champs à PK 41000, donc Chessy
           if (pkChessy >= BRANCH_CHESSY_MIN) {
             bestBranch = "chessy";
             bestProj = projChessy;
-            debugLog("✅ Chessy choisi : PK", pkChessy, ">= 31795 (branche Chessy) - Ex: Noisy-Champs");
+            debugLog("✅ Chessy choisi : PK", pkChessy, ">= 34000 (branche Chessy) - Ex: Val de Fontenay, Noisy-Champs");
           } else if (pkBoissy < BRANCH_CHESSY_MIN && pkChessy < BRANCH_CHESSY_MIN) {
-            // PK entre 31400 et 31795, utiliser la distance à la voie
+            // PK entre 30000 et 34000 (zone de transition après Vincennes), utiliser la distance à la voie
             if (projChessy.dist < projBoissy.dist) {
               bestBranch = "chessy";
               bestProj = projChessy;
@@ -7154,16 +7229,16 @@ function detectBranch(lat, lon) {
               debugLog("✅ Boissy choisi : plus proche de la voie (", projBoissy.dist, "m vs", projChessy.dist, "m, diff:", distDiff.toFixed(1), "m)");
             }
           } else {
-            // PK Boissy < 31795 mais Chessy >= 31795 : impossible, on choisit Chessy
-            // Ou PK Boissy >= 31795 : Boissy (mais ce cas ne devrait pas arriver)
-            if (pkBoissy >= BRANCH_CHESSY_MIN) {
+            // PK Boissy < 34000 mais Chessy >= 34000 : on choisit Chessy
+            // Ou PK Boissy >= 32750 : Boissy (Fontenay-sous-Bois)
+            if (pkBoissy >= BRANCH_BOISSY_MIN) {
               bestBranch = "boissy";
               bestProj = projBoissy;
-              console.log("⚠️ Boissy choisi : PK", pkBoissy, ">= 31795 (cas inhabituel)");
+              debugLog("✅ Boissy choisi : PK", pkBoissy, ">= 32750 (branche Boissy - Fontenay-sous-Bois)");
             } else {
               bestBranch = "chessy";
               bestProj = projChessy;
-              debugLog("✅ Chessy choisi : PK", pkChessy, ">= 31795");
+              debugLog("✅ Chessy choisi : PK", pkChessy, ">= 34000 (branche Chessy)");
             }
           }
         } else if (pkBoissy > BRANCH_COMMON_MAX && pkChessy <= BRANCH_COMMON_MAX) {
@@ -7172,28 +7247,28 @@ function detectBranch(lat, lon) {
           bestProj = projBoissy;
         } else if (pkChessy > BRANCH_COMMON_MAX && pkBoissy <= BRANCH_COMMON_MAX) {
           // Chessy est cohérent, Boissy non
-          // Si le PK est >= 31795, on est sur Chessy
+          // Si le PK est >= 34000, on est sur Chessy
           if (pkChessy >= BRANCH_CHESSY_MIN) {
             bestBranch = "chessy";
             bestProj = projChessy;
-            debugLog("✅ Chessy choisi : PK", pkChessy, ">= 31795 (branche Chessy)");
+            debugLog("✅ Chessy choisi : PK", pkChessy, ">= 34000 (branche Chessy - Val de Fontenay)");
           } else {
             bestBranch = "chessy";
             bestProj = projChessy;
           }
         } else {
-          // Les deux sont <= 31400, on est sur le tronc commun
+          // Les deux sont <= 30000, on est sur le tronc commun
           // Comparer les distances pour choisir la meilleure projection
           if (projChessy.dist < projBoissy.dist) {
             bestBranch = "central";
             linePoints = troncCommun.slice();
             bestProj = projectToLine(lat, lon);
-            debugLog("✅ Tronc commun choisi (PK <= 31400), Chessy plus proche (", projChessy.dist, "m vs", projBoissy.dist, "m)");
+            debugLog("✅ Tronc commun choisi (PK <= 30000), Chessy plus proche (", projChessy.dist, "m vs", projBoissy.dist, "m)");
           } else {
             bestBranch = "central";
             linePoints = troncCommun.slice();
             bestProj = projectToLine(lat, lon);
-            debugLog("✅ Tronc commun choisi (PK <= 31400), Boissy plus proche (", projBoissy.dist, "m vs", projChessy.dist, "m)");
+            debugLog("✅ Tronc commun choisi (PK <= 30000), Boissy plus proche (", projBoissy.dist, "m vs", projChessy.dist, "m)");
           }
         }
       } else if (projBoissy.pkProj != null) {
@@ -7838,6 +7913,7 @@ function detectBranch(lat, lon) {
   }
 
   function updateSmsPreview() {
+    if (!smsPreview) return;
     if (state.lastPk == null || state.lastLat == null) {
       smsPreview.textContent =
         "En attente de position GPS pour préparer le SMS.";
@@ -7847,6 +7923,7 @@ function detectBranch(lat, lon) {
     const nearestName = state.nearestStation ? state.nearestStation.name : "inconnue";
     const branchLabel = currentBranch === "boissy" ? "branche Boissy-Saint-Léger"
                      : currentBranch === "chessy" ? "branche Marne-la-Vallée – Chessy"
+                     : currentBranch === "central" || currentBranch === "both" ? "tronçon central"
                      : "branche inconnue";
     let base =
       pkText + " (" + branchLabel + "), gare la plus proche : " + nearestName +
