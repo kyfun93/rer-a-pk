@@ -188,10 +188,11 @@ def optimize_logo(input_path, output_path):
     brightness = (r.astype(float) + g.astype(float) + b.astype(float)) / 3.0
     
     # Identifier les zones sombres (lettres) qui ont de l'alpha
-    text_mask = (alpha) & (brightness < 100)  # Zones sombres avec transparence
+    # Élargir la détection pour capturer toutes les lettres
+    text_mask = (alpha) & (brightness < 120)  # Zones sombres avec transparence (seuil augmenté)
     
-    # Ajouter du blanc progressif dans les zones sombres (renforcé pour meilleure visibilité)
-    white_boost = 0.6  # Intensité du blanc à ajouter (augmenté de 0.4 à 0.6)
+    # Ajouter du blanc progressif dans les zones sombres (très renforcé pour iPhone)
+    white_boost = 0.8  # Intensité du blanc à ajouter (augmenté à 0.8 pour être très visible)
     for c in range(3):  # RGB
         img_array[text_mask, c] = np.clip(
             img_array[text_mask, c].astype(float) * (1 - white_boost) + 
@@ -217,8 +218,8 @@ def optimize_logo(input_path, output_path):
     # Combiner pour créer un gradient d'ombre (seulement dans les zones non-transparentes)
     shadow_map = (dist_top * 0.6 + dist_left * 0.4) * 0.4 * (mask > 0.5)
     
-    # Appliquer l'ombre interne en assombrissant progressivement (vectorisé)
-    shadow_strength = 0.25
+    # Appliquer l'ombre interne en assombrissant progressivement (vectorisé, renforcé pour iPhone)
+    shadow_strength = 0.4  # Augmenté de 0.25 à 0.4 pour être plus visible
     shadow_factor = 1 - shadow_map * shadow_strength
     
     # Appliquer à tous les canaux RGB en une seule opération
@@ -226,6 +227,23 @@ def optimize_logo(input_path, output_path):
         img_array[:, :, :3].astype(float) * shadow_factor[:, :, np.newaxis],
         0, 255
     ).astype(np.uint8)
+    
+    # Étape 3.8 : Ajouter un contour noir directement dans l'image (pour iPhone)
+    print("Ajout de contour noir dans l'image...")
+    # Créer un contour noir en utilisant une dilatation du masque alpha
+    # Utiliser PIL ImageFilter qui est déjà importé en haut du fichier
+    alpha_channel = img.split()[3]
+    alpha_dilated = alpha_channel.filter(ImageFilter.MaxFilter(size=3))
+    alpha_dilated_array = np.array(alpha_dilated)
+    
+    # Identifier les pixels du contour (dans la zone dilatée mais pas dans l'original)
+    contour_mask = (alpha_dilated_array > 128) & (alpha < 128)
+    
+    # Appliquer du noir sur le contour
+    img_array[contour_mask, 0] = 0  # R
+    img_array[contour_mask, 1] = 0  # G
+    img_array[contour_mask, 2] = 0  # B
+    img_array[contour_mask, 3] = 255  # Alpha
     
     img = Image.fromarray(img_array)
     
