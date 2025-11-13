@@ -180,23 +180,23 @@ def optimize_logo(input_path, output_path):
             0, 255
         ).astype(np.uint8)
     
-    # Étape 3.6 : Ajouter un ombrage noir tout autour du logo
+    # Étape 3.6 : Ajouter un ombrage noir uniquement autour du contour du logo
     print("Ajout d'ombrage noir autour du logo...")
-    # Créer un ombrage noir en dilatant le masque alpha
+    # Créer un ombrage noir en dilatant légèrement le masque alpha
     alpha_channel = img.split()[3]
-    # Dilater plusieurs fois pour créer un ombrage plus large
-    alpha_dilated = alpha_channel.filter(ImageFilter.MaxFilter(size=5))
-    alpha_dilated2 = alpha_dilated.filter(ImageFilter.MaxFilter(size=5))
-    alpha_dilated_array = np.array(alpha_dilated2)
+    # Dilater une seule fois pour créer un contour fin
+    alpha_dilated = alpha_channel.filter(ImageFilter.MaxFilter(size=3))
+    alpha_dilated_array = np.array(alpha_dilated)
     
-    # Identifier les pixels de l'ombrage (dans la zone dilatée mais pas dans l'original)
-    shadow_mask = (alpha_dilated_array > 128) & (alpha < 128)
+    # Identifier uniquement les pixels du contour (dans la zone dilatée mais pas dans l'original)
+    # On veut seulement le contour immédiat, pas toute la zone dilatée
+    contour_mask = (alpha_dilated_array > 128) & (alpha < 128)
     
-    # Appliquer du noir semi-transparent sur l'ombrage pour un effet doux
-    img_array[shadow_mask, 0] = 0  # R
-    img_array[shadow_mask, 1] = 0  # G
-    img_array[shadow_mask, 2] = 0  # B
-    img_array[shadow_mask, 3] = np.clip(alpha_dilated_array[shadow_mask] * 0.6, 0, 255).astype(np.uint8)  # Alpha avec transparence
+    # Appliquer du noir sur le contour uniquement
+    img_array[contour_mask, 0] = 0  # R
+    img_array[contour_mask, 1] = 0  # G
+    img_array[contour_mask, 2] = 0  # B
+    img_array[contour_mask, 3] = 255  # Alpha opaque
     
     # Étape 3.7 : Ajouter un contour blanc autour de "RER A"
     print("Ajout de contour blanc autour de RER A...")
