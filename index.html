@@ -2785,9 +2785,26 @@ body[data-page-hidden="true"] .direction-arrow-moving {
               <div class="field" id="incidentResultField" style="display:none;">
                 <label>Message généré :</label>
                 <textarea id="incidentResultText" rows="4" readonly></textarea>
-                <button id="btnCopyIncident" class="btn btn-secondary btn-icon" type="button">
-                  <span>📋</span><span>Copier le texte</span>
-                </button>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+                  <button id="btnCopyIncident" class="btn btn-secondary btn-icon" type="button">
+                    <span>📋</span><span>Copier le texte</span>
+                  </button>
+                  <button id="btnAddIncidentToNote" class="btn btn-primary btn-icon" type="button">
+                    <span>➕</span><span>Ajouter à la note</span>
+                  </button>
+                </div>
+              </div>
+              <div class="field" id="incidentsListField" style="display:none; margin-top: 16px;">
+                <label>Avaries enregistrées dans la note :</label>
+                <div id="incidentsList" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; padding: 8px; background: var(--card); margin-top: 8px;"></div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+                  <button id="btnExportIncidentsNote" class="btn btn-good btn-icon" type="button">
+                    <span>📝</span><span>Exporter la note</span>
+                  </button>
+                  <button id="btnClearIncidents" class="btn btn-warning btn-icon" type="button">
+                    <span>🗑️</span><span>Effacer la liste</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -4418,6 +4435,25 @@ const accessPoints = [
   const COMMON_BRANCH_PROMPT_MIN = 7050;
   const COMMON_BRANCH_PROMPT_MAX = 22300;
 
+  // === CONFIGURATION GLOBALE DES BRANCHES ET OFFSETS ===
+  // Identifiants de branches normalisés
+  const BRANCH_IDS = {
+    OUEST: 'ouest',
+    CENTRAL: 'central',
+    CHESSY: 'chessy',
+    BOISSY: 'boissy'
+  };
+
+  // Offsets pour la conversion PK métrique → PK affiché
+  // Seule la branche Boissy utilise un offset (PK relatifs)
+  // Les autres branches (OUEST, CENTRAL, CHESSY) affichent directement le PK métrique
+  const BRANCH_OFFSETS = {
+    [BRANCH_IDS.BOISSY]: 25000, // PK affiché = PK métrique - 25000 pour Boissy
+    [BRANCH_IDS.CENTRAL]: 0,    // Pas d'offset pour le tronc commun
+    [BRANCH_IDS.CHESSY]: 0,      // Pas d'offset pour Chessy
+    [BRANCH_IDS.OUEST]: 0        // Pas d'offset pour Ouest
+  };
+
   // === CONFIGURATION DES DISCONTINUITÉS PK ===
   // Gestion du saut de PK local (ex: zone Nanterre-Université → Nanterre-Préfecture)
   // Entre PK ~10800 et ~11300, il y a un saut de +500m dans la numérotation PK
@@ -4645,9 +4681,11 @@ const BRANCH_OPTION_LABELS = {
   let couvreurLastMovementTime = null; // Timestamp du dernier mouvement significatif (> 3m)
   let couvreurLastPosition = null; // Dernière position avec mouvement significatif {lat, lon, time}
   let couvreurCheckInterval = null; // Intervalle de vérification
+  let couvreurStatusInterval = null; // Intervalle pour mettre à jour le statut toutes les secondes
   const COUVREUR_NO_MOVEMENT_THRESHOLD = 3; // mètres (large de 3m)
   const COUVREUR_ALERT_DELAY = 1 * 60 * 1000; // 1 minute en millisecondes
   const COUVREUR_CHECK_INTERVAL = 30 * 1000; // Vérifier toutes les 30 secondes
+  const COUVREUR_STATUS_UPDATE_INTERVAL = 1000; // Mettre à jour le statut toutes les secondes
   
 
   // Timer et sonnerie pour le SMS
@@ -4694,6 +4732,9 @@ const BRANCH_OPTION_LABELS = {
   const MAP_POINTS_KEY = "mapPoints";
   let mapPoints = [];
 
+  const INCIDENTS_KEY = "incidents";
+  let incidents = [];
+
   function loadMapPoints() {
     const raw = safeGetItem(MAP_POINTS_KEY);
     if (!raw) {
@@ -4716,6 +4757,149 @@ const BRANCH_OPTION_LABELS = {
       updateMapPointsInfo();
     } catch (e) {
       console.warn("Erreur lors de la sauvegarde mapPoints :", e);
+    }
+  }
+
+  // === AVARIES : stockage des avaries enregistrées ===
+  function loadIncidents() {
+    const raw = safeGetItem(INCIDENTS_KEY);
+    if (!raw) {
+      incidents = [];
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      incidents = Array.isArray(parsed) ? parsed : [];
+      updateIncidentsList();
+    } catch (e) {
+      console.warn("Erreur de parsing incidents :", e);
+      incidents = [];
+    }
+  }
+
+  function saveIncidents() {
+    try {
+      safeSetItem(INCIDENTS_KEY, JSON.stringify(incidents));
+    } catch (e) {
+      console.warn("Erreur lors de la sauvegarde incidents :", e);
+    }
+  }
+
+  function updateIncidentsList() {
+    if (!incidentsList) return;
+    
+    if (incidents.length === 0) {
+      incidentsList.innerHTML = '<div class="muted" style="text-align: center; padding: 16px;">Aucune avarie enregistrée.</div>';
+      if (incidentsListField) incidentsListField.style.display = "none";
+      return;
+    }
+
+    if (incidentsListField) incidentsListField.style.display = "block";
+
+    let html = "";
+    incidents.forEach((incident, index) => {
+      const date = new Date(incident.timestamp);
+      const dateStr = date.toLocaleString('fr-FR', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      
+      html += `<div style="border-bottom: 1px solid var(--border); padding: 8px 0; ${index === incidents.length - 1 ? 'border-bottom: none;' : ''}">`;
+      html += `<div style="font-weight: 600; margin-bottom: 4px;">${index + 1}. ${incident.type}</div>`;
+      html += `<div style="font-size: 0.85em; color: var(--text-secondary);">PK : ${incident.pkTxt} | ${dateStr}</div>`;
+      html += `</div>`;
+    });
+    
+    incidentsList.innerHTML = html;
+  }
+
+  function addIncidentToNote() {
+    const incidentText = incidentResultText ? incidentResultText.value.trim() : "";
+    if (!incidentText) {
+      alert("Aucun message d'avarie à ajouter. Génère d'abord un message.");
+      return;
+    }
+
+    const incident = {
+      message: incidentText,
+      type: selectIncidentType ? selectIncidentType.value : "",
+      pkTxt: state.lastPk != null ? "PK " + formatPk(state.lastPk) : "—",
+      pk: state.lastPk,
+      lat: state.lastLat,
+      lon: state.lastLon,
+      branch: currentBranch,
+      timestamp: new Date().toISOString()
+    };
+
+    incidents.push(incident);
+    saveIncidents();
+    updateIncidentsList();
+
+    alert(`✅ Avarie ajoutée à la note !\n\nTotal : ${incidents.length} avarie(s) enregistrée(s).`);
+  }
+
+  function exportIncidentsAsNote() {
+    if (incidents.length === 0) {
+      alert("Aucune avarie à exporter.");
+      return;
+    }
+
+    let noteText = "AVARIES / INCIDENTS - RER A\n";
+    noteText += "============================\n\n";
+    noteText += `Total : ${incidents.length} avarie(s)\n`;
+    noteText += `Date d'export : ${new Date().toLocaleString('fr-FR')}\n\n`;
+    noteText += "─".repeat(50) + "\n\n";
+
+    incidents.forEach((incident, index) => {
+      noteText += `[Avarie ${index + 1}]\n`;
+      noteText += incident.message;
+      noteText += "\n\n" + "─".repeat(50) + "\n\n";
+    });
+
+    const blob = new Blob([noteText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+
+    const now = new Date();
+    const stamp = now.toISOString().replace(/[:.]/g, "-");
+    const filename = "avaries-" + stamp + ".txt";
+
+    try {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert(`✅ Note exportée avec succès !\n\nFichier : ${filename}\n\nNombre d'avaries : ${incidents.length}`);
+    } catch (e) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(noteText).then(() => {
+          alert(`✅ Note copiée dans le presse-papiers !\n\nColle-la dans un fichier texte.\n\nNombre d'avaries : ${incidents.length}`);
+        }).catch(() => {
+          alert("❌ Erreur lors de la copie dans le presse-papiers.");
+        });
+      } else {
+        alert("❌ Impossible d'exporter. Essaie sur un ordinateur ou vérifie les permissions du navigateur.");
+      }
+    }
+  }
+
+  function clearIncidents() {
+    if (incidents.length === 0) {
+      alert("La liste est déjà vide.");
+      return;
+    }
+
+    if (confirm(`Voulez-vous vraiment effacer toutes les ${incidents.length} avarie(s) enregistrée(s) ?`)) {
+      incidents = [];
+      saveIncidents();
+      updateIncidentsList();
+      alert("✅ Liste effacée.");
     }
   }
 
@@ -5060,6 +5244,11 @@ async function loadSharedCalibrations() {
   const btnBranchGeoloc = document.getElementById("btnBranchGeoloc");
 
   const selectIncidentType = document.getElementById("selectIncidentType");
+  const btnAddIncidentToNote = document.getElementById("btnAddIncidentToNote");
+  const btnExportIncidentsNote = document.getElementById("btnExportIncidentsNote");
+  const btnClearIncidents = document.getElementById("btnClearIncidents");
+  const incidentsList = document.getElementById("incidentsList");
+  const incidentsListField = document.getElementById("incidentsListField");
   const incidentOtherField = document.getElementById("incidentOtherField");
   const inputIncidentOther = document.getElementById("inputIncidentOther");
   const incidentPhotoInput = document.getElementById("incidentPhoto");
@@ -5073,104 +5262,151 @@ async function loadSharedCalibrations() {
 
   // Convertit un PK absolu en PK relatif selon la branche
   // NOTE : Seule la branche Boissy utilise des PK relatifs. Chessy et tronc commun utilisent les PK absolus.
-  function convertToRelativePk(pkAbsolute, branchKey = null) {
-    if (pkAbsolute == null || !Number.isFinite(pkAbsolute)) return pkAbsolute;
+  // === HELPERS CENTRAUX POUR CONVERSION PK MÉTRIQUE ↔ PK AFFICHÉ ===
+  // Ces deux fonctions sont la porte d'entrée/sortie obligée entre le monde "terrain" (PK vus par l'agent)
+  // et le monde interne (PK physique/métrique utilisé pour géoloc, projections, calibrations, etc.)
+
+  /**
+   * Convertit un PK métrique (absolu) en PK affiché (relatif pour Boissy)
+   * @param {string} branchId - Identifiant de la branche ('central', 'boissy', 'chessy', 'ouest')
+   * @param {number} pkMetric - PK métrique/absolu utilisé en interne
+   * @returns {string} - PK formaté pour l'affichage (ex: "9 000" pour Boissy, "34 000" pour Chessy)
+   */
+  function getDisplayPk(branchId, pkMetric) {
+    if (!Number.isFinite(pkMetric)) return "—";
     
-    // PRIORITÉ 1 : Utiliser la branche fournie ou détectée
-    const branch = branchKey || currentBranch;
-    const normalized = branch ? normalizeBranchKey(branch) : null;
-    
-    // Tronc commun : PK relatif = PK absolu (pas de conversion)
-    if (normalized === "central" || pkAbsolute <= BRANCH_COMMON_MAX) {
-      return pkAbsolute;
+    // Normaliser l'identifiant de branche
+    const normalizedBranch = normalizeBranchKey(branchId);
+    if (!normalizedBranch) {
+      // Si pas de branche, essayer de détecter par plage de PK
+      if (pkMetric >= BRANCH_BOISSY_MIN && pkMetric <= BRANCH_BOISSY_MAX) {
+        return formatPkForUi(pkMetric - BRANCH_OFFSETS[BRANCH_IDS.BOISSY]);
+      }
+      return formatPkForUi(pkMetric);
     }
     
-    // Branche Boissy : PK relatif = PK absolu - 25000
-    // Formule inverse : PK relatif = PK absolu - BOISSY_BRANCH_OFFSET + BOISSY_PK_START
-    // = PK absolu - 31500 + 6500 = PK absolu - 25000
-    if (normalized === "boissy") {
-      return pkAbsolute - 25000;
-    }
+    // Récupérer l'offset pour cette branche (0 pour toutes sauf Boissy)
+    const offset = BRANCH_OFFSETS[normalizedBranch] || 0;
+    const pkDisplay = pkMetric - offset;
     
-    // Branche Chessy : PAS de PK relatif, on garde le PK absolu
-    if (normalized === "chessy") {
-      return pkAbsolute; // Chessy utilise les PK absolus
-    }
-    
-    // PRIORITÉ 2 : Si pas de branche explicite, détecter par plage de PK
-    if (pkAbsolute >= BRANCH_BOISSY_MIN && pkAbsolute <= BRANCH_BOISSY_MAX) {
-      return pkAbsolute - 25000; // Boissy : conversion en relatif
-    }
-    
-    // Chessy et autres : retourner le PK absolu (pas de conversion)
-    return pkAbsolute;
+    // Formater pour l'UI (ex: "9 000" ou "34 000")
+    return formatPkForUi(pkDisplay);
   }
 
-  function formatPk(pkMeters, branchKey = null) {
-    if (pkMeters == null || isNaN(pkMeters)) return "—";
+  /**
+   * Parse une chaîne de PK saisie par l'utilisateur et la convertit en PK métrique
+   * @param {string} branchId - Identifiant de la branche ('central', 'boissy', 'chessy', 'ouest')
+   * @param {string} pkInputString - PK saisi par l'utilisateur (ex: "9+000" ou "9000")
+   * @returns {number|null} - PK métrique utilisable par la géoloc/calibrations, ou null si invalide
+   */
+  function parseUserPkInput(branchId, pkInputString) {
+    if (!pkInputString) return null;
     
-    // Convertir en PK relatif avant d'afficher
-    const pkRelative = convertToRelativePk(pkMeters, branchKey);
-    const m = Math.round(pkRelative);
+    // Parser la chaîne (ex: "9+000" → 9000 ou "9000" → 9000)
+    const pkParsed = parsePkStringToNumber(pkInputString);
+    if (!Number.isFinite(pkParsed)) return null;
+    
+    // Normaliser l'identifiant de branche
+    const normalizedBranch = normalizeBranchKey(branchId);
+    if (!normalizedBranch) {
+      // Si pas de branche, essayer de détecter si c'est un PK relatif Boissy
+      // (plage typique 6500-22200) ou un PK absolu
+      if (pkParsed >= BOISSY_PK_START && pkParsed <= 22200) {
+        return pkParsed + BRANCH_OFFSETS[BRANCH_IDS.BOISSY];
+      }
+      return pkParsed; // Considérer comme PK absolu
+    }
+    
+    // Récupérer l'offset pour cette branche (BRANCH_OFFSETS[BRANCH_IDS.BOISSY] pour Boissy, 0 pour les autres)
+    const offset = BRANCH_OFFSETS[normalizedBranch] || 0;
+    const pkMetric = pkParsed + offset;
+    
+    return pkMetric;
+  }
+
+  /**
+   * Helper pour parser une chaîne PK en nombre
+   * @param {string} str - Chaîne à parser (ex: "9+000" ou "9000")
+   * @returns {number|null} - Nombre parsé ou null si invalide
+   */
+  function parsePkStringToNumber(str) {
+    if (!str) return null;
+    str = String(str).trim().replace(/\s+/g, "");
+    
+    if (/^\d+\+\d+$/.test(str)) {
+      const [km, r] = str.split("+");
+      return parseInt(km, 10) * 1000 + parseInt(r, 10);
+    } else if (/^\d+$/.test(str)) {
+      return parseInt(str, 10);
+    }
+    
+    return null;
+  }
+
+  /**
+   * Helper pour formater un PK en chaîne pour l'UI
+   * @param {number} pk - PK à formater
+   * @returns {string} - PK formaté (ex: "9 000" ou "34 000")
+   */
+  function formatPkForUi(pk) {
+    if (pk == null || isNaN(pk)) return "—";
+    const m = Math.round(pk);
     const km = Math.floor(m / 1000);
     const rest = m % 1000;
     return km + " " + rest.toString().padStart(3, "0");
   }
 
-  // Convertit un PK relatif en PK absolu selon la branche
-  // NOTE : Seule la branche Boissy utilise des PK relatifs. Chessy et tronc commun utilisent les PK absolus.
+  // === FONCTIONS DE CONVERSION (utilisent les helpers centraux) ===
+  // Ces fonctions sont conservées pour compatibilité mais utilisent maintenant getDisplayPk/parseUserPkInput
+  
+  /**
+   * Convertit un PK absolu en PK relatif selon la branche (pour compatibilité)
+   * @deprecated Utiliser getDisplayPk() directement pour l'affichage
+   */
+  function convertToRelativePk(pkAbsolute, branchKey = null) {
+    if (pkAbsolute == null || !Number.isFinite(pkAbsolute)) return pkAbsolute;
+    
+    const branch = branchKey || currentBranch;
+    const normalized = normalizeBranchKey(branch);
+    const offset = BRANCH_OFFSETS[normalized] || 0;
+    
+    return pkAbsolute - offset;
+  }
+
+  /**
+   * Formate un PK métrique pour l'affichage (utilise getDisplayPk)
+   * @param {number} pkMeters - PK métrique/absolu
+   * @param {string} branchKey - Branche (optionnel, utilise currentBranch si non fourni)
+   * @returns {string} - PK formaté pour l'UI
+   */
+  function formatPk(pkMeters, branchKey = null) {
+    const branch = branchKey || currentBranch;
+    return getDisplayPk(branch, pkMeters);
+  }
+
+  /**
+   * Convertit un PK relatif en PK absolu selon la branche (pour compatibilité)
+   * @deprecated Utiliser parseUserPkInput() directement pour la saisie
+   */
   function convertRelativeToAbsolutePk(pkRelative, branchKey = null) {
     if (pkRelative == null || !Number.isFinite(pkRelative)) return pkRelative;
     
-    // PRIORITÉ 1 : Utiliser la branche fournie ou détectée
     const branch = branchKey || currentBranch;
-    const normalized = branch ? normalizeBranchKey(branch) : null;
+    const normalized = normalizeBranchKey(branch);
+    const offset = BRANCH_OFFSETS[normalized] || 0;
     
-    // Tronc commun : PK relatif = PK absolu (pas de conversion)
-    if (normalized === "central" || (normalized === null && pkRelative <= BRANCH_COMMON_MAX)) {
-      return pkRelative;
-    }
-    
-    // Branche Boissy : PK absolu = PK relatif + 25000
-    // Formule : PK absolu = BOISSY_BRANCH_OFFSET + (PK relatif - BOISSY_PK_START)
-    // = 31500 + (PK relatif - 6500) = PK relatif + 25000
-    if (normalized === "boissy") {
-      return pkRelative + 25000;
-    }
-    
-    // Branche Chessy : PAS de PK relatif, on garde le PK tel quel (c'est déjà un absolu)
-    if (normalized === "chessy") {
-      return pkRelative; // Chessy utilise les PK absolus directement
-    }
-    
-    // PRIORITÉ 2 : Si pas de branche explicite, détecter par plage de PK
-    // Si le PK relatif est < 30000, c'est probablement un PK absolu (tronc commun ou Chessy)
-    // Si le PK relatif est entre 6500 et 22200, c'est probablement un PK relatif Boissy
-    if (pkRelative >= BOISSY_PK_START && pkRelative <= 22200) {
-      // Plage typique des PK relatifs Boissy (6500 à ~22200)
-      return pkRelative + 25000; // Boissy : conversion en absolu
-    }
-    
-    // Par défaut, considérer que c'est un PK absolu (tronc commun ou Chessy)
-    return pkRelative;
+    return pkRelative + offset;
   }
 
+  /**
+   * Parse une chaîne de PK saisie par l'utilisateur (utilise parseUserPkInput)
+   * @param {string} str - Chaîne à parser (ex: "9+000" ou "9000")
+   * @param {string} branchKey - Branche (optionnel, utilise currentBranch si non fourni)
+   * @returns {number|null} - PK métrique utilisable en interne, ou null si invalide
+   */
   function parsePkInput(str, branchKey = null) {
-    if (!str) return null;
-    str = String(str).trim().replace(/\s+/g, "");
-    let pkRelative = null;
-    
-    if (/^\d+\+\d+$/.test(str)) {
-      const [km, r] = str.split("+");
-      pkRelative = parseInt(km, 10) * 1000 + parseInt(r, 10);
-    } else if (/^\d+$/.test(str)) {
-      pkRelative = parseInt(str, 10);
-    } else {
-      return null;
-    }
-    
-    // Convertir le PK relatif saisi en PK absolu pour les calculs internes
-    return convertRelativeToAbsolutePk(pkRelative, branchKey);
+    const branch = branchKey || currentBranch;
+    return parseUserPkInput(branch, str);
   }
 
   const branchSelectionButtons = {
@@ -6985,8 +7221,10 @@ function detectBranch(lat, lon) {
         day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
       });
       const branch = entry.branch ? getBranchLabel(entry.branch) : "branche inconnue";
+      const branchKey = entry.branch || currentBranch || "central";
       const delta = Math.round(entry.offset);
-      return `<div class="recal-history-item"><strong>${date}</strong> · ${entry.pkExact != null ? "PK " + formatPk(entry.pkExact) : "PK ?"} · Offset ${delta > 0 ? '+' + delta : delta} m · ${branch}</div>`;
+      // entry.pkExact est un PK métrique, on passe la branche pour l'affichage en PK relatif Boissy
+      return `<div class="recal-history-item"><strong>${date}</strong> · ${entry.pkExact != null ? "PK " + formatPk(entry.pkExact, branchKey) : "PK ?"} · Offset ${delta > 0 ? '+' + delta : delta} m · ${branch}</div>`;
     }).join("");
     recalHistoryList.innerHTML = items;
     if (btnUndoRecal) btnUndoRecal.style.display = "inline-flex";
@@ -7289,13 +7527,15 @@ function detectBranch(lat, lon) {
     if (recalPreviewCurrent) {
       if (entry.pkRaw != null) {
         const currentEstimate = computePkWithCalibrations(entry.pkRaw, branchKey);
-        recalPreviewCurrent.textContent = Number.isFinite(currentEstimate) ? formatPk(currentEstimate) : "—";
+        recalPreviewCurrent.textContent = Number.isFinite(currentEstimate) ? formatPk(currentEstimate, branchKey) : "—";
       } else {
         recalPreviewCurrent.textContent = "—";
       }
     }
     if (recalPreviewNew) {
-      recalPreviewNew.textContent = entry.pkExact != null ? formatPk(entry.pkExact) : "—";
+      // entry.pkExact est déjà un PK métrique (retourné par parsePkInput)
+      // On doit passer la branche pour que formatPk convertisse correctement en PK relatif pour Boissy
+      recalPreviewNew.textContent = entry.pkExact != null ? formatPk(entry.pkExact, branchKey) : "—";
     }
     if (recalPreviewBranch) {
       recalPreviewBranch.textContent = getBranchLabel(branchKey);
@@ -7401,7 +7641,8 @@ function detectBranch(lat, lon) {
     }
     const offsetRounded = Math.round(appliedOffset);
     const offsetLabel = offsetRounded > 0 ? "+" + offsetRounded : String(offsetRounded);
-    const pkLabel = entry.pkExact != null ? formatPk(entry.pkExact) : "—";
+    // entry.pkExact est un PK métrique, on passe la branche pour l'affichage en PK relatif Boissy
+    const pkLabel = entry.pkExact != null ? formatPk(entry.pkExact, branchForCal) : "—";
     const branchLabel = getBranchLabel(branchForCal);
     let message = `Correction locale appliquée : ΔPK ${offsetLabel} m autour du PK ${pkLabel}. Branche : ${branchLabel}.`;
     if (!calibrationTimestamp) {
@@ -7713,6 +7954,90 @@ function detectBranch(lat, lon) {
     }
   }
 
+  // === DÉTECTION PAR VILLE (REVERSE GEOCODING) ===
+  // Cache pour éviter trop d'appels API
+  let cityDetectionCache = null;
+  let cityDetectionCacheTime = 0;
+  const CITY_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+  async function detectCityFromCoordinates(lat, lon) {
+    // Utiliser le cache si disponible
+    const now = Date.now();
+    if (cityDetectionCache && (now - cityDetectionCacheTime) < CITY_CACHE_DURATION) {
+      return cityDetectionCache;
+    }
+
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'PK-Assistant-RER-A/1.0'
+        }
+      });
+      
+      if (!response.ok) {
+        console.warn("Erreur reverse geocoding:", response.status);
+        return null;
+      }
+      
+      const data = await response.json();
+      if (data && data.address) {
+        const city = data.address.city || data.address.town || data.address.village || data.address.municipality;
+        const cityLower = city ? city.toLowerCase() : "";
+        
+        // Normaliser les noms de villes
+        let normalizedCity = null;
+        if (cityLower.includes("nogent") && cityLower.includes("marne")) {
+          normalizedCity = "Nogent-sur-Marne";
+        } else if (cityLower.includes("fontenay")) {
+          // Fontenay-sous-Bois ou Val de Fontenay - même ville mais branches différentes
+          if (cityLower.includes("val")) {
+            normalizedCity = "Val de Fontenay";
+          } else {
+            normalizedCity = "Fontenay-sous-Bois";
+          }
+        }
+        
+        cityDetectionCache = normalizedCity;
+        cityDetectionCacheTime = now;
+        return normalizedCity;
+      }
+    } catch (error) {
+      console.warn("Erreur lors du reverse geocoding:", error);
+    }
+    
+    return null;
+  }
+
+  // Fonction pour obtenir le PK et la branche depuis la ville détectée
+  function getPkFromCity(cityName) {
+    if (!cityName) return null;
+    
+    // Chercher dans la branche Boissy
+    for (const station of brancheBoissy) {
+      if (station.name === cityName) {
+        return {
+          pk: station.pk,
+          branch: "boissy",
+          station: station
+        };
+      }
+    }
+    
+    // Chercher dans la branche Chessy
+    for (const station of brancheChessy) {
+      if (station.name === cityName) {
+        return {
+          pk: station.pk,
+          branch: "chessy",
+          station: station
+        };
+      }
+    }
+    
+    return null;
+  }
+
   function handlePosition(pos) {
     const lat = pos.coords.latitude;
     const lon = pos.coords.longitude;
@@ -7751,9 +8076,117 @@ function detectBranch(lat, lon) {
       buildCalibrationPolylines();
     }
 
+    // === DÉTECTION PAR VILLE (basée sur les coordonnées GPS) ===
+    // Vérifier si on est proche de certaines villes connues pour forcer le PK
+    let cityBasedPk = null;
+    let cityBasedBranch = null;
+    
+    // Nogent-sur-Marne : lat: 48.8353972244, lon: 2.4716593319, PK 34000 (relatif 9000) sur Boissy
+    const nogentLat = 48.8353972244;
+    const nogentLon = 2.4716593319;
+    const nogentRadius = 1000; // 1 km de rayon
+    
+    // Fontenay-sous-Bois : lat: 48.84448287866945, lon: 2.464306353806553, PK 32750 (relatif 7750) sur Boissy
+    const fontenayLat = 48.84448287866945;
+    const fontenayLon = 2.464306353806553;
+    const fontenayRadius = 1000; // 1 km de rayon
+    
+    // Val de Fontenay : lat: 48.8544183594, lon: 2.4890884591, PK 34525 sur Chessy
+    const valFontenayLat = 48.8544183594;
+    const valFontenayLon = 2.4890884591;
+    const valFontenayRadius = 1000; // 1 km de rayon
+    
+    const distToNogent = distanceMeters(lat, lon, nogentLat, nogentLon);
+    const distToFontenay = distanceMeters(lat, lon, fontenayLat, fontenayLon);
+    const distToValFontenay = distanceMeters(lat, lon, valFontenayLat, valFontenayLon);
+    
+    // Priorité : Nogent > Val de Fontenay > Fontenay-sous-Bois
+    if (distToNogent < nogentRadius) {
+      cityBasedPk = 34000;
+      cityBasedBranch = "boissy";
+      console.log("✅ Nogent-sur-Marne détecté (distance:", Math.round(distToNogent), "m) → PK forcé à 34000 (relatif 9000) sur Boissy");
+    } else if (distToValFontenay < valFontenayRadius && distToValFontenay < distToFontenay) {
+      cityBasedPk = 34525;
+      cityBasedBranch = "chessy";
+      console.log("✅ Val de Fontenay détecté (distance:", Math.round(distToValFontenay), "m) → PK forcé à 34525 sur Chessy");
+    } else if (distToFontenay < fontenayRadius) {
+      cityBasedPk = 32750;
+      cityBasedBranch = "boissy";
+      console.log("✅ Fontenay-sous-Bois détecté (distance:", Math.round(distToFontenay), "m) → PK forcé à 32750 (relatif 7750) sur Boissy");
+    }
+    
+    // Détection asynchrone pour les autres villes (ne bloque pas)
+    detectCityFromCoordinates(lat, lon).then(cityName => {
+      if (cityName && !cityBasedPk) {
+        const cityPkInfo = getPkFromCity(cityName);
+        if (cityPkInfo) {
+          console.log("🏙️ Ville détectée (async):", cityName, "→ PK:", cityPkInfo.pk, "branche:", cityPkInfo.branch);
+        }
+      }
+    }).catch(err => {
+      // Ignorer les erreurs silencieusement
+    });
+
     // Variables pour stocker les projections
     let bestProj = null;
     let bestBranch = null;
+    
+    // Si on a détecté une ville connue, utiliser son PK directement
+    if (cityBasedPk != null && cityBasedBranch != null) {
+      currentBranch = cityBasedBranch;
+      bestBranch = cityBasedBranch;
+      // Créer une projection artificielle avec le PK de la ville
+      bestProj = {
+        pkProj: cityBasedPk,
+        dist: 0, // Distance supposée nulle car on est dans la ville
+        lat: lat,
+        lon: lon
+      };
+      console.log("✅ PK forcé depuis la détection de ville:", cityBasedPk, "branche:", cityBasedBranch);
+      
+      // Configurer les linePoints selon la branche
+      if (cityBasedBranch === "boissy") {
+        const safeTroncCommun = Array.isArray(troncCommun) ? troncCommun : [];
+        const safeBrancheBoissy = Array.isArray(brancheBoissy) ? brancheBoissy : [];
+        linePoints = linePointsBoissy || safeTroncCommun.concat(safeBrancheBoissy);
+      } else if (cityBasedBranch === "chessy") {
+        const safeTroncCommun = Array.isArray(troncCommun) ? troncCommun : [];
+        const safeBrancheChessy = Array.isArray(brancheChessy) ? brancheChessy : [];
+        linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
+      }
+      
+      // Passer directement au calcul du PK corrigé
+      const rawPk = cityBasedPk;
+      const correctedPk = computePkWithCalibrations(rawPk, currentBranch);
+      const nowSeconds = Date.now() / 1000;
+      
+      if (state.lastPk != null && state.lastPkTime != null) {
+        const dPk = correctedPk - state.lastPk;
+        const dt = nowSeconds - state.lastPkTime;
+        if (dt > 0.4) {
+          updateMovement(dPk, dt, lat, lon);
+        }
+      } else {
+        state.direction = null;
+        state.heading = null;
+      }
+      
+      state.lastPk = correctedPk;
+      state.lastPkTime = nowSeconds;
+      state.lastLat = lat;
+      state.lastLon = lon;
+      state.lastDist = bestProj.dist;
+      state.lastRawPk = rawPk;
+      
+      updateLegendBranchUI();
+      updatePkDisplay();
+      updateNearestStation(correctedPk, null);
+      updateNearestAccess();
+      updateMapMarker(lat, lon, correctedPk);
+      updateOrientationPanel();
+      
+      return; // Sortir de la fonction, on a déjà tout calculé
+    }
     
     // D'abord, projeter sur les deux branches pour obtenir les PKs
     // On a besoin des PKs pour appliquer la règle absolue : PK >= 34000 = Chessy (Val de Fontenay)
@@ -8001,8 +8434,27 @@ function detectBranch(lat, lon) {
     
     debugLog("Projection réussie - PK:", proj.pkProj, "distance:", proj.dist, "branche:", currentBranch);
 
+    // === DEBUG GÉOLOCALISATION : Log du résultat avec branchId et pkMetric ===
+    console.log('DEBUG_GEO_RESULT', {
+      branchId: currentBranch,
+      pkMetric: proj.pkProj,
+      lat: lat,
+      lon: lon,
+      distance: proj.dist,
+      correctedPk: null // Sera mis à jour après computePkWithCalibrations
+    });
+
     const rawPk = proj.pkProj;
     const correctedPk = computePkWithCalibrations(rawPk, currentBranch);
+    
+    // Mettre à jour le log avec le PK corrigé
+    console.log('DEBUG_GEO_RESULT (corrigé)', {
+      branchId: currentBranch,
+      pkMetric: correctedPk,
+      rawPk: rawPk,
+      lat: lat,
+      lon: lon
+    });
     const nowSeconds = Date.now() / 1000;
 
     if (state.lastPk != null && state.lastPkTime != null) {
@@ -9010,52 +9462,78 @@ function detectBranch(lat, lon) {
   // Fonction pour démarrer la sonnerie forte
   function startAlarm() {
     try {
-      // Créer un contexte audio
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      
-      // Créer un oscillateur pour générer un son
-      alarmOscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      // Configurer l'oscillateur (son aigu et fort)
-      alarmOscillator.type = 'sine';
-      alarmOscillator.frequency.setValueAtTime(ALARM_FREQUENCY, audioContext.currentTime);
-      
-      // Volume maximum (1.0 = 100%)
-      gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
-      
-      // Connecter les nœuds
-      alarmOscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      // Démarrer la sonnerie
-      alarmOscillator.start();
-      
-      // Faire varier la fréquence pour un son plus perçant (bip-bip)
-      let frequency = ALARM_FREQUENCY;
-      const frequencyVariation = 200; // Variation de fréquence
-      
-      if (smsAlarmInterval) {
-        clearInterval(smsAlarmInterval);
+      // Créer ou réutiliser le contexte audio
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
       }
       
-      smsAlarmInterval = setInterval(() => {
-        if (alarmOscillator && audioContext) {
-          // Alterner entre deux fréquences pour un effet bip-bip
-          frequency = frequency === ALARM_FREQUENCY 
-            ? ALARM_FREQUENCY + frequencyVariation 
-            : ALARM_FREQUENCY;
-          alarmOscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+      // Arrêter l'oscillateur précédent s'il existe
+      if (alarmOscillator) {
+        try {
+          alarmOscillator.stop();
+          alarmOscillator.disconnect();
+        } catch (e) {
+          // Ignorer les erreurs si l'oscillateur est déjà arrêté
         }
-      }, 500); // Changer de fréquence toutes les 500ms
-      
-      // Vibration si disponible (pour mobile)
-      if (navigator.vibrate) {
-        // Vibration continue : 200ms ON, 100ms OFF, répété
-        navigator.vibrate([200, 100, 200, 100, 200, 100, 200, 100, 200]);
+        alarmOscillator = null;
       }
       
-      console.log('🚨 Sonnerie d\'alarme activée');
+      // Reprendre le contexte audio s'il est suspendu (nécessite une interaction utilisateur)
+      const resumePromise = audioContext.state === 'suspended' 
+        ? audioContext.resume() 
+        : Promise.resolve();
+      
+      resumePromise.then(() => {
+        // Créer un oscillateur pour générer un son
+        alarmOscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        // Configurer l'oscillateur (son aigu et fort)
+        alarmOscillator.type = 'sine';
+        alarmOscillator.frequency.setValueAtTime(ALARM_FREQUENCY, audioContext.currentTime);
+        
+        // Volume maximum (1.0 = 100%)
+        gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
+        
+        // Connecter les nœuds
+        alarmOscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Démarrer la sonnerie
+        alarmOscillator.start();
+        
+        // Faire varier la fréquence pour un son plus perçant (bip-bip)
+        let frequency = ALARM_FREQUENCY;
+        const frequencyVariation = 200; // Variation de fréquence
+        
+        if (smsAlarmInterval) {
+          clearInterval(smsAlarmInterval);
+        }
+        
+        smsAlarmInterval = setInterval(() => {
+          if (alarmOscillator && audioContext) {
+            // Alterner entre deux fréquences pour un effet bip-bip
+            frequency = frequency === ALARM_FREQUENCY 
+              ? ALARM_FREQUENCY + frequencyVariation 
+              : ALARM_FREQUENCY;
+            alarmOscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+          }
+        }, 500); // Changer de fréquence toutes les 500ms
+        
+        // Vibration si disponible (pour mobile)
+        if (navigator.vibrate) {
+          // Vibration continue : 200ms ON, 100ms OFF, répété
+          navigator.vibrate([200, 100, 200, 100, 200, 100, 200, 100, 200]);
+        }
+        
+        console.log('🚨 Sonnerie d\'alarme démarrée');
+      }).catch(err => {
+        console.error('Erreur lors de la reprise de AudioContext:', err);
+        // En cas d'erreur, essayer une méthode alternative (alerte visuelle)
+        if (couvreurStatus) {
+          couvreurStatus.style.animation = 'blink 0.5s infinite';
+        }
+      });
     } catch (error) {
       console.error('Erreur lors du démarrage de la sonnerie:', error);
       // En cas d'erreur, essayer une méthode alternative (alerte visuelle)
@@ -9168,6 +9646,12 @@ function detectBranch(lat, lon) {
       return;
     }
 
+    // Si le timer SMS est actif, ne pas écraser son affichage
+    if (smsTimerStartTime && !smsSent) {
+      // Le timer SMS gère son propre affichage
+      return;
+    }
+
     couvreurStatus.style.display = "block";
     
     if (couvreurLastMovementTime == null) {
@@ -9208,6 +9692,12 @@ function detectBranch(lat, lon) {
     }
     couvreurCheckInterval = setInterval(checkCouvreurMovement, COUVREUR_CHECK_INTERVAL);
     
+    // Démarrer la mise à jour du statut toutes les secondes
+    if (couvreurStatusInterval) {
+      clearInterval(couvreurStatusInterval);
+    }
+    couvreurStatusInterval = setInterval(updateCouvreurStatus, COUVREUR_STATUS_UPDATE_INTERVAL);
+    
     // Vérifier immédiatement
     checkCouvreurMovement();
     updateCouvreurStatus();
@@ -9228,6 +9718,11 @@ function detectBranch(lat, lon) {
     if (couvreurCheckInterval) {
       clearInterval(couvreurCheckInterval);
       couvreurCheckInterval = null;
+    }
+    
+    if (couvreurStatusInterval) {
+      clearInterval(couvreurStatusInterval);
+      couvreurStatusInterval = null;
     }
     
     // Arrêter le timer SMS et la sonnerie
@@ -9696,6 +10191,18 @@ function detectBranch(lat, lon) {
   });
   }
 
+  if (btnAddIncidentToNote) {
+    btnAddIncidentToNote.addEventListener("click", addIncidentToNote);
+  }
+
+  if (btnExportIncidentsNote) {
+    btnExportIncidentsNote.addEventListener("click", exportIncidentsAsNote);
+  }
+
+  if (btnClearIncidents) {
+    btnClearIncidents.addEventListener("click", clearIncidents);
+  }
+
   // Attacher l'event listener au bouton de géolocalisation (si le bouton existe déjà)
   if (btnToggleGeoloc) {
     btnToggleGeoloc.addEventListener("click", (e) => {
@@ -9886,7 +10393,8 @@ if (btnApplyRecal && inputPkRecal) {
       setRecalMessage("Pas de position GPS pour recaler. Lance la géoloc d'abord.", "error");
       return;
     }
-    // Convertir le PK d'affichage en PK métrique si nécessaire (pour le calcul de l'offset)
+    // exactPk est déjà un PK métrique (retourné par parsePkInput qui utilise parseUserPkInput)
+    // convertDisplayPkToMetricPk gère uniquement les discontinuités (sauts PK), pas la conversion relatif/absolu
     const branchForCal = ensureBranchForPk(exactPk, BRANCH_SELECTION_CONTEXTS.recal) || (recalBranch && recalBranch !== "auto" ? recalBranch : currentBranch);
     const metricPk = convertDisplayPkToMetricPk(exactPk, branchForCal);
     const offset = metricPk - state.lastRawPk;
@@ -9896,8 +10404,8 @@ if (btnApplyRecal && inputPkRecal) {
     const hasDiscontinuity = disc != null;
     
     pendingRecal = {
-      pkExact: exactPk, // PK d'affichage (avec saut si applicable)
-      pkExactMetric: metricPk, // PK métrique (sans saut) pour le stockage interne
+      pkExact: exactPk, // PK métrique (déjà converti depuis le PK relatif saisi par l'utilisateur)
+      pkExactMetric: metricPk, // PK métrique après gestion des discontinuités (pour le stockage interne)
       pkRaw: state.lastRawPk,
       offset,
       previousOffset: pkOffset,
@@ -10680,8 +11188,46 @@ function initAccessGate() {
 loadSettings();
 loadLocalCalibrations();
 loadMapPoints();
+loadIncidents();
 updateSmsPreview();
 setGpsStatus("off");
+
+// === TEST getDisplayPk pour Boissy ===
+(function testGetDisplayPkBoissy() {
+  const testPkMetric = 31000;
+  const testBranch = BRANCH_IDS.BOISSY;
+  const pkDisplay = getDisplayPk(testBranch, testPkMetric);
+  const pkDisplayNumeric = parsePkStringToNumber(pkDisplay.replace(/\s/g, ""));
+  
+  console.log('TEST_BOISSY_31000 =', {
+    pkMetric: testPkMetric,
+    branchId: testBranch,
+    pkDisplay: pkDisplay,
+    pkDisplayNumeric: pkDisplayNumeric,
+    offset: BRANCH_OFFSETS[BRANCH_IDS.BOISSY],
+    expected: testPkMetric - BRANCH_OFFSETS[BRANCH_IDS.BOISSY],
+    isValid: pkDisplayNumeric === (testPkMetric - BRANCH_OFFSETS[BRANCH_IDS.BOISSY])
+  });
+  
+  // Test avec d'autres valeurs Boissy
+  const testCases = [
+    { pkMetric: 32750, expected: 7750 },  // Fontenay-sous-Bois
+    { pkMetric: 34000, expected: 9000 },  // Nogent-sur-Marne
+    { pkMetric: 35600, expected: 10600 }, // Joinville-le-Pont
+  ];
+  
+  testCases.forEach(test => {
+    const result = getDisplayPk(BRANCH_IDS.BOISSY, test.pkMetric);
+    const resultNum = parsePkStringToNumber(result.replace(/\s/g, ""));
+    console.log(`TEST_BOISSY_${test.pkMetric} =`, {
+      pkMetric: test.pkMetric,
+      pkDisplay: result,
+      pkDisplayNumeric: resultNum,
+      expected: test.expected,
+      isValid: resultNum === test.expected
+    });
+  });
+})();
 
 document.addEventListener("DOMContentLoaded", () => {
   initAccessGate();
