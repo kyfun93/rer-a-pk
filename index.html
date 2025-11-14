@@ -5426,6 +5426,215 @@ async function loadSharedCalibrations() {
     return "central";
   }
 
+  // Base de données des villes et leur branche associée
+  const cityBranchMap = {
+    // Branche Chessy
+    "val de fontenay": "chessy",
+    "val-de-fontenay": "chessy",
+    "neuilly-plaisance": "chessy",
+    "neuilly plaisance": "chessy",
+    "bry-sur-marne": "chessy",
+    "bry sur marne": "chessy",
+    "noisy-le-grand": "chessy",
+    "noisy le grand": "chessy",
+    "noisy-champs": "chessy",
+    "noisy champs": "chessy",
+    "noisiel": "chessy",
+    "lognes": "chessy",
+    "torcy": "chessy",
+    "bussy-saint-georges": "chessy",
+    "bussy saint georges": "chessy",
+    "val d'europe": "chessy",
+    "val-deurope": "chessy",
+    "chessy": "chessy",
+    "coupvray": "chessy",
+    "montévrain": "chessy",
+    "montévrain": "chessy",
+    "jossigny": "chessy",
+    "collégien": "chessy",
+    
+    // Branche Boissy
+    "fontenay-sous-bois": "boissy",
+    "fontenay sous bois": "boissy",
+    "fontenay": "boissy",
+    "nogent-sur-marne": "boissy",
+    "nogent sur marne": "boissy",
+    "nogent": "boissy",
+    "joinville-le-pont": "boissy",
+    "joinville le pont": "boissy",
+    "joinville": "boissy",
+    "saint-maur": "boissy",
+    "saint-maur-des-fossés": "boissy",
+    "saint maur des fosses": "boissy",
+    "champigny": "boissy",
+    "champigny-sur-marne": "boissy",
+    "la varenne": "boissy",
+    "la-varenne": "boissy",
+    "chennevières": "boissy",
+    "chennevières-sur-marne": "boissy",
+    "sucy-en-brie": "boissy",
+    "sucy en brie": "boissy",
+    "sucy": "boissy",
+    "bonneuil": "boissy",
+    "bonneuil-sur-marne": "boissy",
+    "boissy-saint-léger": "boissy",
+    "boissy saint leger": "boissy",
+    "boissy": "boissy",
+    
+    // Tronc commun (jusqu'à Vincennes)
+    "paris": "central",
+    "saint-germain-en-laye": "central",
+    "le vésinet": "central",
+    "le vesinet": "central",
+    "le pecq": "central",
+    "chatou": "central",
+    "croissy": "central",
+    "rueil-malmaison": "central",
+    "rueil malmaison": "central",
+    "nanterre": "central",
+    "la défense": "central",
+    "la defense": "central",
+    "saint-mandé": "central",
+    "saint mande": "central",
+    "vincennes": "central"
+  };
+
+  // Fonction pour déterminer la branche à partir de la ville via géocodage inverse
+  async function detectBranchFromCity(lat, lon) {
+    if (lat == null || lon == null) return null;
+    
+    try {
+      // EXCEPTION SPÉCIALE : Val de Fontenay vs Fontenay-sous-Bois
+      // Val de Fontenay (Chessy) : lat ~48.85, lon ~2.49
+      // Fontenay-sous-Bois (Boissy) : lat ~48.84, lon ~2.46
+      // On utilise les coordonnées pour les distinguer
+      if (lat >= 48.85 && lat <= 48.86 && lon >= 2.48 && lon <= 2.50) {
+        // Zone de Val de Fontenay (Chessy)
+        console.log("✅ Exception : Val de Fontenay détecté (coordonnées) → Chessy");
+        return "chessy";
+      }
+      if (lat >= 48.83 && lat <= 48.85 && lon >= 2.45 && lon <= 2.47) {
+        // Zone de Fontenay-sous-Bois (Boissy)
+        console.log("✅ Exception : Fontenay-sous-Bois détecté (coordonnées) → Boissy");
+        return "boissy";
+      }
+      
+      // Utiliser l'API de géocodage inverse du navigateur (si disponible)
+      // Sinon, utiliser une approximation basée sur les coordonnées
+      
+      // Méthode 1 : Utiliser l'API Nominatim (OpenStreetMap) - gratuite et sans clé API
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'PK-Assist RER A App' // Requis par Nominatim
+          }
+        }
+      );
+      
+      if (!response.ok) {
+        console.warn("Erreur géocodage inverse:", response.status);
+        return null;
+      }
+      
+      const data = await response.json();
+      if (!data || !data.address) {
+        return null;
+      }
+      
+      // Extraire la ville/commune de différentes façons possibles
+      const city = data.address.city || 
+                   data.address.town || 
+                   data.address.village || 
+                   data.address.municipality ||
+                   data.address.suburb ||
+                   "";
+      
+      const cityLower = city.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      
+      // EXCEPTION : Vérifier d'abord "val de fontenay" avant "fontenay" pour éviter la confusion
+      if (cityLower.includes("val de fontenay") || cityLower.includes("val-de-fontenay")) {
+        console.log("✅ Exception : Val de Fontenay détecté (nom) → Chessy");
+        return "chessy";
+      }
+      if (cityLower.includes("fontenay") && !cityLower.includes("val")) {
+        // Fontenay-sous-Bois (sans "val")
+        console.log("✅ Exception : Fontenay-sous-Bois détecté (nom) → Boissy");
+        return "boissy";
+      }
+      
+      // Chercher dans la base de données
+      for (const [key, branch] of Object.entries(cityBranchMap)) {
+        if (cityLower.includes(key) || key.includes(cityLower)) {
+          console.log("✅ Branche détectée depuis la ville:", city, "→", branch);
+          return branch;
+        }
+      }
+      
+      // Si pas trouvé, essayer avec le nom complet de l'adresse
+      const address = data.display_name || "";
+      const addressLower = address.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      
+      // EXCEPTION : Vérifier d'abord "val de fontenay" dans l'adresse complète
+      if (addressLower.includes("val de fontenay") || addressLower.includes("val-de-fontenay")) {
+        console.log("✅ Exception : Val de Fontenay détecté (adresse) → Chessy");
+        return "chessy";
+      }
+      if (addressLower.includes("fontenay") && !addressLower.includes("val")) {
+        // Fontenay-sous-Bois (sans "val")
+        console.log("✅ Exception : Fontenay-sous-Bois détecté (adresse) → Boissy");
+        return "boissy";
+      }
+      
+      for (const [key, branch] of Object.entries(cityBranchMap)) {
+        if (addressLower.includes(key)) {
+          console.log("✅ Branche détectée depuis l'adresse:", address, "→", branch);
+          return branch;
+        }
+      }
+      
+      return null;
+    } catch (err) {
+      console.warn("Erreur lors du géocodage inverse:", err);
+      // Fallback : utiliser une approximation basée sur les coordonnées
+      return detectBranchFromCoordinates(lat, lon);
+    }
+  }
+
+  // Fonction de fallback : déterminer la branche approximativement depuis les coordonnées
+  function detectBranchFromCoordinates(lat, lon) {
+    if (lat == null || lon == null) return null;
+    
+    // EXCEPTION SPÉCIALE : Val de Fontenay vs Fontenay-sous-Bois
+    // Val de Fontenay (Chessy) : lat ~48.85, lon ~2.49
+    // Fontenay-sous-Bois (Boissy) : lat ~48.84, lon ~2.46
+    if (lat >= 48.85 && lat <= 48.86 && lon >= 2.48 && lon <= 2.50) {
+      // Zone de Val de Fontenay (Chessy)
+      return "chessy";
+    }
+    if (lat >= 48.83 && lat <= 48.85 && lon >= 2.45 && lon <= 2.47) {
+      // Zone de Fontenay-sous-Bois (Boissy)
+      return "boissy";
+    }
+    
+    // Approximation basée sur la longitude
+    // Branche Chessy : longitude généralement > 2.48 (plus à l'est)
+    // Branche Boissy : longitude généralement entre 2.45 et 2.52 (plus au sud-est)
+    // Tronc commun : longitude < 2.45 (Paris et ouest)
+    
+    if (lon < 2.45) {
+      return "central"; // Tronc commun (Paris, La Défense, etc.)
+    } else if (lon > 2.48 && lat > 48.83) {
+      // Zone Chessy : plus à l'est et plus au nord
+      return "chessy";
+    } else if (lon > 2.45 && lat < 48.85) {
+      // Zone Boissy : plus au sud-est
+      return "boissy";
+    }
+    
+    return null;
+  }
+
   function determineCalibrationBranch(pk, branchHint, lat, lon) {
     let branch = branchHint;
 
@@ -5606,6 +5815,18 @@ async function loadSharedCalibrations() {
     
     // Vérification de sécurité
     if (!linePoints || linePoints.length < 2) {
+      console.warn("⚠️ projectToLine: linePoints invalide ou vide. linePoints:", linePoints, "length:", linePoints ? linePoints.length : 0);
+      return best;
+    }
+    
+    // Compter les points valides (avec GPS)
+    let validPointsCount = 0;
+    for (const pt of linePoints) {
+      if (pt.lat != null && pt.lon != null) validPointsCount++;
+    }
+    
+    if (validPointsCount < 2) {
+      console.warn("⚠️ projectToLine: Pas assez de points avec GPS. Valid:", validPointsCount, "Total:", linePoints.length, "branche:", currentBranch);
       return best;
     }
     
@@ -5621,6 +5842,12 @@ async function loadSharedCalibrations() {
       if (res.dist < best.dist) {
         best = { dist: res.dist, pkProj: res.pkProj, latProj: res.latProj, lonProj: res.lonProj };
       }
+    }
+    
+    // Si aucune projection n'a été trouvée, c'est un problème
+    if (best.pkProj == null) {
+      console.warn("⚠️ projectToLine: Aucune projection trouvée. linePoints.length:", linePoints.length, "validPoints:", validPointsCount, "branche:", currentBranch);
+      return best;
     }
     
     // Méthode 2 : Interpolation pondérée basée sur TOUS les points GPS connus (affinage)
@@ -7499,9 +7726,20 @@ function detectBranch(lat, lon) {
     if (!linePointsBoissy || !linePointsChessy) {
       buildCalibrationPolylines();
     }
+    
+    // Vérifier que les polylignes sont bien construites
+    if (!linePointsBoissy || linePointsBoissy.length < 2) {
+      console.warn("⚠️ linePointsBoissy invalide, reconstruction...");
+      buildCalibrationPolylines();
+    }
+    if (!linePointsChessy || linePointsChessy.length < 2) {
+      console.warn("⚠️ linePointsChessy invalide, reconstruction...");
+      buildCalibrationPolylines();
+    }
 
     // Variables pour stocker les projections
     let bestProj = null;
+    let bestBranch = null;
     
     // D'abord, projeter sur les deux branches pour obtenir les PKs
     // On a besoin des PKs pour appliquer la règle absolue : PK >= 34000 = Chessy (Val de Fontenay)
@@ -7509,9 +7747,20 @@ function detectBranch(lat, lon) {
     const safeTroncCommun = Array.isArray(troncCommun) ? troncCommun : [];
     const safeBrancheBoissy = Array.isArray(brancheBoissy) ? brancheBoissy : [];
     const safeBrancheChessy = Array.isArray(brancheChessy) ? brancheChessy : [];
+    
+    // Utiliser les polylignes calibrées si disponibles, sinon les polylignes de base
     linePoints = linePointsBoissy || safeTroncCommun.concat(safeBrancheBoissy);
+    if (!linePoints || linePoints.length < 2) {
+      console.warn("⚠️ linePoints Boissy invalide pour projection");
+      linePoints = safeTroncCommun.concat(safeBrancheBoissy);
+    }
     const projBoissyTemp = projectToLine(lat, lon);
+    
     linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
+    if (!linePoints || linePoints.length < 2) {
+      console.warn("⚠️ linePoints Chessy invalide pour projection");
+      linePoints = safeTroncCommun.concat(safeBrancheChessy);
+    }
     const projChessyTemp = projectToLine(lat, lon);
     linePoints = savedLinePoints;
     
@@ -7572,15 +7821,53 @@ function detectBranch(lat, lon) {
     
     // Si pas d'override ou override annulé, détecter automatiquement
     if ((!manualBranchOverride || manualBranchOverride === "auto" || manualBranchOverride === null) && !bestProj) {
-      // Utiliser les projections déjà calculées
-      const projBoissy = projBoissyTemp;
-      const projChessy = projChessyTemp;
+      // NOUVELLE MÉTHODE : Détecter la branche depuis les coordonnées (synchrone)
+      // C'est plus fiable que la projection GPS seule, surtout si la projection donne toujours 35000
+      const coordDetectedBranch = detectBranchFromCoordinates(lat, lon);
+      if (coordDetectedBranch) {
+        debugLog("🏙️ Branche détectée depuis les coordonnées:", coordDetectedBranch);
+        // Si on a détecté une branche depuis les coordonnées, l'utiliser en priorité
+        if (coordDetectedBranch === "chessy" && projChessyTemp && projChessyTemp.pkProj != null) {
+          bestBranch = "chessy";
+          bestProj = projChessyTemp;
+          debugLog("✅ Utilisation de la branche Chessy détectée depuis les coordonnées");
+        } else if (coordDetectedBranch === "boissy" && projBoissyTemp && projBoissyTemp.pkProj != null) {
+          bestBranch = "boissy";
+          bestProj = projBoissyTemp;
+          debugLog("✅ Utilisation de la branche Boissy détectée depuis les coordonnées");
+        } else if (coordDetectedBranch === "central") {
+          bestBranch = "central";
+          linePoints = safeTroncCommun.slice();
+          bestProj = projectToLine(lat, lon);
+          debugLog("✅ Utilisation du tronc commun détecté depuis les coordonnées");
+        }
+      }
       
-      // Choisir la meilleure branche selon :
-      // 1. La distance à la voie (plus proche = mieux)
-      // 2. La cohérence du PK avec les gares de la branche
-      let bestBranch = "chessy"; // Par défaut
-      bestProj = projChessy;
+      // Améliorer la détection en arrière-plan avec le géocodage inverse (asynchrone)
+      detectBranchFromCity(lat, lon).then(cityDetectedBranch => {
+        if (cityDetectedBranch && cityDetectedBranch !== coordDetectedBranch) {
+          console.log("🏙️ Branche détectée depuis la ville (amélioration):", cityDetectedBranch);
+          // On pourrait utiliser cette info pour la prochaine mise à jour
+        }
+      }).catch(err => {
+        // Ignorer les erreurs silencieusement
+      });
+      
+      // Si la détection par coordonnées n'a pas fonctionné, utiliser les projections GPS
+      if (!bestProj) {
+        // Utiliser les projections déjà calculées
+        const projBoissy = projBoissyTemp;
+        const projChessy = projChessyTemp;
+        
+        // Choisir la meilleure branche selon :
+        // 1. La distance à la voie (plus proche = mieux)
+        // 2. La cohérence du PK avec les gares de la branche
+        if (!bestBranch) {
+          bestBranch = "chessy"; // Par défaut
+        }
+        if (!bestProj) {
+          bestProj = projChessy;
+        }
       
       if (projBoissy.pkProj != null && projChessy.pkProj != null) {
         const pkBoissy = projBoissy.pkProj;
@@ -7703,6 +7990,19 @@ function detectBranch(lat, lon) {
       console.warn("projectToLine a retourné null. linePoints:", linePoints ? linePoints.length : 0, "currentBranch:", currentBranch);
       return;
     }
+    
+    // Vérification : si le PK projeté est exactement 35000, c'est suspect (point d'accès sans GPS)
+    if (proj.pkProj === 35000) {
+      console.warn("⚠️ PK projeté = 35000 (point d'accès suspect). Vérification de la projection...");
+      console.warn("  linePoints.length:", linePoints ? linePoints.length : 0);
+      console.warn("  currentBranch:", currentBranch);
+      console.warn("  proj.dist:", proj.dist);
+      // Forcer un recalcul si la distance est trop grande
+      if (proj.dist > 1000) {
+        console.warn("  Distance trop grande, projection probablement incorrecte");
+      }
+    }
+    
     debugLog("Projection réussie - PK:", proj.pkProj, "distance:", proj.dist, "branche:", currentBranch);
 
     const rawPk = proj.pkProj;
