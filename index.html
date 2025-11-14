@@ -5942,19 +5942,32 @@ function buildCalibrationPolylines() {
   calibBoissy.sort((a, b) => a.pk - b.pk);
   calibChessy.sort((a, b) => a.pk - b.pk);
 
+  // Vérification de sécurité : s'assurer que troncCommun, brancheBoissy et brancheChessy sont des tableaux
+  const safeTroncCommun = Array.isArray(troncCommun) ? troncCommun : [];
+  const safeBrancheBoissy = Array.isArray(brancheBoissy) ? brancheBoissy : [];
+  const safeBrancheChessy = Array.isArray(brancheChessy) ? brancheChessy : [];
+
   // Poly-ligne calibrée Boissy = tronc commun + branche Boissy + points de calibration
-  linePointsBoissy = troncCommun
-    .concat(calibTronc, brancheBoissy, calibBoissy)
+  linePointsBoissy = safeTroncCommun
+    .concat(calibTronc, safeBrancheBoissy, calibBoissy)
     .sort((a, b) => a.pk - b.pk);
 
   // Poly-ligne calibrée Chessy = tronc commun + branche Chessy + points de calibration
-  linePointsChessy = troncCommun
-    .concat(calibTronc, brancheChessy, calibChessy)
+  linePointsChessy = safeTroncCommun
+    .concat(calibTronc, safeBrancheChessy, calibChessy)
     .sort((a, b) => a.pk - b.pk);
+  
+  // S'assurer que les tableaux ne sont jamais null (au moins des tableaux vides)
+  if (!Array.isArray(linePointsBoissy)) {
+    linePointsBoissy = safeTroncCommun.concat(safeBrancheBoissy);
+  }
+  if (!Array.isArray(linePointsChessy)) {
+    linePointsChessy = safeTroncCommun.concat(safeBrancheChessy);
+  }
   
   // Initialiser linePoints par défaut si pas encore défini
   if (!linePoints || linePoints.length === 0) {
-    linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+    linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
     console.log("linePoints initialisé par défaut (Chessy), longueur:", linePoints.length);
   }
   
@@ -5964,12 +5977,29 @@ function buildCalibrationPolylines() {
   function findNearestStation(pk, branch) {
     if (pk == null) return null;
     let list;
+    const safeTroncCommun = Array.isArray(troncCommun) ? troncCommun : [];
+    const safeBrancheBoissy = Array.isArray(brancheBoissy) ? brancheBoissy : [];
+    const safeBrancheChessy = Array.isArray(brancheChessy) ? brancheChessy : [];
+    
     if (branch === "boissy") {
-      list = troncCommun.concat(brancheBoissy);
+      list = safeTroncCommun.concat(safeBrancheBoissy);
     } else if (branch === "chessy") {
-      list = troncCommun.concat(brancheChessy);
+      list = safeTroncCommun.concat(safeBrancheChessy);
     } else {
-      list = stations;
+      // Pour "both" ou "central", utiliser toutes les stations mais filtrer intelligemment
+      // Si PK > 30000, on est probablement sur une branche, donc filtrer selon le PK
+      if (pk > BRANCH_COMMON_MAX) {
+        // Déterminer la branche selon le PK
+        if (pk >= BRANCH_CHESSY_MIN) {
+          list = safeTroncCommun.concat(safeBrancheChessy);
+        } else if (pk >= BRANCH_BOISSY_MIN) {
+          list = safeTroncCommun.concat(safeBrancheBoissy);
+        } else {
+          list = stations;
+        }
+      } else {
+        list = stations;
+      }
     }
     let best = null;
     let bestDiff = Infinity;
@@ -6417,12 +6447,29 @@ function buildCalibrationPolylines() {
   function findNextStation(pk, direction, branch) {
     if (pk == null) return null;
     let arr;
+    const safeTroncCommun = Array.isArray(troncCommun) ? troncCommun : [];
+    const safeBrancheBoissy = Array.isArray(brancheBoissy) ? brancheBoissy : [];
+    const safeBrancheChessy = Array.isArray(brancheChessy) ? brancheChessy : [];
+    
     if (branch === "boissy") {
-      arr = troncCommun.concat(brancheBoissy);
+      arr = safeTroncCommun.concat(safeBrancheBoissy);
     } else if (branch === "chessy") {
-      arr = troncCommun.concat(brancheChessy);
+      arr = safeTroncCommun.concat(safeBrancheChessy);
     } else {
-      arr = stations;
+      // Pour "both" ou "central", utiliser toutes les stations mais filtrer intelligemment
+      // Si PK > 30000, on est probablement sur une branche, donc filtrer selon le PK
+      if (pk > BRANCH_COMMON_MAX) {
+        // Déterminer la branche selon le PK
+        if (pk >= BRANCH_CHESSY_MIN) {
+          arr = safeTroncCommun.concat(safeBrancheChessy);
+        } else if (pk >= BRANCH_BOISSY_MIN) {
+          arr = safeTroncCommun.concat(safeBrancheBoissy);
+        } else {
+          arr = stations;
+        }
+      } else {
+        arr = stations;
+      }
     }
 
     let candidates;
@@ -6445,8 +6492,11 @@ function detectBranch(lat, lon) {
   // S'assure que les polylignes calibrées sont prêtes
   buildCalibrationPolylines();
 
-  // Vérification de sécurité : si les polylignes ne sont pas initialisées, on utilise les valeurs par défaut
-  if (!linePointsBoissy || !linePointsChessy || !troncCommun || troncCommun.length < 2) {
+  // Vérification de sécurité : si les polylignes ne sont pas initialisées ou ont moins de 2 éléments, on utilise les valeurs par défaut
+  if (!linePointsBoissy || !linePointsChessy || !troncCommun || 
+      troncCommun.length < 2 || 
+      linePointsBoissy.length < 2 || 
+      linePointsChessy.length < 2) {
     return "both";
   }
 
@@ -6910,12 +6960,15 @@ function detectBranch(lat, lon) {
       debugLog("✅ Override manuel défini:", branchKey, "currentBranch:", currentBranch);
       
       // Mettre à jour linePoints immédiatement
+      const safeTroncCommun = Array.isArray(troncCommun) ? troncCommun : [];
+      const safeBrancheBoissy = Array.isArray(brancheBoissy) ? brancheBoissy : [];
+      const safeBrancheChessy = Array.isArray(brancheChessy) ? brancheChessy : [];
       if (branchKey === 'boissy') {
-        linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+        linePoints = linePointsBoissy || safeTroncCommun.concat(safeBrancheBoissy);
       } else if (branchKey === 'chessy') {
-        linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+        linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
       } else if (branchKey === 'central') {
-        linePoints = troncCommun.slice();
+        linePoints = safeTroncCommun.slice();
       }
       debugLog("linePoints mis à jour pour", branchKey, ", longueur:", linePoints ? linePoints.length : 0);
       
@@ -7453,9 +7506,12 @@ function detectBranch(lat, lon) {
     // D'abord, projeter sur les deux branches pour obtenir les PKs
     // On a besoin des PKs pour appliquer la règle absolue : PK >= 34000 = Chessy (Val de Fontenay)
     const savedLinePoints = linePoints;
-    linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+    const safeTroncCommun = Array.isArray(troncCommun) ? troncCommun : [];
+    const safeBrancheBoissy = Array.isArray(brancheBoissy) ? brancheBoissy : [];
+    const safeBrancheChessy = Array.isArray(brancheChessy) ? brancheChessy : [];
+    linePoints = linePointsBoissy || safeTroncCommun.concat(safeBrancheBoissy);
     const projBoissyTemp = projectToLine(lat, lon);
-    linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+    linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
     const projChessyTemp = projectToLine(lat, lon);
     linePoints = savedLinePoints;
     
@@ -7464,20 +7520,20 @@ function detectBranch(lat, lon) {
     if (projChessyTemp && projChessyTemp.pkProj != null && projChessyTemp.pkProj >= BRANCH_CHESSY_MIN) {
       debugLog("🔴 RÈGLE ABSOLUE : PK", projChessyTemp.pkProj, ">= 34000 → FORCÉMENT Chessy (ex: Val de Fontenay, Noisy-Champs)");
       currentBranch = "chessy";
-      linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+      linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
       bestProj = projChessyTemp;
       console.log("✅ Branche Chessy forcée, PK:", bestProj.pkProj);
     } else if (manualBranchOverride && manualBranchOverride !== "auto" && manualBranchOverride !== null) {
       // Si pas de règle absolue, vérifier l'override manuel
       let testProj = null;
       if (manualBranchOverride === "boissy") {
-        linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+        linePoints = linePointsBoissy || safeTroncCommun.concat(safeBrancheBoissy);
         testProj = projectToLine(lat, lon);
       } else if (manualBranchOverride === "chessy") {
-        linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+        linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
         testProj = projectToLine(lat, lon);
       } else if (manualBranchOverride === "central") {
-        linePoints = troncCommun.slice();
+        linePoints = safeTroncCommun.slice();
         testProj = projectToLine(lat, lon);
       }
       linePoints = savedLinePoints;
@@ -7498,13 +7554,13 @@ function detectBranch(lat, lon) {
         
         // Utiliser la projection correspondante à l'override
         if (manualBranchOverride === "boissy") {
-          linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+          linePoints = linePointsBoissy || safeTroncCommun.concat(safeBrancheBoissy);
           bestProj = testProj;
         } else if (manualBranchOverride === "chessy") {
-          linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+          linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
           bestProj = testProj;
         } else if (manualBranchOverride === "central") {
-          linePoints = troncCommun.slice();
+          linePoints = safeTroncCommun.slice();
           bestProj = testProj;
         }
         
@@ -7615,17 +7671,17 @@ function detectBranch(lat, lon) {
 
     // On choisit la bonne poly-ligne pour la projection PK finale
     if (currentBranch === "boissy") {
-      linePoints = linePointsBoissy || troncCommun.concat(brancheBoissy);
+      linePoints = linePointsBoissy || safeTroncCommun.concat(safeBrancheBoissy);
       debugLog("Utilisation de la polyligne Boissy, longueur:", linePoints.length);
     } else if (currentBranch === "chessy") {
-      linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+      linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
       debugLog("Utilisation de la polyligne Chessy, longueur:", linePoints.length);
     } else if (currentBranch === "central") {
-      linePoints = troncCommun.slice();
+      linePoints = safeTroncCommun.slice();
       debugLog("Utilisation du tronc commun uniquement, longueur:", linePoints.length);
     } else {
       // Sécurité : si "both" ou autre, on reste sur Chessy par défaut
-      linePoints = linePointsChessy || troncCommun.concat(brancheChessy);
+      linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
       debugLog("Branche inconnue, utilisation de Chessy par défaut, longueur:", linePoints.length);
     }
     updateLegendBranchUI();
@@ -7770,7 +7826,23 @@ function detectBranch(lat, lon) {
     }
     nextStationName.textContent = next.name;
     const delta = Math.round(Math.abs(next.pk - pk));
-    const dir = next.pk >= pk ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
+    
+    // Déterminer la direction de manière plus précise selon la branche
+    let dir;
+    if (next.pk >= pk) {
+      // On va vers l'est
+      if (pk >= BRANCH_CHESSY_MIN || (currentBranch === "chessy" && pk > BRANCH_COMMON_MAX)) {
+        dir = "vers Chessy";
+      } else if (pk >= BRANCH_BOISSY_MIN || (currentBranch === "boissy" && pk > BRANCH_COMMON_MAX)) {
+        dir = "vers Boissy";
+      } else {
+        dir = "vers Chessy / Boissy";
+      }
+    } else {
+      // On va vers l'ouest
+      dir = "vers St-Germain / Paris";
+    }
+    
     nextStationInfo.textContent =
       "PK " + formatPk(next.pk) + " · ≈ " + delta + " m " + dir;
   }
