@@ -7868,43 +7868,44 @@ function detectBranch(lat, lon) {
         if (!bestProj) {
           bestProj = projChessy;
         }
-      
-      if (projBoissy.pkProj != null && projChessy.pkProj != null) {
-        const pkBoissy = projBoissy.pkProj;
-        const pkChessy = projChessy.pkProj;
         
-        // Si le PK est > 30000, on est forcément sur une branche
-        if (pkBoissy > BRANCH_COMMON_MAX && pkChessy > BRANCH_COMMON_MAX) {
-          // PRIORITÉ 1 : Si le PK Chessy est >= 34000, on est sur Chessy (règle absolue)
-          // Val de Fontenay est à PK 34000, Noisy-Champs à PK 41000, donc Chessy
-          if (pkChessy >= BRANCH_CHESSY_MIN) {
-            bestBranch = "chessy";
-            bestProj = projChessy;
-            debugLog("✅ Chessy choisi : PK", pkChessy, ">= 34000 (branche Chessy) - Ex: Val de Fontenay, Noisy-Champs");
-          } else if (pkBoissy < BRANCH_CHESSY_MIN && pkChessy < BRANCH_CHESSY_MIN) {
-            // PK entre 30000 et 34000 (zone de transition après Vincennes), utiliser la distance à la voie
-            if (projChessy.dist < projBoissy.dist) {
+        if (projBoissy.pkProj != null && projChessy.pkProj != null) {
+          const pkBoissy = projBoissy.pkProj;
+          const pkChessy = projChessy.pkProj;
+          
+          // Si le PK est > 30000, on est forcément sur une branche
+          if (pkBoissy > BRANCH_COMMON_MAX && pkChessy > BRANCH_COMMON_MAX) {
+            // PRIORITÉ 1 : Si le PK Chessy est >= 34000, on est sur Chessy (règle absolue)
+            // Val de Fontenay est à PK 34000, Noisy-Champs à PK 41000, donc Chessy
+            if (pkChessy >= BRANCH_CHESSY_MIN) {
               bestBranch = "chessy";
               bestProj = projChessy;
-              const distDiff = projBoissy.dist - projChessy.dist;
-              debugLog("✅ Chessy choisi : plus proche de la voie (", projChessy.dist, "m vs", projBoissy.dist, "m, diff:", distDiff.toFixed(1), "m)");
+              debugLog("✅ Chessy choisi : PK", pkChessy, ">= 34000 (branche Chessy) - Ex: Val de Fontenay, Noisy-Champs");
+            } else if (pkBoissy < BRANCH_CHESSY_MIN && pkChessy < BRANCH_CHESSY_MIN) {
+              // PK entre 30000 et 34000 (zone de transition après Vincennes), utiliser la distance à la voie
+              if (projChessy.dist < projBoissy.dist) {
+                bestBranch = "chessy";
+                bestProj = projChessy;
+                const distDiff = projBoissy.dist - projChessy.dist;
+                debugLog("✅ Chessy choisi : plus proche de la voie (", projChessy.dist, "m vs", projBoissy.dist, "m, diff:", distDiff.toFixed(1), "m)");
+              } else {
+                bestBranch = "boissy";
+                bestProj = projBoissy;
+                const distDiff = projChessy.dist - projBoissy.dist;
+                debugLog("✅ Boissy choisi : plus proche de la voie (", projBoissy.dist, "m vs", projChessy.dist, "m, diff:", distDiff.toFixed(1), "m)");
+              }
             } else {
-              bestBranch = "boissy";
-              bestProj = projBoissy;
-              const distDiff = projChessy.dist - projBoissy.dist;
-              debugLog("✅ Boissy choisi : plus proche de la voie (", projBoissy.dist, "m vs", projChessy.dist, "m, diff:", distDiff.toFixed(1), "m)");
-            }
-          } else {
-            // PK Boissy < 34000 mais Chessy >= 34000 : on choisit Chessy
-            // Ou PK Boissy >= 32750 : Boissy (Fontenay-sous-Bois)
-            if (pkBoissy >= BRANCH_BOISSY_MIN) {
-              bestBranch = "boissy";
-              bestProj = projBoissy;
-              debugLog("✅ Boissy choisi : PK", pkBoissy, ">= 32750 (branche Boissy - Fontenay-sous-Bois)");
-            } else {
-              bestBranch = "chessy";
-              bestProj = projChessy;
-              debugLog("✅ Chessy choisi : PK", pkChessy, ">= 34000 (branche Chessy)");
+              // PK Boissy < 34000 mais Chessy >= 34000 : on choisit Chessy
+              // Ou PK Boissy >= 32750 : Boissy (Fontenay-sous-Bois)
+              if (pkBoissy >= BRANCH_BOISSY_MIN) {
+                bestBranch = "boissy";
+                bestProj = projBoissy;
+                debugLog("✅ Boissy choisi : PK", pkBoissy, ">= 32750 (branche Boissy - Fontenay-sous-Bois)");
+              } else {
+                bestBranch = "chessy";
+                bestProj = projChessy;
+                debugLog("✅ Chessy choisi : PK", pkChessy, ">= 34000 (branche Chessy)");
+              }
             }
           }
         } else if (pkBoissy > BRANCH_COMMON_MAX && pkChessy <= BRANCH_COMMON_MAX) {
@@ -7927,12 +7928,12 @@ function detectBranch(lat, lon) {
           // Comparer les distances pour choisir la meilleure projection
           if (projChessy.dist < projBoissy.dist) {
             bestBranch = "central";
-            linePoints = troncCommun.slice();
+            linePoints = safeTroncCommun.slice();
             bestProj = projectToLine(lat, lon);
             debugLog("✅ Tronc commun choisi (PK <= 30000), Chessy plus proche (", projChessy.dist, "m vs", projBoissy.dist, "m)");
           } else {
             bestBranch = "central";
-            linePoints = troncCommun.slice();
+            linePoints = safeTroncCommun.slice();
             bestProj = projectToLine(lat, lon);
             debugLog("✅ Tronc commun choisi (PK <= 30000), Boissy plus proche (", projBoissy.dist, "m vs", projChessy.dist, "m)");
           }
@@ -7946,14 +7947,34 @@ function detectBranch(lat, lon) {
       } else {
         // Aucune projection valide, utiliser la détection GPS
         const detectedBranch = detectBranch(lat, lon);
-        currentBranch = detectedBranch === "both" ? "central" : detectedBranch;
-        console.log("Aucune projection valide, utilisation de la détection GPS:", currentBranch);
+        bestBranch = detectedBranch === "both" ? "central" : detectedBranch;
+        console.log("Aucune projection valide, utilisation de la détection GPS:", bestBranch);
       }
       
-      currentBranch = bestBranch;
-      console.log("Branche déterminée par comparaison des projections:", currentBranch, 
-                  "PK Boissy:", projBoissy.pkProj, "dist:", projBoissy.dist,
-                  "PK Chessy:", projChessy.pkProj, "dist:", projChessy.dist);
+      if (bestBranch) {
+        currentBranch = bestBranch;
+        console.log("Branche déterminée par comparaison des projections:", currentBranch, 
+                    "PK Boissy:", projBoissyTemp?.pkProj, "dist:", projBoissyTemp?.dist,
+                    "PK Chessy:", projChessyTemp?.pkProj, "dist:", projChessyTemp?.dist);
+      }
+    }
+    
+    // S'assurer que currentBranch est défini même si bestBranch n'a pas été défini
+    if (!currentBranch || (bestProj && !bestBranch)) {
+      // Si on a une projection mais pas de branche, déterminer la branche depuis la projection
+      if (bestProj && bestProj.pkProj != null) {
+        if (bestProj.pkProj >= BRANCH_CHESSY_MIN) {
+          currentBranch = "chessy";
+        } else if (bestProj.pkProj >= BRANCH_BOISSY_MIN) {
+          currentBranch = "boissy";
+        } else if (bestProj.pkProj <= BRANCH_COMMON_MAX) {
+          currentBranch = "central";
+        } else {
+          currentBranch = "chessy"; // Par défaut
+        }
+      } else if (!currentBranch) {
+        currentBranch = "chessy"; // Par défaut
+      }
     }
 
     // On choisit la bonne poly-ligne pour la projection PK finale
