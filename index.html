@@ -4693,11 +4693,16 @@ const BRANCH_OPTION_LABELS = {
   let smsTimerEndTime = null; // Timestamp de la fin du timer SMS (quand le SMS est envoyé)
   let smsTimerInterval = null; // Intervalle pour mettre à jour l'affichage du timer
   let smsAlarmInterval = null; // Intervalle pour la sonnerie
+  let smsAlarmKeepAliveInterval = null; // Intervalle pour maintenir l'alarme active
   let audioContext = null; // Contexte audio pour la sonnerie
   let alarmOscillator = null; // Oscillateur pour la sonnerie
+  let alarmGainNode = null; // Gain node pour l'alarme
   let smsSent = false; // Indique si le SMS a été envoyé
+  let alarmActive = false; // Indique si l'alarme est active
+  let notificationPermission = null; // Permission pour les notifications
   const SMS_TIMER_DELAY = 30 * 1000; // 30 secondes avant de déclencher la sonnerie
   const ALARM_FREQUENCY = 800; // Fréquence de la sonnerie (Hz)
+  const ALARM_DURATION = 0.5; // Durée de chaque bip en secondes (pour recréer l'oscillateur)
   
 
   // === AJOUT CALIBRAGE : stockage des recalages locaux + fichier partagé ===
@@ -9358,7 +9363,31 @@ function detectBranch(lat, lon) {
     }
   }
 
-  // Fonction pour démarrer le timer SMS
+  // Fonction pour mettre à jour l'affichage du timer SMS
+  function updateSmsTimerDisplay() {
+    if (!smsTimerStartTime || smsSent) return;
+    
+    // Utiliser Date.now() pour calculer le temps écoulé réel, même si les timers sont suspendus
+    const elapsed = Date.now() - smsTimerStartTime;
+    const seconds = Math.floor(elapsed / 1000);
+    
+    // Mettre à jour le statut avec le temps écoulé
+    if (couvreurStatus) {
+      if (elapsed < SMS_TIMER_DELAY) {
+        const remaining = Math.ceil((SMS_TIMER_DELAY - elapsed) / 1000);
+        couvreurStatus.textContent = `⚠️ SMS ouvert - ${seconds}s écoulées - Sonnerie dans ${remaining}s`;
+        couvreurStatus.style.color = '#ff9800';
+      } else {
+        // Déclencher la sonnerie si le SMS n'a pas été envoyé après 30 secondes
+        if (!alarmOscillator) {
+          startAlarm();
+        }
+        couvreurStatus.textContent = `🚨 SONNERIE ACTIVE - ${seconds}s écoulées - Envoyez le SMS pour arrêter`;
+        couvreurStatus.style.color = '#f44336';
+      }
+    }
+  }
+
   function startSmsTimer() {
     smsTimerStartTime = Date.now();
     smsTimerEndTime = null;
@@ -9373,6 +9402,7 @@ function detectBranch(lat, lon) {
     let lastBlurTime = Date.now();
     let blurListener = null;
     let focusListener = null;
+    let visibilityListener = null;
     
     // Écouter le blur (quand l'utilisateur quitte la page)
     blurListener = () => {
@@ -9389,31 +9419,43 @@ function detectBranch(lat, lon) {
         // Nettoyer les listeners
         if (blurListener) window.removeEventListener('blur', blurListener);
         if (focusListener) window.removeEventListener('focus', focusListener);
+        if (visibilityListener) document.removeEventListener('visibilitychange', visibilityListener);
+      } else {
+        // Mettre à jour immédiatement l'affichage quand on revient au premier plan
+        updateSmsTimerDisplay();
+        // Reprendre l'audio context si nécessaire
+        if (alarmOscillator && audioContext && audioContext.state === 'suspended') {
+          audioContext.resume().catch(err => console.error('Erreur reprise AudioContext:', err));
+        }
       }
     };
     window.addEventListener('focus', focusListener);
     
-    smsTimerInterval = setInterval(() => {
-      if (!smsTimerStartTime || smsSent) return;
-      
-      const elapsed = Date.now() - smsTimerStartTime;
-      const seconds = Math.floor(elapsed / 1000);
-      
-      // Mettre à jour le statut avec le temps écoulé
-      if (couvreurStatus) {
-        if (elapsed < SMS_TIMER_DELAY) {
-          const remaining = Math.ceil((SMS_TIMER_DELAY - elapsed) / 1000);
-          couvreurStatus.textContent = `⚠️ SMS ouvert - ${seconds}s écoulées - Sonnerie dans ${remaining}s`;
-          couvreurStatus.style.color = '#ff9800';
-        } else {
-          // Déclencher la sonnerie si le SMS n'a pas été envoyé après 30 secondes
-          if (!alarmOscillator) {
-            startAlarm();
+    // Écouter les changements de visibilité (Page Visibility API) pour gérer les cas où la page passe en arrière-plan
+    visibilityListener = () => {
+      if (!document.hidden) {
+        // La page revient au premier plan : mettre à jour immédiatement l'affichage
+        updateSmsTimerDisplay();
+        // Reprendre l'audio context et l'alarme si nécessaire
+        if (alarmActive && audioContext) {
+          if (audioContext.state === 'suspended') {
+            audioContext.resume().catch(err => console.error('Erreur reprise AudioContext:', err));
           }
-          couvreurStatus.textContent = `🚨 SONNERIE ACTIVE - ${seconds}s écoulées - Envoyez le SMS pour arrêter`;
-          couvreurStatus.style.color = '#f44336';
+          // S'assurer que l'oscillateur continue de fonctionner
+          if (alarmActive) {
+            maintainAlarmOscillator();
+          }
         }
       }
+    };
+    document.addEventListener('visibilitychange', visibilityListener);
+    
+    // Mettre à jour immédiatement
+    updateSmsTimerDisplay();
+    
+    // Mettre à jour toutes les secondes (même si suspendu en arrière-plan, le calcul sera correct au retour)
+    smsTimerInterval = setInterval(() => {
+      updateSmsTimerDisplay();
     }, 1000); // Mise à jour toutes les secondes
   }
   // Fonction pour marquer le SMS comme envoyé et arrêter le timer
@@ -9459,12 +9501,22 @@ function detectBranch(lat, lon) {
     }
     // Ne pas réinitialiser smsTimerStartTime et smsTimerEndTime pour garder l'information
   }
-  // Fonction pour démarrer la sonnerie forte
-  function startAlarm() {
+  // Fonction pour maintenir l'oscillateur actif (sonnerie continue)
+  function maintainAlarmOscillator() {
+    if (!alarmActive || !audioContext) return;
+    
     try {
-      // Créer ou réutiliser le contexte audio
-      if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      // Reprendre l'audio context s'il est suspendu
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(err => console.error('Erreur reprise AudioContext:', err));
+      }
+      
+      // Si l'oscillateur existe et que l'audio context est actif, vérifier qu'il fonctionne toujours
+      // Note: les oscillateurs Web Audio continuent indéfiniment jusqu'à stop(), donc on ne recrée que si nécessaire
+      if (alarmOscillator && audioContext.state === 'running') {
+        // L'oscillateur existe et l'audio context est actif, il devrait continuer
+        // On ne fait rien sauf si on détecte un problème
+        return;
       }
       
       // Arrêter l'oscillateur précédent s'il existe
@@ -9473,77 +9525,197 @@ function detectBranch(lat, lon) {
           alarmOscillator.stop();
           alarmOscillator.disconnect();
         } catch (e) {
-          // Ignorer les erreurs si l'oscillateur est déjà arrêté
+          // Ignorer les erreurs
         }
         alarmOscillator = null;
       }
       
-      // Reprendre le contexte audio s'il est suspendu (nécessite une interaction utilisateur)
-      const resumePromise = audioContext.state === 'suspended' 
-        ? audioContext.resume() 
-        : Promise.resolve();
+      // Créer un nouvel oscillateur pour une sonnerie continue
+      alarmOscillator = audioContext.createOscillator();
+      alarmGainNode = audioContext.createGain();
       
-      resumePromise.then(() => {
-        // Créer un oscillateur pour générer un son
-        alarmOscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        // Configurer l'oscillateur (son aigu et fort)
-        alarmOscillator.type = 'sine';
-        alarmOscillator.frequency.setValueAtTime(ALARM_FREQUENCY, audioContext.currentTime);
-        
-        // Volume maximum (1.0 = 100%)
-        gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
-        
-        // Connecter les nœuds
-        alarmOscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        // Démarrer la sonnerie
-        alarmOscillator.start();
-        
-        // Faire varier la fréquence pour un son plus perçant (bip-bip)
-        let frequency = ALARM_FREQUENCY;
-        const frequencyVariation = 200; // Variation de fréquence
-        
-        if (smsAlarmInterval) {
-          clearInterval(smsAlarmInterval);
-        }
-        
-        smsAlarmInterval = setInterval(() => {
-          if (alarmOscillator && audioContext) {
-            // Alterner entre deux fréquences pour un effet bip-bip
-            frequency = frequency === ALARM_FREQUENCY 
-              ? ALARM_FREQUENCY + frequencyVariation 
-              : ALARM_FREQUENCY;
-            alarmOscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+      // Configurer l'oscillateur (son aigu et fort)
+      alarmOscillator.type = 'sine';
+      const currentTime = audioContext.currentTime;
+      
+      // Faire varier la fréquence pour un son plus perçant (bip-bip continu)
+      alarmOscillator.frequency.setValueAtTime(ALARM_FREQUENCY, currentTime);
+      
+      // Volume maximum (1.0 = 100%)
+      alarmGainNode.gain.setValueAtTime(1.0, currentTime);
+      
+      // Connecter les nœuds
+      alarmOscillator.connect(alarmGainNode);
+      alarmGainNode.connect(audioContext.destination);
+      
+      // Démarrer la sonnerie (continue, ne s'arrête jamais sauf si alarmActive devient false)
+      alarmOscillator.start(currentTime);
+      
+      // Faire varier la fréquence périodiquement pour un effet bip-bip continu
+      let frequency = ALARM_FREQUENCY;
+      const frequencyVariation = 200;
+      
+      if (smsAlarmInterval) {
+        clearInterval(smsAlarmInterval);
+      }
+      
+      smsAlarmInterval = setInterval(() => {
+        if (alarmActive && alarmOscillator && audioContext) {
+          // Reprendre l'audio context s'il est suspendu
+          if (audioContext.state === 'suspended') {
+            audioContext.resume().catch(err => console.error('Erreur reprise AudioContext dans interval:', err));
           }
-        }, 500); // Changer de fréquence toutes les 500ms
-        
-        // Vibration si disponible (pour mobile)
-        if (navigator.vibrate) {
-          // Vibration continue : 200ms ON, 100ms OFF, répété
-          navigator.vibrate([200, 100, 200, 100, 200, 100, 200, 100, 200]);
+          
+          // Alterner entre deux fréquences pour un effet bip-bip continu
+          frequency = frequency === ALARM_FREQUENCY 
+            ? ALARM_FREQUENCY + frequencyVariation 
+            : ALARM_FREQUENCY;
+          try {
+            alarmOscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+          } catch (e) {
+            // Si l'oscillateur a été arrêté, le recréer
+            if (alarmActive) {
+              maintainAlarmOscillator();
+            }
+          }
         }
+      }, 500); // Changer de fréquence toutes les 500ms pour effet bip-bip
+      
+      // Vibration continue si disponible (pour mobile)
+      if (navigator.vibrate) {
+        // Vibration continue : 200ms ON, 100ms OFF, répété indéfiniment
+        const vibratePattern = [200, 100];
+        navigator.vibrate(vibratePattern);
+        // Relancer la vibration périodiquement car certains navigateurs l'arrêtent
+        setInterval(() => {
+          if (alarmActive && navigator.vibrate) {
+            navigator.vibrate(vibratePattern);
+          }
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la création de l\'oscillateur:', error);
+      // Réessayer après un court délai
+      if (alarmActive) {
+        setTimeout(() => maintainAlarmOscillator(), 100);
+      }
+    }
+  }
+
+  // Fonction pour demander la permission de notifications
+  async function requestNotificationPermission() {
+    if (!('Notification' in window)) {
+      return false;
+    }
+    
+    if (Notification.permission === 'granted') {
+      notificationPermission = 'granted';
+      return true;
+    }
+    
+    if (Notification.permission !== 'denied') {
+      try {
+        const permission = await Notification.requestPermission();
+        notificationPermission = permission;
+        return permission === 'granted';
+      } catch (error) {
+        console.error('Erreur lors de la demande de permission:', error);
+        return false;
+      }
+    }
+    
+    return false;
+  }
+
+  // Fonction pour envoyer une notification
+  function sendAlarmNotification() {
+    if (Notification.permission === 'granted' && alarmActive) {
+      try {
+        const notification = new Notification('🚨 ALARME COUVREUR', {
+          body: 'SMS ouvert depuis plus de 30 secondes - Envoyez le SMS pour arrêter',
+          icon: '🚨',
+          tag: 'couvreur-alarm',
+          requireInteraction: true, // Nécessite une interaction pour fermer
+          silent: false // Ne pas être silencieux
+        });
         
-        console.log('🚨 Sonnerie d\'alarme démarrée');
-      }).catch(err => {
-        console.error('Erreur lors de la reprise de AudioContext:', err);
-        // En cas d'erreur, essayer une méthode alternative (alerte visuelle)
-        if (couvreurStatus) {
-          couvreurStatus.style.animation = 'blink 0.5s infinite';
+        // Fermer la notification après 5 secondes pour éviter l'accumulation
+        setTimeout(() => {
+          notification.close();
+        }, 5000);
+      } catch (error) {
+        console.error('Erreur lors de l\'envoi de la notification:', error);
+      }
+    }
+  }
+
+  // Fonction pour démarrer la sonnerie forte (continue, ne s'arrête jamais sauf si le mode couvreur est désactivé)
+  function startAlarm() {
+    if (alarmActive) return; // Déjà active
+    
+    alarmActive = true;
+    
+    try {
+      // Demander la permission de notifications
+      requestNotificationPermission();
+      
+      // Créer ou réutiliser le contexte audio
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      
+      // Reprendre le contexte audio s'il est suspendu
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(err => console.error('Erreur reprise AudioContext:', err));
+      }
+      
+      // Créer l'oscillateur continu immédiatement
+      maintainAlarmOscillator();
+      
+      // Envoyer une notification immédiatement
+      sendAlarmNotification();
+      
+      // Vérifier et reprendre l'audio context très fréquemment (toutes les 100ms)
+      if (smsAlarmKeepAliveInterval) {
+        clearInterval(smsAlarmKeepAliveInterval);
+      }
+      
+      smsAlarmKeepAliveInterval = setInterval(() => {
+        if (alarmActive && audioContext) {
+          // Reprendre l'audio context s'il est suspendu
+          if (audioContext.state === 'suspended') {
+            audioContext.resume().catch(err => console.error('Erreur reprise AudioContext keep-alive:', err));
+          }
+          
+          // Vérifier que l'oscillateur fonctionne toujours, sinon le recréer
+          if (!alarmOscillator || audioContext.state !== 'running') {
+            maintainAlarmOscillator();
+          }
+          
+          // Envoyer une notification périodiquement (toutes les 5 secondes) pour alerter même en arrière-plan
+          if (Date.now() % 5000 < 100) { // Approximativement toutes les 5 secondes
+            sendAlarmNotification();
+          }
         }
-      });
+      }, 100); // Vérifier toutes les 100ms
+      
+      console.log('🚨 Sonnerie d\'alarme démarrée (continue, ne s\'arrête jamais)');
     } catch (error) {
       console.error('Erreur lors du démarrage de la sonnerie:', error);
       // En cas d'erreur, essayer une méthode alternative (alerte visuelle)
       if (couvreurStatus) {
         couvreurStatus.style.animation = 'blink 0.5s infinite';
       }
+      // Réessayer après un court délai
+      if (alarmActive) {
+        setTimeout(() => startAlarm(), 100);
+      }
     }
   }
   // Fonction pour arrêter la sonnerie
   function stopAlarm() {
+    alarmActive = false;
+    
     if (alarmOscillator) {
       try {
         alarmOscillator.stop();
@@ -9554,18 +9726,32 @@ function detectBranch(lat, lon) {
       }
     }
     
-    if (audioContext) {
+    if (alarmGainNode) {
       try {
-        audioContext.close();
-        audioContext = null;
+        alarmGainNode.disconnect();
+        alarmGainNode = null;
       } catch (e) {
-        console.warn('Erreur lors de la fermeture du contexte audio:', e);
+        // Ignorer les erreurs
+      }
+    }
+    
+    // Ne pas fermer l'audio context, juste le suspendre pour pouvoir le réutiliser
+    if (audioContext && audioContext.state !== 'closed') {
+      try {
+        audioContext.suspend();
+      } catch (e) {
+        console.warn('Erreur lors de la suspension du contexte audio:', e);
       }
     }
     
     if (smsAlarmInterval) {
       clearInterval(smsAlarmInterval);
       smsAlarmInterval = null;
+    }
+    
+    if (smsAlarmKeepAliveInterval) {
+      clearInterval(smsAlarmKeepAliveInterval);
+      smsAlarmKeepAliveInterval = null;
     }
     
     // Arrêter la vibration
@@ -9576,6 +9762,11 @@ function detectBranch(lat, lon) {
     // Arrêter l'animation de clignotement
     if (couvreurStatus) {
       couvreurStatus.style.animation = '';
+    }
+    
+    // Fermer toutes les notifications
+    if ('Notification' in window) {
+      // Les notifications se ferment automatiquement, mais on peut forcer
     }
     
     console.log('🔇 Sonnerie d\'alarme arrêtée');
