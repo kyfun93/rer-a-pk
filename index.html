@@ -5285,7 +5285,9 @@ async function loadSharedCalibrations() {
     if (!normalizedBranch) {
       // Si pas de branche, essayer de détecter par plage de PK
       if (pkMetric >= BRANCH_BOISSY_MIN && pkMetric <= BRANCH_BOISSY_MAX) {
-        return formatPkForUi(pkMetric - BRANCH_OFFSETS[BRANCH_IDS.BOISSY]);
+        const pkStrAuto = formatPkForUi(pkMetric - BRANCH_OFFSETS[BRANCH_IDS.BOISSY]);
+        // Marque visuelle pour les PK relatifs Boissy (debug)
+        return pkStrAuto + "’";
       }
       return formatPkForUi(pkMetric);
     }
@@ -5295,7 +5297,12 @@ async function loadSharedCalibrations() {
     const pkDisplay = pkMetric - offset;
     
     // Formater pour l'UI (ex: "9 000" ou "34 000")
-    return formatPkForUi(pkDisplay);
+    const pkStr = formatPkForUi(pkDisplay);
+    // Marque visuelle pour les PK relatifs Boissy
+    if (normalizedBranch === BRANCH_IDS.BOISSY || normalizedBranch === "boissy") {
+      return pkStr + "’";
+    }
+    return pkStr;
   }
 
   /**
@@ -5307,8 +5314,11 @@ async function loadSharedCalibrations() {
   function parseUserPkInput(branchId, pkInputString) {
     if (!pkInputString) return null;
     
-    // Parser la chaîne (ex: "9+000" → 9000 ou "9000" → 9000)
-    const pkParsed = parsePkStringToNumber(pkInputString);
+    // On enlève la prime éventuelle (’ ou ') et espaces parasites
+    const cleanedInput = String(pkInputString).replace(/[’']/g, "").trim();
+    
+    // Parser la chaîne nettoyée (ex: "9+000" → 9000 ou "9000" → 9000)
+    const pkParsed = parsePkStringToNumber(cleanedInput);
     if (!Number.isFinite(pkParsed)) return null;
     
     // Normaliser l'identifiant de branche
@@ -7881,9 +7891,10 @@ function detectBranch(lat, lon) {
       handlePosition,
       handleGeolocError,
       { 
-        enableHighAccuracy: false, // Désactivé pour économiser la batterie (suffisant pour la plupart des cas)
-        maximumAge: 10000, // Utiliser les positions en cache jusqu'à 10 secondes (économie batterie)
-        timeout: 20000 // Timeout pour éviter les reconnexions fréquentes
+        // Pour éviter les timeouts au premier fix, on autorise une plus haute précision et un délai plus long
+        enableHighAccuracy: true,
+        maximumAge: 10000,
+        timeout: 60000
       }
     );
   }
@@ -7937,8 +7948,25 @@ function detectBranch(lat, lon) {
     } else if (err.code === 2 || (err.message && err.message.toLowerCase().includes("unavailable"))) {
       userMessage = "Géolocalisation indisponible. Vérifie que le GPS est activé.";
     } else if (err.code === 3 || (err.message && err.message.toLowerCase().includes("timeout"))) {
-      userMessage = "Délai d'attente dépassé. Réessaie.";
-      // Ne pas arrêter la géolocalisation en cas de timeout, juste afficher le message
+      userMessage = "Délai d'attente dépassé. Extension du délai et nouvelle tentative…";
+      // En cas de timeout, relancer le watch avec un délai plus long et haute précision
+      try {
+        if (state.watchId != null) {
+          navigator.geolocation.clearWatch(state.watchId);
+          state.watchId = null;
+        }
+        state.watchId = navigator.geolocation.watchPosition(
+          handlePosition,
+          handleGeolocError,
+          {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 90000
+          }
+        );
+      } catch (e) {
+        console.warn("Relance watchPosition après timeout a échoué:", e);
+      }
     } else if (err.message) {
       // Pour les autres erreurs, utiliser le message par défaut
       userMessage = "Impossible d'obtenir la position. Vérifie les autorisations.";
@@ -8190,6 +8218,18 @@ function detectBranch(lat, lon) {
       updateMapMarker(lat, lon, correctedPk);
       updateOrientationPanel();
       
+      // Log de debug complet géoloc (city-based)
+      debugLog("DEBUG_GEO", {
+        manualOverride: manualBranchOverride,
+        currentBranch,
+        rawPk,
+        correctedPk,
+        displayPk: formatPk(correctedPk),
+        lat,
+        lon,
+        timestamp: new Date().toISOString()
+      });
+      
       return; // Sortir de la fonction, on a déjà tout calculé
     }
     
@@ -8216,59 +8256,29 @@ function detectBranch(lat, lon) {
     const projChessyTemp = projectToLine(lat, lon);
     linePoints = savedLinePoints;
     
+    const hasManualOverride = !!manualBranchOverride && manualBranchOverride !== "auto";
+    
     // RÈGLE ABSOLUE : Si le PK projeté est >= 34000, on est FORCÉMENT sur Chessy
-    // Cette règle prime sur tout, y compris l'override manuel
-    if (projChessyTemp && projChessyTemp.pkProj != null && projChessyTemp.pkProj >= BRANCH_CHESSY_MIN) {
+    // IMPORTANT: uniquement si PAS d'override manuel
+    if (!hasManualOverride && projChessyTemp && projChessyTemp.pkProj != null && projChessyTemp.pkProj >= BRANCH_CHESSY_MIN) {
       debugLog("🔴 RÈGLE ABSOLUE : PK", projChessyTemp.pkProj, ">= 34000 → FORCÉMENT Chessy (ex: Val de Fontenay, Noisy-Champs)");
       currentBranch = "chessy";
       linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
       bestProj = projChessyTemp;
       console.log("✅ Branche Chessy forcée, PK:", bestProj.pkProj);
-    } else if (manualBranchOverride && manualBranchOverride !== "auto" && manualBranchOverride !== null) {
-      // Si pas de règle absolue, vérifier l'override manuel
-      let testProj = null;
+    } else if (hasManualOverride) {
+      // IMPORTANT : override manuel strictement prioritaire, sans auto-détection ni règle absolue
+      currentBranch = manualBranchOverride;
       if (manualBranchOverride === "boissy") {
         linePoints = linePointsBoissy || safeTroncCommun.concat(safeBrancheBoissy);
-        testProj = projectToLine(lat, lon);
       } else if (manualBranchOverride === "chessy") {
         linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
-        testProj = projectToLine(lat, lon);
       } else if (manualBranchOverride === "central") {
         linePoints = safeTroncCommun.slice();
-        testProj = projectToLine(lat, lon);
       }
-      linePoints = savedLinePoints;
-      
-      // Vérifier la cohérence
-      if (testProj && testProj.pkProj != null && testProj.pkProj > BRANCH_COMMON_MAX && manualBranchOverride === "central" && testProj.dist > 10000) {
-        console.warn("Override 'central' incohérent avec PK > 30000 et distance > 10km, annulation de l'override");
-        manualBranchOverride = null;
-        safeSetItem(MANUAL_BRANCH_OVERRIDE_KEY, '');
-      } else if (testProj && testProj.dist > 10000) {
-        console.warn("Override", manualBranchOverride, "donne une distance très grande (", testProj.dist, "m), annulation");
-        manualBranchOverride = null;
-        safeSetItem(MANUAL_BRANCH_OVERRIDE_KEY, '');
-      } else if (testProj) {
-        // L'override est cohérent, l'utiliser
-        currentBranch = manualBranchOverride;
-        debugLog("✅ Utilisation de l'override manuel:", manualBranchOverride, "PK projeté:", testProj?.pkProj, "distance:", testProj?.dist);
-        
-        // Utiliser la projection correspondante à l'override
-        if (manualBranchOverride === "boissy") {
-          linePoints = linePointsBoissy || safeTroncCommun.concat(safeBrancheBoissy);
-          bestProj = testProj;
-        } else if (manualBranchOverride === "chessy") {
-          linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
-          bestProj = testProj;
-        } else if (manualBranchOverride === "central") {
-          linePoints = safeTroncCommun.slice();
-          bestProj = testProj;
-        }
-        
-        if (bestProj) {
-          debugLog("✅ Override appliqué, utilisation de la projection:", bestProj.pkProj, "branche:", currentBranch);
-        }
-      }
+      const testProj = projectToLine(lat, lon);
+      bestProj = testProj || null;
+      debugLog("✅ Utilisation de l'override manuel (prioritaire):", manualBranchOverride, "PK projeté:", testProj?.pkProj, "distance:", testProj?.dist);
     }
     
     // Si pas d'override ou override annulé, détecter automatiquement
@@ -8479,6 +8489,18 @@ function detectBranch(lat, lon) {
     state.lastLat     = lat;
     state.lastLon     = lon;
     state.lastDist    = proj.dist;
+    
+    // Log de debug complet géoloc
+    debugLog("DEBUG_GEO", {
+      manualOverride: manualBranchOverride,
+      currentBranch,
+      rawPk,
+      correctedPk,
+      displayPk: formatPk(correctedPk),
+      lat,
+      lon,
+      timestamp: new Date().toISOString()
+    });
     
     // Vérifier le mouvement pour le mode "couvreur cheminant seul"
     if (couvreurSeulActive) {
@@ -11484,9 +11506,10 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
           handlePosition,
           handleGeolocError,
           { 
-            enableHighAccuracy: false, // Réduire la précision quand invisible
-            maximumAge: 10000, // Utiliser le cache jusqu'à 10 secondes
-            timeout: 20000 
+            // Même quand la page est cachée, éviter les timeouts trop courts
+            enableHighAccuracy: true,
+            maximumAge: 10000,
+            timeout: 60000 
           }
         );
     }
@@ -11499,9 +11522,9 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
           handlePosition,
           handleGeolocError,
           { 
-            enableHighAccuracy: false, // Désactivé pour économiser la batterie
-            maximumAge: 10000, // Utiliser le cache jusqu'à 10 secondes (économie batterie)
-            timeout: 20000 
+            enableHighAccuracy: true,
+            maximumAge: 10000,
+            timeout: 60000
           }
         );
       }
