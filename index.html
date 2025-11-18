@@ -2680,7 +2680,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   </div>
                   <button class="pdf-nav-btn pdf-nav-next" data-pdf="boissy" aria-label="Page suivante">›</button>
                 </div>
-                <iframe id="planBoissyIframe" class="plan-line-iframe" src="docs/Boissy.pdf#page=1" title="Plan de Boissy" type="application/pdf"></iframe>
+                <iframe id="planBoissyIframe" class="plan-line-iframe" src="docs/Boissy.pdf#page=1&zoom=page-fit" title="Plan de Boissy" type="application/pdf"></iframe>
               </div>
             </div>
             <div class="field plan-toggle">
@@ -9390,23 +9390,20 @@ function detectBranch(lat, lon) {
     if (!smsTimerStartTime || smsSent) return;
     
     // Utiliser Date.now() pour calculer le temps écoulé réel, même si les timers sont suspendus
-    const elapsed = Date.now() - smsTimerStartTime;
+    const now = Date.now();
+    const elapsed = now - smsTimerStartTime;
     const seconds = Math.floor(elapsed / 1000);
+    
+    // Démarrer l'alarme dès l'ouverture du SMS si pas déjà active
+    if (!alarmOscillator && !alarmActive) {
+      startAlarm();
+    }
     
     // Mettre à jour le statut avec le temps écoulé
     if (couvreurStatus) {
-      if (elapsed < SMS_TIMER_DELAY) {
-        const remaining = Math.ceil((SMS_TIMER_DELAY - elapsed) / 1000);
-        couvreurStatus.textContent = `⚠️ SMS ouvert - ${seconds}s écoulées - Sonnerie dans ${remaining}s`;
-        couvreurStatus.style.color = '#ff9800';
-      } else {
-        // Déclencher la sonnerie si le SMS n'a pas été envoyé après 30 secondes
-        if (!alarmOscillator) {
-          startAlarm();
-        }
-        couvreurStatus.textContent = `🚨 SONNERIE ACTIVE - ${seconds}s écoulées - Envoyez le SMS pour arrêter`;
-        couvreurStatus.style.color = '#f44336';
-      }
+      couvreurStatus.textContent =
+        `🚨 SONNERIE ACTIVE - ${seconds}s écoulées depuis l'ouverture du SMS - Envoyez le SMS pour arrêter`;
+      couvreurStatus.style.color = '#f44336';
     }
   }
 
@@ -9839,13 +9836,14 @@ function detectBranch(lat, lon) {
     if (couvreurLastMovementTime != null) {
       const timeSinceLastMovement = now - couvreurLastMovementTime;
       if (timeSinceLastMovement >= COUVREUR_ALERT_DELAY) {
-        // 1 minute sans mouvement : envoyer le SMS automatiquement
-        console.log("Alerte couvreur cheminant seul : pas de mouvement depuis 1 minute, envoi du SMS automatique.");
-        sendSmsAuto();
-        // Désactiver le mode après l'envoi
-        stopCouvreurSeul();
+        // 1 minute sans mouvement : déclencher le SMS auto une seule fois
+        if (!smsTimerStartTime && !smsSent) {
+          console.log("Alerte couvreur cheminant seul : pas de mouvement depuis 1 minute, envoi du SMS automatique.");
+          sendSmsAuto(); // ouvre l'app SMS + démarre le timer
+        }
+        // NE PAS désactiver le mode ici : on attend l'envoi du SMS (markSmsAsSent)
       } else {
-        // Mettre à jour le statut avec le temps restant
+        // Mettre à jour le statut avec le temps restant avant déclenchement
         updateCouvreurStatus();
       }
     }
@@ -11589,7 +11587,8 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     // Pour iOS, forcer le rechargement complet de l'iframe
     // En vidant d'abord le src, puis en le remettant avec le nouveau paramètre
     const iframe = config.iframe;
-    const newSrc = config.baseUrl + "#page=" + page;
+    // Ajouter zoom=page-fit pour permettre le défilement vertical des pages sur mobile
+    const newSrc = config.baseUrl + "#page=" + page + "&zoom=page-fit";
     
     // Si c'est la même page, ne rien faire
     if (config.currentPage === page && iframe.src === newSrc) {
