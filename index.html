@@ -7926,14 +7926,37 @@ function detectBranch(lat, lon) {
     }
     
     // Ignorer les erreurs temporaires qui ne sont pas vraiment des erreurs
-    // kCLErrorLocationUnknown (code 0) sur iOS = CoreLocation n'a pas encore de position, mais continue à chercher
-    if (err.code === 0 || (err.message && (
-      err.message.includes("kCLErrorLocationUnknown") || 
-      err.message.includes("LocationUnknown") ||
-      err.message.toLowerCase().includes("location unknown")
-    ))) {
-      // Ne pas afficher d'erreur pour cette erreur temporaire, juste logger
-      console.log("Position GPS en cours d'acquisition... (erreur temporaire ignorée)");
+    // kCLErrorLocationUnknown (code 0) sur iOS/macOS = CoreLocation n'a pas encore de position, mais continue à chercher
+    const errorMessage = err.message ? String(err.message) : "";
+    const errorString = JSON.stringify(err);
+    // Vérifier aussi dans toutes les propriétés de l'objet d'erreur
+    const errorKeys = Object.keys(err || {});
+    const errorValues = Object.values(err || {}).map(v => String(v));
+    const allErrorText = [errorMessage, errorString, ...errorKeys, ...errorValues].join(" ").toLowerCase();
+    
+    // Détecter kCLErrorLocationUnknown sous toutes ses formes
+    // Note: Le message "CoreLocationProvider: CoreLocation framework reported a kCLErrorLocationUnknown failure"
+    // peut apparaître dans la console système, mais l'objet d'erreur peut avoir une structure différente
+    const isLocationUnknown = err.code === 0 || 
+        errorMessage.includes("kCLErrorLocationUnknown") || 
+        errorMessage.includes("LocationUnknown") ||
+        errorMessage.toLowerCase().includes("location unknown") ||
+        errorString.includes("kCLErrorLocationUnknown") ||
+        allErrorText.includes("kclerrorlocationunknown") ||
+        allErrorText.includes("locationunknown") ||
+        (err.code === undefined && errorMessage === "") || // Certains navigateurs envoient une erreur vide pour LocationUnknown
+        (err.code === undefined && err.message === undefined); // Erreur sans code ni message = probablement LocationUnknown
+    
+    if (isLocationUnknown) {
+      // Ne pas afficher d'erreur pour cette erreur temporaire, juste logger en mode debug
+      // Cette erreur est normale au démarrage de la géolocalisation sur macOS/Safari
+      if (DEBUG_MODE) {
+        console.log("Position GPS en cours d'acquisition... (erreur temporaire kCLErrorLocationUnknown ignorée)", {
+          code: err.code,
+          message: err.message,
+          error: err
+        });
+      }
       return;
     }
     
@@ -7968,8 +7991,25 @@ function detectBranch(lat, lon) {
         console.warn("Relance watchPosition après timeout a échoué:", e);
       }
     } else if (err.message) {
+      // Pour les autres erreurs, vérifier si c'est une erreur LocationUnknown non détectée
+      const errMsgLower = String(err.message).toLowerCase();
+      if (errMsgLower.includes("location") && (errMsgLower.includes("unknown") || errMsgLower.includes("unavailable"))) {
+        // Probablement une variante de LocationUnknown, ignorer silencieusement
+        if (DEBUG_MODE) {
+          console.log("Erreur LocationUnknown détectée (variante), ignorée:", err);
+        }
+        return;
+      }
       // Pour les autres erreurs, utiliser le message par défaut
       userMessage = "Impossible d'obtenir la position. Vérifie les autorisations.";
+    } else {
+      // Erreur sans message : probablement LocationUnknown sur certains navigateurs
+      if (err.code === undefined || err.code === null) {
+        if (DEBUG_MODE) {
+          console.log("Erreur géolocalisation sans code/message (probablement LocationUnknown), ignorée:", err);
+        }
+        return;
+      }
     }
     
     setGpsStatus("error", userMessage);
@@ -8071,12 +8111,171 @@ function detectBranch(lat, lon) {
     return null;
   }
 
-  function handlePosition(pos) {
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
-    const accuracy = pos.coords.accuracy; // AJOUT CALIBRAGE
+  /**
+   * Helper pour détecter la branche et le PK basé sur la proximité d'une ville/gare connue
+   * @param {number} lat - Latitude GPS
+   * @param {number} lon - Longitude GPS
+   * @param {string|null} manualBranchOverride - Override manuel actif (null ou "auto" = mode Auto)
+   * @returns {Object|null} - { pk: number, branch: string, name: string, distance: number } ou null
+   */
+  function findCityBasedPk(lat, lon, manualBranchOverride) {
+    // Ne rien faire si override manuel actif
+    if (manualBranchOverride && manualBranchOverride !== "auto") {
+      return null;
+    }
 
-    state.lastAccuracy = accuracy;
+    // Récupérer les données des stations depuis brancheBoissy et brancheChessy
+    const nogentStation = brancheBoissy.find(s => s.name === "Nogent-sur-Marne");
+    const fontenayStation = brancheBoissy.find(s => s.name === "Fontenay-sous-Bois");
+    const joinvilleStation = brancheBoissy.find(s => s.name === "Joinville-le-Pont");
+    const saintMaurStation = brancheBoissy.find(s => s.name === "Saint-Maur – Créteil");
+    const parcStation = brancheBoissy.find(s => s.name === "Parc de Saint-Maur");
+    const varenneStation = brancheBoissy.find(s => s.name === "La Varenne – Chennevières");
+    const sucyStation = brancheBoissy.find(s => s.name === "Sucy – Bonneuil");
+    const boissyStation = brancheBoissy.find(s => s.name === "Boissy-Saint-Léger");
+    const valFontenayStation = brancheChessy.find(s => s.name === "Val de Fontenay");
+
+    // Calculer les coordonnées approximatives pour Parc de Saint-Maur (interpolation entre Saint-Maur et La Varenne)
+    let parcLat = null;
+    let parcLon = null;
+    if (parcStation && saintMaurStation && varenneStation && 
+        saintMaurStation.lat && varenneStation.lat) {
+      // Interpolation linéaire basée sur les PK
+      const pkDiff = varenneStation.pk - saintMaurStation.pk;
+      const parcDiff = parcStation.pk - saintMaurStation.pk;
+      const ratio = pkDiff > 0 ? parcDiff / pkDiff : 0.5;
+      parcLat = saintMaurStation.lat + (varenneStation.lat - saintMaurStation.lat) * ratio;
+      parcLon = saintMaurStation.lon + (varenneStation.lon - saintMaurStation.lon) * ratio;
+    }
+
+    // Tableau de règles city-based (par ordre de priorité)
+    const rules = [
+      // Règles existantes (priorité 1-3)
+      {
+        name: "Nogent-sur-Marne",
+        branch: "boissy",
+        pk: nogentStation ? nogentStation.pk : 34000,
+        lat: nogentStation ? nogentStation.lat : 48.8353972244,
+        lon: nogentStation ? nogentStation.lon : 2.4716593319,
+        radius: 1000,
+        priority: 1
+      },
+      {
+        name: "Val de Fontenay",
+        branch: "chessy",
+        pk: valFontenayStation ? valFontenayStation.pk : 34525,
+        lat: valFontenayStation ? valFontenayStation.lat : 48.8544183594,
+        lon: valFontenayStation ? valFontenayStation.lon : 2.4890884591,
+        radius: 1000,
+        priority: 2
+      },
+      {
+        name: "Fontenay-sous-Bois",
+        branch: "boissy",
+        pk: fontenayStation ? fontenayStation.pk : 32750,
+        lat: fontenayStation ? fontenayStation.lat : 48.84448287866945,
+        lon: fontenayStation ? fontenayStation.lon : 2.464306353806553,
+        radius: 1000,
+        priority: 3
+      },
+      // Nouvelles règles pour la branche Boissy (priorité 4-9)
+      {
+        name: "Joinville-le-Pont",
+        branch: "boissy",
+        pk: joinvilleStation ? joinvilleStation.pk : 35600,
+        lat: joinvilleStation ? joinvilleStation.lat : 48.8211820545,
+        lon: joinvilleStation ? joinvilleStation.lon : 2.4641431755,
+        radius: 1200,
+        priority: 4
+      },
+      {
+        name: "Saint-Maur – Créteil",
+        branch: "boissy",
+        pk: saintMaurStation ? saintMaurStation.pk : 37500,
+        lat: saintMaurStation ? saintMaurStation.lat : 48.8088207060,
+        lon: saintMaurStation ? saintMaurStation.lon : 2.4708026167,
+        radius: 1200,
+        priority: 5
+      },
+      {
+        name: "Parc de Saint-Maur",
+        branch: "boissy",
+        pk: parcStation ? parcStation.pk : 38500,
+        lat: parcLat || 48.801, // Approximation si interpolation échoue
+        lon: parcLon || 2.492, // Approximation si interpolation échoue
+        radius: 1200,
+        priority: 6
+      },
+      {
+        name: "La Varenne – Chennevières",
+        branch: "boissy",
+        pk: varenneStation ? varenneStation.pk : 41800,
+        lat: varenneStation ? varenneStation.lat : 48.7941968899,
+        lon: varenneStation ? varenneStation.lon : 2.5135124577,
+        radius: 1200,
+        priority: 7
+      },
+      {
+        name: "Sucy – Bonneuil",
+        branch: "boissy",
+        pk: sucyStation ? sucyStation.pk : 44500,
+        lat: sucyStation ? sucyStation.lat : 48.7709911746,
+        lon: sucyStation ? sucyStation.lon : 2.5083777258,
+        radius: 1200,
+        priority: 8
+      },
+      {
+        name: "Boissy-Saint-Léger",
+        branch: "boissy",
+        pk: boissyStation ? boissyStation.pk : 47200,
+        lat: boissyStation ? boissyStation.lat : 48.7539872386,
+        lon: boissyStation ? boissyStation.lon : 2.5059802969,
+        radius: 1200,
+        priority: 9
+      }
+    ];
+
+    let best = null;
+
+    for (const rule of rules) {
+      // Vérifier que les coordonnées sont valides
+      if (!rule.lat || !rule.lon || !Number.isFinite(rule.lat) || !Number.isFinite(rule.lon)) {
+        continue;
+      }
+
+      const d = distanceMeters(lat, lon, rule.lat, rule.lon);
+      if (d <= rule.radius) {
+        if (!best || rule.priority < best.priority || (rule.priority === best.priority && d < best.distance)) {
+          best = {
+            pk: rule.pk,
+            branch: rule.branch,
+            name: rule.name,
+            distance: d
+          };
+        }
+      }
+    }
+
+    return best;
+  }
+
+  function handlePosition(pos) {
+    try {
+      if (!pos || !pos.coords) {
+        console.warn("⚠️ handlePosition: position invalide", pos);
+        return;
+      }
+      
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      const accuracy = pos.coords.accuracy; // AJOUT CALIBRAGE
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+        console.warn("⚠️ handlePosition: coordonnées GPS invalides", { lat, lon });
+        return;
+      }
+
+      state.lastAccuracy = accuracy;
 
     // Throttle : ne pas mettre à jour trop souvent
     const now = Date.now();
@@ -8110,86 +8309,30 @@ function detectBranch(lat, lon) {
     }
 
     // === DÉTECTION PAR VILLE (basée sur les coordonnées GPS) ===
-    // Vérifier si on est proche de certaines villes connues pour forcer le PK
-    let cityBasedPk = null;
-    let cityBasedBranch = null;
+    // Utiliser le helper générique pour détecter la branche et le PK basé sur la proximité d'une ville/gare
+    const cityResult = findCityBasedPk(lat, lon, manualBranchOverride);
     
-    // Nogent-sur-Marne : lat: 48.8353972244, lon: 2.4716593319, PK 34000 (relatif 9000) sur Boissy
-    const nogentLat = 48.8353972244;
-    const nogentLon = 2.4716593319;
-    const nogentRadius = 1000; // 1 km de rayon
-    
-    // Fontenay-sous-Bois : lat: 48.84448287866945, lon: 2.464306353806553, PK 32750 (relatif 7750) sur Boissy
-    const fontenayLat = 48.84448287866945;
-    const fontenayLon = 2.464306353806553;
-    const fontenayRadius = 1000; // 1 km de rayon
-    
-    // Val de Fontenay : lat: 48.8544183594, lon: 2.4890884591, PK 34525 sur Chessy
-    const valFontenayLat = 48.8544183594;
-    const valFontenayLon = 2.4890884591;
-    const valFontenayRadius = 1000; // 1 km de rayon
-    
-    const distToNogent = distanceMeters(lat, lon, nogentLat, nogentLon);
-    const distToFontenay = distanceMeters(lat, lon, fontenayLat, fontenayLon);
-    const distToValFontenay = distanceMeters(lat, lon, valFontenayLat, valFontenayLon);
-    
-    // Priorité : Nogent > Val de Fontenay > Fontenay-sous-Bois
-    if (distToNogent < nogentRadius) {
-      cityBasedPk = 34000;
-      cityBasedBranch = "boissy";
-      console.log("✅ Nogent-sur-Marne détecté (distance:", Math.round(distToNogent), "m) → PK forcé à 34000 (relatif 9000) sur Boissy");
-    } else if (distToValFontenay < valFontenayRadius && distToValFontenay < distToFontenay) {
-      cityBasedPk = 34525;
-      cityBasedBranch = "chessy";
-      console.log("✅ Val de Fontenay détecté (distance:", Math.round(distToValFontenay), "m) → PK forcé à 34525 sur Chessy");
-    } else if (distToFontenay < fontenayRadius) {
-      cityBasedPk = 32750;
-      cityBasedBranch = "boissy";
-      console.log("✅ Fontenay-sous-Bois détecté (distance:", Math.round(distToFontenay), "m) → PK forcé à 32750 (relatif 7750) sur Boissy");
-    }
-    
-    // Détection asynchrone pour les autres villes (ne bloque pas)
-    detectCityFromCoordinates(lat, lon).then(cityName => {
-      if (cityName && !cityBasedPk) {
-        const cityPkInfo = getPkFromCity(cityName);
-        if (cityPkInfo) {
-          console.log("🏙️ Ville détectée (async):", cityName, "→ PK:", cityPkInfo.pk, "branche:", cityPkInfo.branch);
-        }
-      }
-    }).catch(err => {
-      // Ignorer les erreurs silencieusement
-    });
-
-    // Variables pour stocker les projections
-    let bestProj = null;
-    let bestBranch = null;
-    
-    // Si on a détecté une ville connue, utiliser son PK directement
-    if (cityBasedPk != null && cityBasedBranch != null) {
-      currentBranch = cityBasedBranch;
-      bestBranch = cityBasedBranch;
-      // Créer une projection artificielle avec le PK de la ville
-      bestProj = {
-        pkProj: cityBasedPk,
-        dist: 0, // Distance supposée nulle car on est dans la ville
-        lat: lat,
-        lon: lon
-      };
-      console.log("✅ PK forcé depuis la détection de ville:", cityBasedPk, "branche:", cityBasedBranch);
+    if (cityResult) {
+      const { pk, branch, name, distance } = cityResult;
+      
+      // Mettre à jour la branche et la PK brute projetée
+      currentBranch = branch;
       
       // Configurer les linePoints selon la branche
-      if (cityBasedBranch === "boissy") {
-        const safeTroncCommun = Array.isArray(troncCommun) ? troncCommun : [];
-        const safeBrancheBoissy = Array.isArray(brancheBoissy) ? brancheBoissy : [];
+      const safeTroncCommun = Array.isArray(troncCommun) ? troncCommun : [];
+      const safeBrancheBoissy = Array.isArray(brancheBoissy) ? brancheBoissy : [];
+      const safeBrancheChessy = Array.isArray(brancheChessy) ? brancheChessy : [];
+      
+      if (branch === "boissy") {
         linePoints = linePointsBoissy || safeTroncCommun.concat(safeBrancheBoissy);
-      } else if (cityBasedBranch === "chessy") {
-        const safeTroncCommun = Array.isArray(troncCommun) ? troncCommun : [];
-        const safeBrancheChessy = Array.isArray(brancheChessy) ? brancheChessy : [];
+      } else if (branch === "chessy") {
         linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
+      } else if (branch === "central") {
+        linePoints = safeTroncCommun.slice();
       }
       
       // Passer directement au calcul du PK corrigé
-      const rawPk = cityBasedPk;
+      const rawPk = pk;
       const correctedPk = computePkWithCalibrations(rawPk, currentBranch);
       const nowSeconds = Date.now() / 1000;
       
@@ -8208,7 +8351,7 @@ function detectBranch(lat, lon) {
       state.lastPkTime = nowSeconds;
       state.lastLat = lat;
       state.lastLon = lon;
-      state.lastDist = bestProj.dist;
+      state.lastDist = 0; // Distance supposée nulle car on est dans la ville/gare
       state.lastRawPk = rawPk;
       
       updateLegendBranchUI();
@@ -8219,20 +8362,108 @@ function detectBranch(lat, lon) {
       updateOrientationPanel();
       
       // Log de debug complet géoloc (city-based)
-      debugLog("DEBUG_GEO", {
-        manualOverride: manualBranchOverride,
-        currentBranch,
-        rawPk,
+      console.log(`✅ ${name} détecté (distance: ${Math.round(distance)} m) → PK forcé à ${rawPk} (${branch})`);
+      debugLog("DEBUG_GEO_CITY_BASED", {
+        ...cityResult,
         correctedPk,
-        displayPk: formatPk(correctedPk),
-        lat,
-        lon,
+        displayPk: formatPk(correctedPk, branch),
+        manualOverride: manualBranchOverride,
         timestamp: new Date().toISOString()
       });
       
-      return; // Sortir de la fonction, on a déjà tout calculé
+      return; // On ne passe PAS dans la logique auto si une règle city-based s'applique
     }
     
+    // Détection asynchrone pour les autres villes (ne bloque pas, ne fait que logger)
+    detectCityFromCoordinates(lat, lon).then(cityName => {
+      if (cityName) {
+        const cityPkInfo = getPkFromCity(cityName);
+        if (cityPkInfo) {
+          console.log("🏙️ Ville détectée (async):", cityName, "→ PK:", cityPkInfo.pk, "branche:", cityPkInfo.branch);
+        }
+      }
+    }).catch(err => {
+      // Ignorer les erreurs silencieusement
+    });
+    
+    // === OVERRIDE MANUEL STRICT (prioritaire sur toute la logique auto) ===
+    const hasManualOverride = !!manualBranchOverride && manualBranchOverride !== "auto";
+    
+    if (hasManualOverride) {
+      // 🔒 OVERRIDE MANUEL STRICT : on projette uniquement sur la branche choisie
+      const safeTroncCommun    = Array.isArray(troncCommun) ? troncCommun : [];
+      const safeBrancheBoissy  = Array.isArray(brancheBoissy) ? brancheBoissy : [];
+      const safeBrancheChessy  = Array.isArray(brancheChessy) ? brancheChessy : [];
+      
+      currentBranch = manualBranchOverride;
+      
+      if (manualBranchOverride === "boissy") {
+        linePoints = linePointsBoissy || safeTroncCommun.concat(safeBrancheBoissy);
+      } else if (manualBranchOverride === "chessy") {
+        linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
+      } else if (manualBranchOverride === "central") {
+        linePoints = safeTroncCommun.slice();
+      }
+      
+      const projOverride = projectToLine(lat, lon);
+      if (projOverride && projOverride.pkProj != null) {
+        const rawPk = projOverride.pkProj;
+        const correctedPk = computePkWithCalibrations(rawPk, currentBranch);
+        const nowSeconds = Date.now() / 1000;
+        
+        if (state.lastPk != null && state.lastPkTime != null) {
+          const dPk = correctedPk - state.lastPk;
+          const dt = nowSeconds - state.lastPkTime;
+          if (dt > 0.4) {
+            updateMovement(dPk, dt, lat, lon);
+          }
+        } else {
+          state.direction = null;
+          state.heading = null;
+        }
+        
+        state.lastPk = correctedPk;
+        state.lastPkTime = nowSeconds;
+        state.lastLat = lat;
+        state.lastLon = lon;
+        state.lastDist = projOverride.dist;
+        state.lastRawPk = rawPk;
+        
+        updateLegendBranchUI();
+        updatePkDisplay();
+        updateNearestStation(correctedPk, null);
+        updateNearestAccess();
+        updateMapMarker(lat, lon, correctedPk);
+        updateOrientationPanel();
+        
+        debugLog("✅ Override manuel strict utilisé", {
+          manualOverride: manualBranchOverride,
+          branchId: currentBranch,
+          pkMetric: rawPk,
+          correctedPk: correctedPk,
+          distance: projOverride.dist,
+        });
+        
+        // Log de debug complet géoloc (override manuel)
+        debugLog("DEBUG_GEO", {
+          manualOverride: manualBranchOverride,
+          currentBranch,
+          rawPk,
+          correctedPk,
+          displayPk: formatPk(correctedPk),
+          lat,
+          lon,
+          timestamp: new Date().toISOString()
+        });
+        
+        return; // Sortir de la fonction, override strict appliqué
+      } else {
+        console.warn("⚠️ Override manuel actif mais projection échouée, fallback sur logique auto");
+        // Si la projection échoue, on continue avec la logique auto (fallback)
+      }
+    }
+    
+    // === LOGIQUE AUTO (uniquement si pas d'override manuel) ===
     // D'abord, projeter sur les deux branches pour obtenir les PKs
     // On a besoin des PKs pour appliquer la règle absolue : PK >= 34000 = Chessy (Val de Fontenay)
     const savedLinePoints = linePoints;
@@ -8256,33 +8487,23 @@ function detectBranch(lat, lon) {
     const projChessyTemp = projectToLine(lat, lon);
     linePoints = savedLinePoints;
     
-    const hasManualOverride = !!manualBranchOverride && manualBranchOverride !== "auto";
+    // Variables pour stocker les projections
+    let bestProj = null;
+    let bestBranch = null;
     
     // RÈGLE ABSOLUE : Si le PK projeté est >= 34000, on est FORCÉMENT sur Chessy
-    // IMPORTANT: uniquement si PAS d'override manuel
-    if (!hasManualOverride && projChessyTemp && projChessyTemp.pkProj != null && projChessyTemp.pkProj >= BRANCH_CHESSY_MIN) {
+    // (uniquement en mode Auto, pas d'override manuel)
+    if (projChessyTemp && projChessyTemp.pkProj != null && projChessyTemp.pkProj >= BRANCH_CHESSY_MIN) {
       debugLog("🔴 RÈGLE ABSOLUE : PK", projChessyTemp.pkProj, ">= 34000 → FORCÉMENT Chessy (ex: Val de Fontenay, Noisy-Champs)");
       currentBranch = "chessy";
       linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
       bestProj = projChessyTemp;
+      bestBranch = "chessy";
       console.log("✅ Branche Chessy forcée, PK:", bestProj.pkProj);
-    } else if (hasManualOverride) {
-      // IMPORTANT : override manuel strictement prioritaire, sans auto-détection ni règle absolue
-      currentBranch = manualBranchOverride;
-      if (manualBranchOverride === "boissy") {
-        linePoints = linePointsBoissy || safeTroncCommun.concat(safeBrancheBoissy);
-      } else if (manualBranchOverride === "chessy") {
-        linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
-      } else if (manualBranchOverride === "central") {
-        linePoints = safeTroncCommun.slice();
-      }
-      const testProj = projectToLine(lat, lon);
-      bestProj = testProj || null;
-      debugLog("✅ Utilisation de l'override manuel (prioritaire):", manualBranchOverride, "PK projeté:", testProj?.pkProj, "distance:", testProj?.dist);
     }
     
-    // Si pas d'override ou override annulé, détecter automatiquement
-    if ((!manualBranchOverride || manualBranchOverride === "auto" || manualBranchOverride === null) && !bestProj) {
+    // Si pas de règle absolue appliquée, détecter automatiquement
+    if (!bestProj) {
       // Utiliser les projections déjà calculées
       const projBoissy = projBoissyTemp;
       const projChessy = projChessyTemp;
@@ -8290,10 +8511,10 @@ function detectBranch(lat, lon) {
       // Choisir la meilleure branche selon :
       // 1. La distance à la voie (plus proche = mieux)
       // 2. La cohérence du PK avec les gares de la branche
-      let bestBranch = "chessy"; // Par défaut
-      bestProj = projChessy;
+      bestBranch = "chessy"; // Par défaut
+      bestProj = projChessy || projBoissy;
       
-      if (projBoissy.pkProj != null && projChessy.pkProj != null) {
+      if (projBoissy && projBoissy.pkProj != null && projChessy && projChessy.pkProj != null) {
         const pkBoissy = projBoissy.pkProj;
         const pkChessy = projChessy.pkProj;
         
@@ -8361,10 +8582,10 @@ function detectBranch(lat, lon) {
             debugLog("✅ Tronc commun choisi (PK <= 30000), Boissy plus proche (", projBoissy.dist, "m vs", projChessy.dist, "m)");
           }
         }
-      } else if (projBoissy.pkProj != null) {
+      } else if (projBoissy && projBoissy.pkProj != null) {
         bestBranch = "boissy";
         bestProj = projBoissy;
-      } else if (projChessy.pkProj != null) {
+      } else if (projChessy && projChessy.pkProj != null) {
         bestBranch = "chessy";
         bestProj = projChessy;
       } else {
@@ -8418,16 +8639,14 @@ function detectBranch(lat, lon) {
     updateLegendBranchUI();
 
     // Utiliser la projection déjà calculée si disponible, sinon recalculer
+    // Note: l'override manuel strict sort déjà de la fonction plus haut, donc on est forcément en mode Auto ici
     let proj;
     if (bestProj) {
-      // Utiliser la projection déjà calculée (override ou détection automatique)
+      // Utiliser la projection déjà calculée (détection automatique)
       proj = bestProj;
       debugLog("✅ Utilisation de la projection déjà calculée:", proj.pkProj, "branche:", currentBranch);
-    } else if (manualBranchOverride && manualBranchOverride !== "auto" && manualBranchOverride !== null) {
-      // Recalculer avec la branche choisie
-      proj = projectToLine(lat, lon);
     } else {
-      // Utiliser la meilleure projection déjà calculée
+      // Utiliser la meilleure projection déjà calculée ou recalculer
       proj = bestProj || projectToLine(lat, lon);
     }
     if (proj.pkProj == null) {
@@ -8675,6 +8894,13 @@ function detectBranch(lat, lon) {
     updateSmsPreview();
     updatePkEstimateInSettings();
     updateOrientationPanel();
+    } catch (error) {
+      // Capturer toute erreur dans handlePosition pour éviter de bloquer la géolocalisation
+      console.error("⚠️ Erreur dans handlePosition:", error);
+      console.error("Stack:", error.stack);
+      // Ne pas afficher d'erreur à l'utilisateur car c'est une erreur interne
+      // La géolocalisation continuera à fonctionner pour les prochaines positions
+    }
   }
   function updateMovement(dPk, dt, lat, lon) {
     const profile = sensitivityProfiles[motionSensitivity] || sensitivityProfiles.normal;
