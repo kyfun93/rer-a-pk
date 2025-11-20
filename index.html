@@ -10897,8 +10897,174 @@ selectSensitivity.addEventListener("change", () => {
   safeSetItem("motionSensitivity", motionSensitivity);
 });
 }
-// Fonction pour générer le contenu des fermetures nocturnes
-function generateFermeturesNocturnesContent() {
+// === Fermetures nocturnes dynamiques ===
+const FERME_SOURCE_URL = "https://www.sytadin.fr/sys/fermetures_nocturnes.jsp.html";
+const FERME_CACHE_TTL = 10 * 60 * 1000;
+const FERME_AUTO_REFRESH_INTERVAL = 60 * 60 * 1000;
+
+const FALLBACK_FERMETURES = {
+  autoroutes: [
+    { axis: 'BP INTERIEUR', description: 'Entre la Porte de Sant-Ouen et la Porte de la Villette' },
+    { axis: 'A1 VERS PARIS', description: 'Entre Roissy-en-France et la Porte de la Chapelle' },
+    { axis: 'A1 VERS PROVINCE', description: 'Entre Aulnay-sous-Bois et Roissy-en-France' },
+    { axis: 'A12 VERS PARIS', description: 'Entre Montigny-le-Bretonneux (N12) et Rocquencourt (A13)' },
+    { axis: 'A12 VERS PROVINCE', description: 'Entre Rocquencourt (A13) et Montigny-le-Bretonneux (N12)' },
+    { axis: 'A14 VERS PARIS', description: 'Entre Orgeval (A13) et Nanterre (A86)' },
+    { axis: 'A14 VERS PROVINCE', description: 'Entre Nanterre (A86) et Orgeval (A13)' },
+    { axis: 'A4 VERS PROVINCE', description: 'De Collégien à Serris' },
+    { axis: 'A86 EXTERIEUR', description: 'Entre Nanterre (D914) et Rueil-Malmaison (D913)' },
+    { axis: 'A86 EXTERIEUR', description: 'Entre Rungis et Saint-Maurice (A4)' },
+    { axis: 'A86 INTERIEUR', description: 'Entre Vitry-sur-Seine (D5) et Rungis' },
+    { axis: 'N118 VERS PROVINCE', description: 'Entre le Pont de Sèvres (D910) et Meudon' },
+    { axis: 'N12 VERS PROVINCE', description: 'Tunnel de Chennevières' },
+    { axis: 'N13 VERS PROVINCE', description: 'Annulé - Entre Le Port-Marly et Saint-Germain-en-Laye' },
+    { axis: 'A15 VERS PARIS', description: 'Sortie 6 Pierrelaye (24h/24)' },
+    { axis: 'A3 VERS PARIS', description: 'Sortie 3 Romainville (24h/24)' }
+  ],
+  bergesMessage: "Pas de fermeture nocturne prévue sur les Voies sur berges dans Paris",
+  quais: [{ axis: 'V DEUX SENS', description: 'Tunnel Branly' }],
+  source: "données embarquées (statique)"
+};
+
+let fermeturesDataCache = null;
+let fermeturesDataRequest = null;
+
+function normalizeText(value = "") {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function findHeadingByText(doc, text) {
+  const target = normalizeText(text);
+  return Array.from(doc.querySelectorAll("h1, h2, h3, h4, h5, h6")).find(
+    heading => normalizeText(heading.textContent || "").includes(target)
+  );
+}
+
+function findTableAfterHeading(doc, headingText) {
+  const heading = findHeadingByText(doc, headingText);
+  if (!heading) return null;
+  let node = heading.nextElementSibling;
+  while (node) {
+    if (node.tagName === "TABLE") return node;
+    if (node.querySelector) {
+      const nested = node.querySelector("table");
+      if (nested) return nested;
+    }
+    node = node.nextElementSibling;
+  }
+  return null;
+}
+
+function extractParagraphAfterHeading(doc, headingText) {
+  const heading = findHeadingByText(doc, headingText);
+  if (!heading) return null;
+  let node = heading.nextElementSibling;
+  while (node) {
+    if (["P", "DIV", "SPAN"].includes(node.tagName)) {
+      const content = (node.textContent || "").trim();
+      if (content) return content.replace(/\s+/g, " ");
+    }
+    node = node.nextElementSibling;
+  }
+  return null;
+}
+
+function extractRowsFromTable(table) {
+  if (!table) return [];
+  const rows = Array.from(table.querySelectorAll("tr")).filter(row => !row.querySelector("th"));
+  return rows
+    .map(row => {
+      const cells = Array.from(row.querySelectorAll("td"));
+      const axisCell = cells[1] || cells[0];
+      const axis = axisCell ? axisCell.textContent.replace(/\s+/g, " ").trim() : "";
+      const description = cells[2] ? cells[2].textContent.replace(/\s+/g, " ").trim() : "";
+      if (!axis && !description) return null;
+      return { axis: axis || description, description };
+    })
+    .filter(Boolean);
+}
+
+function cloneEntries(entries) {
+  return entries.map(entry => ({
+    axis: entry.axis,
+    description: entry.description
+  }));
+}
+
+async function fetchFermeturesFromSytadin() {
+  const response = await fetch(FERME_SOURCE_URL, {
+    cache: "no-store",
+    mode: "cors"
+  });
+  if (!response.ok) {
+    throw new Error(`Requête vers Sytadin échouée (${response.status})`);
+  }
+  const html = await response.text();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+
+  const autoroutes = extractRowsFromTable(findTableAfterHeading(doc, "Autoroutes et grands axes"));
+  const quais = extractRowsFromTable(findTableAfterHeading(doc, "Quais, tunnels, viaducs dans Paris"));
+  const bergesMessage = extractParagraphAfterHeading(doc, "Voies sur berges dans Paris");
+
+  return {
+    autoroutes: autoroutes.length ? autoroutes : cloneEntries(FALLBACK_FERMETURES.autoroutes),
+    bergesMessage: bergesMessage || FALLBACK_FERMETURES.bergesMessage,
+    quais: quais.length ? quais : cloneEntries(FALLBACK_FERMETURES.quais),
+    source: "Sytadin (source officielle)",
+    fetchedAt: new Date().toISOString()
+  };
+}
+
+async function ensureFermeturesData(forceFetch = false) {
+  const now = Date.now();
+  if (!forceFetch && fermeturesDataCache && now - fermeturesDataCache.timestamp < FERME_CACHE_TTL) {
+    return fermeturesDataCache.data;
+  }
+  if (fermeturesDataRequest) {
+    return fermeturesDataRequest;
+  }
+
+  fermeturesDataRequest = fetchFermeturesFromSytadin()
+    .then(data => {
+      fermeturesDataCache = { timestamp: Date.now(), data };
+      fermeturesDataRequest = null;
+      return data;
+    })
+    .catch(error => {
+      fermeturesDataRequest = null;
+      throw error;
+    });
+
+  return fermeturesDataRequest;
+}
+
+function renderFermeturesEntries(entries, emptyMessage) {
+  if (!Array.isArray(entries) || !entries.length) {
+    return `<div style="color: var(--muted);">${emptyMessage}</div>`;
+  }
+  return entries
+    .map(entry => {
+      const axis = entry.axis || "Axe non précisé";
+      const description = entry.description || "Description indisponible";
+      return `
+        <div style="margin-bottom: 10px; line-height: 1.4;">
+          <div style="font-weight: 600; color: var(--text);">${axis}</div>
+          <div style="color: var(--muted);">${description}</div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+async function generateFermeturesNocturnesContent(forceFetch = false) {
+  if (!fermeturesNocturnesContent) return;
+
   const today = new Date();
   const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
   const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
@@ -10908,40 +11074,75 @@ function generateFermeturesNocturnesContent() {
   const year = today.getFullYear();
   const dateStr = `${dayName} ${day} ${month} ${year}`;
 
+  fermeturesNocturnesContent.innerHTML = `<div style="color: var(--muted);">Chargement des fermetures nocturnes…</div>`;
+
+  let data;
+  try {
+    data = await ensureFermeturesData(forceFetch);
+  } catch (error) {
+    console.warn("Impossible de récupérer les fermetures nocturnes depuis Sytadin", error);
+    data = {
+      autoroutes: cloneEntries(FALLBACK_FERMETURES.autoroutes),
+      bergesMessage: FALLBACK_FERMETURES.bergesMessage,
+      quais: cloneEntries(FALLBACK_FERMETURES.quais),
+      source: FALLBACK_FERMETURES.source,
+      fetchedAt: new Date().toISOString()
+    };
+  }
+
+  const autoroutesHtml = renderFermeturesEntries(
+    data.autoroutes.length ? data.autoroutes : FALLBACK_FERMETURES.autoroutes,
+    "Pas de fermeture nocturne listée pour les autoroutes et grands axes"
+  );
+  const quaisHtml = renderFermeturesEntries(
+    data.quais.length ? data.quais : FALLBACK_FERMETURES.quais,
+    "Pas de fermeture nocturne listée sur les quais, tunnels et viaducs"
+  );
+  const bergesParagraph = data.bergesMessage || FALLBACK_FERMETURES.bergesMessage;
+  const footerParts = [];
+  if (data.source) footerParts.push(data.source);
+
+  const lastUpdate = data.fetchedAt ? new Date(data.fetchedAt) : null;
+  if (lastUpdate && !Number.isNaN(lastUpdate.getTime())) {
+    footerParts.push(`Dernière mise à jour ${lastUpdate.toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}`);
+  }
+
+  const footerHtml = footerParts.length
+    ? `<div style="font-size: 0.85rem; color: var(--muted); margin-top: 16px;">${footerParts.join(" · ")}</div>`
+    : "";
+
   const content = `
     <div style="margin-bottom: 20px;">
       <div style="font-weight: 600; margin-bottom: 12px; color: var(--text);">Aujourd'hui (${dateStr})</div>
-      
+
       <div style="font-weight: 600; margin-top: 20px; margin-bottom: 12px; color: var(--text); text-decoration: underline;">Fermetures nocturnes de 21h à 6h</div>
-      
+
       <div style="margin-top: 15px;">
         <div style="font-weight: 600; margin-bottom: 10px; color: var(--text);">Autoroutes et grands axes</div>
-        <div style="line-height: 1.6; color: var(--muted);">
-          • A15 VERS PARIS : Sortie 6 Pierrelaye (24h/24)<br>
-          • A3 VERS PARIS : Sortie 3 Romainville (24h/24)<br>
-          • BP INTERIEUR : Sortie Porte de La Chapelle (24h/24)
-        </div>
+        <div>${autoroutesHtml}</div>
       </div>
-      
+
       <div style="margin-top: 15px;">
         <div style="font-weight: 600; margin-bottom: 10px; color: var(--text);">Voies sur berges dans Paris</div>
-        <div style="line-height: 1.6; color: var(--muted);">
-          Pas de fermeture nocturne prévue sur les Voies sur berges dans Paris
-        </div>
+        <div style="color: var(--muted); line-height: 1.4;">${bergesParagraph}</div>
       </div>
-      
+
       <div style="margin-top: 15px;">
         <div style="font-weight: 600; margin-bottom: 10px; color: var(--text);">Quais, tunnels, viaducs dans Paris</div>
-        <div style="line-height: 1.6; color: var(--muted);">
-          Pas de fermeture nocturne prévue sur les Quais, tunnels, viaducs dans Paris
-        </div>
+        <div>${quaisHtml}</div>
       </div>
+
+      ${footerHtml}
     </div>
   `;
-  
-  if (fermeturesNocturnesContent) {
-    fermeturesNocturnesContent.innerHTML = content;
-  }
+
+  fermeturesNocturnesContent.innerHTML = content;
+}
+
+if (fermeturesNocturnesContent) {
+  setInterval(() => {
+    generateFermeturesNocturnesContent(true);
+  }, FERME_AUTO_REFRESH_INTERVAL);
 }
 
 // Gestion de l'affichage du bloc Fermetures nocturnes
