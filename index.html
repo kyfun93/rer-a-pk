@@ -2714,7 +2714,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   </div>
                   <button class="pdf-nav-btn pdf-nav-next" data-pdf="chessy" aria-label="Page suivante">›</button>
                 </div>
-                <iframe id="planChessyIframe" class="plan-line-iframe" src="docs/Chessy.pdf#page=1" title="Plan de Chessy" type="application/pdf"></iframe>
+                <iframe id="planChessyIframe" class="plan-line-iframe" src="docs/Chessy.pdf#page=1&zoom=page-fit" title="Plan de Chessy" type="application/pdf"></iframe>
               </div>
             </div>
           </div>
@@ -2756,6 +2756,9 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                 <option value="Cheminement endommagé">Cheminement endommagé</option>
                 <option value="Rail cassé">Rail cassé</option>
                 <option value="Animal mort">Animal mort</option>
+                <option value="Déformation/affaissement important de la voie">Déformation/affaissement important de la voie</option>
+                <option value="Découverte anomalie électrique (barre de guidage, caténaire…)">Découverte anomalie électrique (barre de guidage, caténaire…)</option>
+                <option value="Objet sur la voie / initiative évitant incident">Objet sur la voie / initiative évitant incident</option>
                 <option value="Autre">Autre (saisir ci-dessous)</option>
               </select>
               <div class="field" id="incidentOtherField" style="display:none;">
@@ -7195,7 +7198,7 @@ function detectBranch(lat, lon) {
       ensureOrientationMapReady();
       updateOrientationPanel();
     } else if (tabId === "fermetures") {
-      generateFermeturesNocturnesContent();
+      generateFermeturesNocturnesContent(true);
     }
   }
 
@@ -10898,7 +10901,7 @@ selectSensitivity.addEventListener("change", () => {
 });
 }
 // === Fermetures nocturnes dynamiques ===
-const FERME_SOURCE_URL = "https://www.sytadin.fr/sys/fermetures_nocturnes.jsp.html";
+const FERME_SOURCE_URL = "https://sytadin-proxy.vercel.app/api/sytadin-ferm";
 const FERME_CACHE_TTL = 10 * 60 * 1000;
 const FERME_AUTO_REFRESH_INTERVAL = 60 * 60 * 1000;
 
@@ -10925,6 +10928,23 @@ const FALLBACK_FERMETURES = {
   quais: [{ axis: 'V DEUX SENS', description: 'Tunnel Branly' }],
   source: "données embarquées (statique)"
 };
+
+function createFallbackFermeturesData() {
+  return {
+    dateLabel: null,
+    autoroutesEtGrandsAxes: FALLBACK_FERMETURES.autoroutes.map(entry => ({
+      axeSens: entry.axis,
+      description: entry.description
+    })),
+    voiesSurBerges: FALLBACK_FERMETURES.bergesMessage,
+    quaisTunnelsViaducs: FALLBACK_FERMETURES.quais.map(entry => ({
+      axeSens: entry.axis,
+      description: entry.description
+    })),
+    source: FALLBACK_FERMETURES.source,
+    fetchedAt: new Date().toISOString()
+  };
+}
 
 let fermeturesDataCache = null;
 let fermeturesDataRequest = null;
@@ -10974,26 +10994,97 @@ function extractParagraphAfterHeading(doc, headingText) {
   return null;
 }
 
-function extractRowsFromTable(table) {
+function cleanText(value = "") {
+  return (value || "").replace(/\s+/g, " ").trim();
+}
+
+function splitAxisDescription(raw = "") {
+  let text = cleanText(raw);
+  text = text.replace(/^Local\s+/i, "");
+  const lowerIndex = text.search(/[a-zàâäéèêëîïôöùûüÿçœæ]/);
+  if (lowerIndex > 0 && lowerIndex < text.length) {
+    return {
+      axeSens: text.slice(0, lowerIndex).trim(),
+      description: text.slice(lowerIndex).trim()
+    };
+  }
+  return { axeSens: text, description: "" };
+}
+
+function parseFermeturesTable(table) {
   if (!table) return [];
-  const rows = Array.from(table.querySelectorAll("tr")).filter(row => !row.querySelector("th"));
-  return rows
+  return Array.from(table.querySelectorAll("tr"))
     .map(row => {
+      if (!row || row.querySelector("th")) return null;
       const cells = Array.from(row.querySelectorAll("td"));
-      const axisCell = cells[1] || cells[0];
-      const axis = axisCell ? axisCell.textContent.replace(/\s+/g, " ").trim() : "";
-      const description = cells[2] ? cells[2].textContent.replace(/\s+/g, " ").trim() : "";
-      if (!axis && !description) return null;
-      return { axis: axis || description, description };
+      if (!cells.length) return null;
+      const axisCell = cells[0];
+      let axisRaw = cleanText(axisCell?.textContent);
+      if (!axisRaw) return null;
+      if (/^Niveau\s+de\s+g/i.test(axisRaw)) return null;
+      const descriptionCell = cells[1] || cells[2];
+      let description = cleanText(descriptionCell?.textContent);
+      const splitted = splitAxisDescription(axisRaw);
+      const axeSens = splitted.axeSens || axisRaw;
+      if (!description) {
+        description = splitted.description;
+      }
+      if (!description) {
+        description = "—";
+      }
+      if (!axeSens) {
+        return null;
+      }
+      return {
+        axeSens,
+        description
+      };
     })
     .filter(Boolean);
 }
 
-function cloneEntries(entries) {
-  return entries.map(entry => ({
-    axis: entry.axis,
-    description: entry.description
-  }));
+function extractDateLabel(doc) {
+  const regex = /Aujourd'hui\s*\([^)]*\)/i;
+  const candidates = Array.from(doc.querySelectorAll("h1, h2, h3, h4, h5, h6, p, div, span"));
+  for (const node of candidates) {
+    if (!node || !node.textContent) continue;
+    const match = node.textContent.match(regex);
+    if (match) {
+      return match[0].trim();
+    }
+  }
+  return null;
+}
+
+function parseSytadinFermetures(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const dateLabel = extractDateLabel(doc);
+  const autoroutes = parseFermeturesTable(findTableAfterHeading(doc, "Autoroutes et grands axes"));
+  const quais = parseFermeturesTable(findTableAfterHeading(doc, "Quais, tunnels, viaducs dans Paris"));
+  const bergesMessage = extractParagraphAfterHeading(doc, "Voies sur berges dans Paris");
+
+  const autoroutesData = autoroutes.length
+    ? autoroutes
+    : FALLBACK_FERMETURES.autoroutes.map(entry => ({
+        axeSens: entry.axis,
+        description: entry.description
+      }));
+  const quaisData = quais.length
+    ? quais
+    : FALLBACK_FERMETURES.quais.map(entry => ({
+        axeSens: entry.axis,
+        description: entry.description
+      }));
+
+  return {
+    dateLabel,
+    autoroutesEtGrandsAxes: autoroutesData,
+    voiesSurBerges: bergesMessage || FALLBACK_FERMETURES.bergesMessage,
+    quaisTunnelsViaducs: quaisData,
+    source: "Sytadin (proxy)",
+    fetchedAt: new Date().toISOString()
+  };
 }
 
 async function fetchFermeturesFromSytadin() {
@@ -11002,23 +11093,13 @@ async function fetchFermeturesFromSytadin() {
     mode: "cors"
   });
   if (!response.ok) {
-    throw new Error(`Requête vers Sytadin échouée (${response.status})`);
+    throw new Error(`Requête vers Sytadin proxy échouée (${response.status})`);
   }
   const html = await response.text();
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
-
-  const autoroutes = extractRowsFromTable(findTableAfterHeading(doc, "Autoroutes et grands axes"));
-  const quais = extractRowsFromTable(findTableAfterHeading(doc, "Quais, tunnels, viaducs dans Paris"));
-  const bergesMessage = extractParagraphAfterHeading(doc, "Voies sur berges dans Paris");
-
-  return {
-    autoroutes: autoroutes.length ? autoroutes : cloneEntries(FALLBACK_FERMETURES.autoroutes),
-    bergesMessage: bergesMessage || FALLBACK_FERMETURES.bergesMessage,
-    quais: quais.length ? quais : cloneEntries(FALLBACK_FERMETURES.quais),
-    source: "Sytadin (source officielle)",
-    fetchedAt: new Date().toISOString()
-  };
+  console.log("Sytadin raw HTML snippet:", html.slice(0, 300));
+  const parsed = parseSytadinFermetures(html);
+  console.log("Parsed fermetures nocturnes:", parsed);
+  return parsed;
 }
 
 async function ensureFermeturesData(forceFetch = false) {
@@ -11050,7 +11131,7 @@ function renderFermeturesEntries(entries, emptyMessage) {
   }
   return entries
     .map(entry => {
-      const axis = entry.axis || "Axe non précisé";
+      const axis = entry.axeSens || "Axe non précisé";
       const description = entry.description || "Description indisponible";
       return `
         <div style="margin-bottom: 10px; line-height: 1.4;">
@@ -11072,7 +11153,7 @@ async function generateFermeturesNocturnesContent(forceFetch = false) {
   const day = today.getDate();
   const month = months[today.getMonth()];
   const year = today.getFullYear();
-  const dateStr = `${dayName} ${day} ${month} ${year}`;
+  const fallbackDateStr = `Aujourd'hui (${dayName} ${day} ${month} ${year})`;
 
   fermeturesNocturnesContent.innerHTML = `<div style="color: var(--muted);">Chargement des fermetures nocturnes…</div>`;
 
@@ -11081,24 +11162,19 @@ async function generateFermeturesNocturnesContent(forceFetch = false) {
     data = await ensureFermeturesData(forceFetch);
   } catch (error) {
     console.warn("Impossible de récupérer les fermetures nocturnes depuis Sytadin", error);
-    data = {
-      autoroutes: cloneEntries(FALLBACK_FERMETURES.autoroutes),
-      bergesMessage: FALLBACK_FERMETURES.bergesMessage,
-      quais: cloneEntries(FALLBACK_FERMETURES.quais),
-      source: FALLBACK_FERMETURES.source,
-      fetchedAt: new Date().toISOString()
-    };
+    data = createFallbackFermeturesData();
   }
 
+  const dateLabel = data.dateLabel || fallbackDateStr;
   const autoroutesHtml = renderFermeturesEntries(
-    data.autoroutes.length ? data.autoroutes : FALLBACK_FERMETURES.autoroutes,
+    data.autoroutesEtGrandsAxes,
     "Pas de fermeture nocturne listée pour les autoroutes et grands axes"
   );
   const quaisHtml = renderFermeturesEntries(
-    data.quais.length ? data.quais : FALLBACK_FERMETURES.quais,
+    data.quaisTunnelsViaducs,
     "Pas de fermeture nocturne listée sur les quais, tunnels et viaducs"
   );
-  const bergesParagraph = data.bergesMessage || FALLBACK_FERMETURES.bergesMessage;
+  const bergesParagraph = data.voiesSurBerges || FALLBACK_FERMETURES.bergesMessage;
   const footerParts = [];
   if (data.source) footerParts.push(data.source);
 
@@ -11113,7 +11189,7 @@ async function generateFermeturesNocturnesContent(forceFetch = false) {
 
   const content = `
     <div style="margin-bottom: 20px;">
-      <div style="font-weight: 600; margin-bottom: 12px; color: var(--text);">Aujourd'hui (${dateStr})</div>
+      <div style="font-weight: 600; margin-bottom: 12px; color: var(--text);">${dateLabel}</div>
 
       <div style="font-weight: 600; margin-top: 20px; margin-bottom: 12px; color: var(--text); text-decoration: underline;">Fermetures nocturnes de 21h à 6h</div>
 
