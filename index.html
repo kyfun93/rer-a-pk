@@ -1,79 +1,31 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+  <script>
+    if (window.location.protocol.startsWith("http") && "serviceWorker" in navigator) {
+      navigator
+        .serviceWorker
+        .getRegistrations()
+        .then(regs => {
+          regs.forEach(reg => reg.unregister());
+        })
+        .catch(() => {});
+      if (window.caches && caches.keys) {
+        caches
+          .keys()
+          .then(keys => {
+            keys.forEach(key => caches.delete(key));
+          })
+          .catch(() => {});
+      }
+      console.log("🔥 Service workers + caches nettoyés (mode non-PWA)");
+    }
+  </script>
   <meta charset="UTF-8" />
   <title>PK Assistant – RER A</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
-  <!-- PWA Configuration -->
   <meta name="description" content="Assistant de calcul de PK pour la ligne RER A" />
-  <meta name="theme-color" content="#3d7bff" />
-  
-  <!-- iOS PWA -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="PK Assistant" />
-  
-  <!-- Manifest (chargé uniquement si pas en file:// pour éviter l'erreur CORS) -->
-  <script>
-    if (window.location.protocol !== 'file:') {
-      const link = document.createElement('link');
-      link.rel = 'manifest';
-      link.href = 'manifest.json';
-      document.head.appendChild(link);
-    }
-  </script>
-  
-  <!-- Icônes -->
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
-  <link rel="apple-touch-icon" href="icon.svg" />
-  <!-- Génération de l'icône PNG pour iOS (exécuté immédiatement) -->
-  <script>
-    (function() {
-      const canvas = document.createElement('canvas');
-      canvas.width = 180;
-      canvas.height = 180;
-      const ctx = canvas.getContext('2d');
-      
-      // Créer le gradient radial (même que le titre)
-      const gradient = ctx.createRadialGradient(0, 0, 0, 90, 90, 180);
-      gradient.addColorStop(0, '#ff9f7b');
-      gradient.addColorStop(0.24, '#ff4b6b');
-      gradient.addColorStop(0.70, '#3d7bff');
-      gradient.addColorStop(1, '#1a1b3a');
-      
-      // Dessiner le fond avec coins arrondis
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      const radius = 35;
-      ctx.moveTo(radius, 0);
-      ctx.lineTo(180 - radius, 0);
-      ctx.quadraticCurveTo(180, 0, 180, radius);
-      ctx.lineTo(180, 180 - radius);
-      ctx.quadraticCurveTo(180, 180, 180 - radius, 180);
-      ctx.lineTo(radius, 180);
-      ctx.quadraticCurveTo(0, 180, 0, 180 - radius);
-      ctx.lineTo(0, radius);
-      ctx.quadraticCurveTo(0, 0, radius, 0);
-      ctx.closePath();
-      ctx.fill();
-      
-      // Dessiner l'emoji métro/RER (utiliser une police système qui supporte les emojis)
-      ctx.fillStyle = 'white';
-      ctx.font = 'bold 175px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('🚇', 90, 90);
-      
-      // Créer le lien apple-touch-icon avec le data URI
-      const dataUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('link');
-      link.rel = 'apple-touch-icon';
-      link.sizes = '180x180';
-      link.href = dataUrl;
-      document.head.appendChild(link);
-    })();
-  </script>
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <!-- Leaflet JS -->
@@ -920,6 +872,17 @@
   .big-sub {
     font-size: 1rem;
     color: var(--muted-strong);
+  }
+
+  .card-subtitle {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .sytadin-list {
+    display: flex;
+    flex-direction: column;
   }
 
   .muted {
@@ -2922,7 +2885,9 @@ body[data-page-hidden="true"] .direction-arrow-moving {
               <div class="card-title">Fermetures nocturnes</div>
             </div>
             <div id="fermeturesNocturnesContent" style="padding: 16px; line-height: 1.8; color: var(--text);">
-              <!-- Le contenu sera généré par JavaScript -->
+              <div id="sytadin-ferm-container" style="padding: 12px;">
+                <p>Chargement des fermetures nocturnes…</p>
+              </div>
             </div>
           </div>
         </div>
@@ -7175,7 +7140,7 @@ function detectBranch(lat, lon) {
     applyCoverageLegendFilters();
     setRecalMessage("");
 
-    generateFermeturesNocturnesContent();
+    renderSytadinFermeturesList();
   }
 
   function activateTab(tabId, options = {}) {
@@ -7186,6 +7151,9 @@ function detectBranch(lat, lon) {
       const isActive = target === tabId;
       button.classList.toggle("is-active", isActive);
       button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      if (isActive && target === "fermetures") {
+        renderSytadinFermeturesList();
+      }
     });
     tabPanels.forEach(panel => {
       panel.classList.toggle("is-active", panel.dataset.tab === tabId);
@@ -7197,8 +7165,6 @@ function detectBranch(lat, lon) {
     if (tabId === "plan") {
       ensureOrientationMapReady();
       updateOrientationPanel();
-    } else if (tabId === "fermetures") {
-      generateFermeturesNocturnesContent(true);
     }
   }
 
@@ -10900,325 +10866,82 @@ selectSensitivity.addEventListener("change", () => {
   safeSetItem("motionSensitivity", motionSensitivity);
 });
 }
-// === Fermetures nocturnes dynamiques ===
-const FERME_SOURCE_URL = "https://sytadin-proxy.vercel.app/api/sytadin-ferm";
-const FERME_CACHE_TTL = 10 * 60 * 1000;
-const FERME_AUTO_REFRESH_INTERVAL = 60 * 60 * 1000;
+async function loadSytadinFermetures() {
+  const url = "https://sytadin-proxy.vercel.app/api/sytadin-ferm";
 
-const FALLBACK_FERMETURES = {
-  autoroutes: [
-    { axis: 'BP INTERIEUR', description: 'Entre la Porte de Sant-Ouen et la Porte de la Villette' },
-    { axis: 'A1 VERS PARIS', description: 'Entre Roissy-en-France et la Porte de la Chapelle' },
-    { axis: 'A1 VERS PROVINCE', description: 'Entre Aulnay-sous-Bois et Roissy-en-France' },
-    { axis: 'A12 VERS PARIS', description: 'Entre Montigny-le-Bretonneux (N12) et Rocquencourt (A13)' },
-    { axis: 'A12 VERS PROVINCE', description: 'Entre Rocquencourt (A13) et Montigny-le-Bretonneux (N12)' },
-    { axis: 'A14 VERS PARIS', description: 'Entre Orgeval (A13) et Nanterre (A86)' },
-    { axis: 'A14 VERS PROVINCE', description: 'Entre Nanterre (A86) et Orgeval (A13)' },
-    { axis: 'A4 VERS PROVINCE', description: 'De Collégien à Serris' },
-    { axis: 'A86 EXTERIEUR', description: 'Entre Nanterre (D914) et Rueil-Malmaison (D913)' },
-    { axis: 'A86 EXTERIEUR', description: 'Entre Rungis et Saint-Maurice (A4)' },
-    { axis: 'A86 INTERIEUR', description: 'Entre Vitry-sur-Seine (D5) et Rungis' },
-    { axis: 'N118 VERS PROVINCE', description: 'Entre le Pont de Sèvres (D910) et Meudon' },
-    { axis: 'N12 VERS PROVINCE', description: 'Tunnel de Chennevières' },
-    { axis: 'N13 VERS PROVINCE', description: 'Annulé - Entre Le Port-Marly et Saint-Germain-en-Laye' },
-    { axis: 'A15 VERS PARIS', description: 'Sortie 6 Pierrelaye (24h/24)' },
-    { axis: 'A3 VERS PARIS', description: 'Sortie 3 Romainville (24h/24)' }
-  ],
-  bergesMessage: "Pas de fermeture nocturne prévue sur les Voies sur berges dans Paris",
-  quais: [{ axis: 'V DEUX SENS', description: 'Tunnel Branly' }],
-  source: "données embarquées (statique)"
-};
+  try {
+    console.log("Chargement Sytadin…");
+    const html = await fetch(url).then(r => r.text());
 
-function createFallbackFermeturesData() {
-  return {
-    dateLabel: null,
-    autoroutesEtGrandsAxes: FALLBACK_FERMETURES.autoroutes.map(entry => ({
-      axeSens: entry.axis,
-      description: entry.description
-    })),
-    voiesSurBerges: FALLBACK_FERMETURES.bergesMessage,
-    quaisTunnelsViaducs: FALLBACK_FERMETURES.quais.map(entry => ({
-      axeSens: entry.axis,
-      description: entry.description
-    })),
-    source: FALLBACK_FERMETURES.source,
-    fetchedAt: new Date().toISOString()
-  };
-}
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
 
-let fermeturesDataCache = null;
-let fermeturesDataRequest = null;
-
-function normalizeText(value = "") {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function findHeadingByText(doc, text) {
-  const target = normalizeText(text);
-  return Array.from(doc.querySelectorAll("h1, h2, h3, h4, h5, h6")).find(
-    heading => normalizeText(heading.textContent || "").includes(target)
-  );
-}
-
-function findTableAfterHeading(doc, headingText) {
-  const heading = findHeadingByText(doc, headingText);
-  if (!heading) return null;
-  let node = heading.nextElementSibling;
-  while (node) {
-    if (node.tagName === "TABLE") return node;
-    if (node.querySelector) {
-      const nested = node.querySelector("table");
-      if (nested) return nested;
+    const tables = [...doc.querySelectorAll("table")];
+    if (!tables.length) {
+      console.warn("Aucun tableau trouvé.");
+      return [];
     }
-    node = node.nextElementSibling;
-  }
-  return null;
-}
 
-function extractParagraphAfterHeading(doc, headingText) {
-  const heading = findHeadingByText(doc, headingText);
-  if (!heading) return null;
-  let node = heading.nextElementSibling;
-  while (node) {
-    if (["P", "DIV", "SPAN"].includes(node.tagName)) {
-      const content = (node.textContent || "").trim();
-      if (content) return content.replace(/\s+/g, " ");
+    let fermetureTable = null;
+
+    for (const t of tables) {
+      const headers = [...t.querySelectorAll("th")].map(th => th.textContent.trim().toLowerCase());
+      if (
+        headers.includes("axe et sens") &&
+        (headers.includes("description") || headers.includes("désignation"))
+      ) {
+        fermetureTable = t;
+        break;
+      }
     }
-    node = node.nextElementSibling;
-  }
-  return null;
-}
 
-function cleanText(value = "") {
-  return (value || "").replace(/\s+/g, " ").trim();
-}
+    if (!fermetureTable) {
+      console.warn("Tableau 'Fermetures nocturnes' introuvable.");
+      return [];
+    }
 
-function splitAxisDescription(raw = "") {
-  let text = cleanText(raw);
-  text = text.replace(/^Local\s+/i, "");
-  const lowerIndex = text.search(/[a-zàâäéèêëîïôöùûüÿçœæ]/);
-  if (lowerIndex > 0 && lowerIndex < text.length) {
-    return {
-      axeSens: text.slice(0, lowerIndex).trim(),
-      description: text.slice(lowerIndex).trim()
-    };
-  }
-  return { axeSens: text, description: "" };
-}
-
-function parseFermeturesTable(table) {
-  if (!table) return [];
-  return Array.from(table.querySelectorAll("tr"))
-    .map(row => {
-      if (!row || row.querySelector("th")) return null;
-      const cells = Array.from(row.querySelectorAll("td"));
-      if (!cells.length) return null;
-      const axisCell = cells[0];
-      let axisRaw = cleanText(axisCell?.textContent);
-      if (!axisRaw) return null;
-      if (/^Niveau\s+de\s+g/i.test(axisRaw)) return null;
-      const descriptionCell = cells[1] || cells[2];
-      let description = cleanText(descriptionCell?.textContent);
-      const splitted = splitAxisDescription(axisRaw);
-      const axeSens = splitted.axeSens || axisRaw;
-      if (!description) {
-        description = splitted.description;
-      }
-      if (!description) {
-        description = "—";
-      }
-      if (!axeSens) {
-        return null;
-      }
+    const rows = [...fermetureTable.querySelectorAll("tr")].slice(1);
+    const results = rows.map(row => {
+      const cols = [...row.querySelectorAll("td")].map(td => td.textContent.trim());
       return {
-        axeSens,
-        description
+        gene: cols[0] || "",
+        axe: cols[1] || "",
+        description: cols[2] || ""
       };
-    })
-    .filter(Boolean);
-}
-
-function extractDateLabel(doc) {
-  const regex = /Aujourd'hui\s*\([^)]*\)/i;
-  const candidates = Array.from(doc.querySelectorAll("h1, h2, h3, h4, h5, h6, p, div, span"));
-  for (const node of candidates) {
-    if (!node || !node.textContent) continue;
-    const match = node.textContent.match(regex);
-    if (match) {
-      return match[0].trim();
-    }
-  }
-  return null;
-}
-
-function parseSytadinFermetures(html) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
-  const dateLabel = extractDateLabel(doc);
-  const autoroutes = parseFermeturesTable(findTableAfterHeading(doc, "Autoroutes et grands axes"));
-  const quais = parseFermeturesTable(findTableAfterHeading(doc, "Quais, tunnels, viaducs dans Paris"));
-  const bergesMessage = extractParagraphAfterHeading(doc, "Voies sur berges dans Paris");
-
-  const autoroutesData = autoroutes.length
-    ? autoroutes
-    : FALLBACK_FERMETURES.autoroutes.map(entry => ({
-        axeSens: entry.axis,
-        description: entry.description
-      }));
-  const quaisData = quais.length
-    ? quais
-    : FALLBACK_FERMETURES.quais.map(entry => ({
-        axeSens: entry.axis,
-        description: entry.description
-      }));
-
-  return {
-    dateLabel,
-    autoroutesEtGrandsAxes: autoroutesData,
-    voiesSurBerges: bergesMessage || FALLBACK_FERMETURES.bergesMessage,
-    quaisTunnelsViaducs: quaisData,
-    source: "Sytadin (proxy)",
-    fetchedAt: new Date().toISOString()
-  };
-}
-
-async function fetchFermeturesFromSytadin() {
-  const response = await fetch(FERME_SOURCE_URL, {
-    cache: "no-store",
-    mode: "cors"
-  });
-  if (!response.ok) {
-    throw new Error(`Requête vers Sytadin proxy échouée (${response.status})`);
-  }
-  const html = await response.text();
-  console.log("Sytadin raw HTML snippet:", html.slice(0, 300));
-  const parsed = parseSytadinFermetures(html);
-  console.log("Parsed fermetures nocturnes:", parsed);
-  return parsed;
-}
-
-async function ensureFermeturesData(forceFetch = false) {
-  const now = Date.now();
-  if (!forceFetch && fermeturesDataCache && now - fermeturesDataCache.timestamp < FERME_CACHE_TTL) {
-    return fermeturesDataCache.data;
-  }
-  if (fermeturesDataRequest) {
-    return fermeturesDataRequest;
-  }
-
-  fermeturesDataRequest = fetchFermeturesFromSytadin()
-    .then(data => {
-      fermeturesDataCache = { timestamp: Date.now(), data };
-      fermeturesDataRequest = null;
-      return data;
-    })
-    .catch(error => {
-      fermeturesDataRequest = null;
-      throw error;
     });
 
-  return fermeturesDataRequest;
+    console.log("Fermetures détectées :", results);
+    return results;
+
+  } catch (e) {
+    console.error("Erreur parsing Sytadin :", e);
+    return [];
+  }
 }
 
-function renderFermeturesEntries(entries, emptyMessage) {
-  if (!Array.isArray(entries) || !entries.length) {
-    return `<div style="color: var(--muted);">${emptyMessage}</div>`;
+async function renderSytadinFermeturesList() {
+  const container = document.getElementById("sytadin-ferm-container");
+  if (!container) return;
+
+  container.innerHTML = "<em>Chargement…</em>";
+  const results = await loadSytadinFermetures();
+
+  if (!results.length) {
+    container.innerHTML = "<p>Aucune donnée trouvée.</p>";
+    return;
   }
-  return entries
-    .map(entry => {
-      const axis = entry.axeSens || "Axe non précisé";
-      const description = entry.description || "Description indisponible";
-      return `
-        <div style="margin-bottom: 10px; line-height: 1.4;">
-          <div style="font-weight: 600; color: var(--text);">${axis}</div>
-          <div style="color: var(--muted);">${description}</div>
-        </div>
-      `;
-    })
+
+  const itemsHtml = results
+    .map(result => `
+      <div class="card sytadin-item" style="margin-bottom: 12px; padding: 12px;">
+        <div class="card-title">${result.axe || "Axe inconnu"}</div>
+        <div class="card-subtitle" style="color: rgba(214, 223, 255, 0.75); margin: 8px 0 6px;">${result.description || "Description indisponible"}</div>
+        <div class="badge">${result.gene || "—"}</div>
+      </div>
+    `)
     .join("");
-}
 
-async function generateFermeturesNocturnesContent(forceFetch = false) {
-  if (!fermeturesNocturnesContent) return;
-
-  const today = new Date();
-  const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-  const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-  const dayName = days[today.getDay()];
-  const day = today.getDate();
-  const month = months[today.getMonth()];
-  const year = today.getFullYear();
-  const fallbackDateStr = `Aujourd'hui (${dayName} ${day} ${month} ${year})`;
-
-  fermeturesNocturnesContent.innerHTML = `<div style="color: var(--muted);">Chargement des fermetures nocturnes…</div>`;
-
-  let data;
-  try {
-    data = await ensureFermeturesData(forceFetch);
-  } catch (error) {
-    console.warn("Impossible de récupérer les fermetures nocturnes depuis Sytadin", error);
-    data = createFallbackFermeturesData();
-  }
-
-  const dateLabel = data.dateLabel || fallbackDateStr;
-  const autoroutesHtml = renderFermeturesEntries(
-    data.autoroutesEtGrandsAxes,
-    "Pas de fermeture nocturne listée pour les autoroutes et grands axes"
-  );
-  const quaisHtml = renderFermeturesEntries(
-    data.quaisTunnelsViaducs,
-    "Pas de fermeture nocturne listée sur les quais, tunnels et viaducs"
-  );
-  const bergesParagraph = data.voiesSurBerges || FALLBACK_FERMETURES.bergesMessage;
-  const footerParts = [];
-  if (data.source) footerParts.push(data.source);
-
-  const lastUpdate = data.fetchedAt ? new Date(data.fetchedAt) : null;
-  if (lastUpdate && !Number.isNaN(lastUpdate.getTime())) {
-    footerParts.push(`Dernière mise à jour ${lastUpdate.toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}`);
-  }
-
-  const footerHtml = footerParts.length
-    ? `<div style="font-size: 0.85rem; color: var(--muted); margin-top: 16px;">${footerParts.join(" · ")}</div>`
-    : "";
-
-  const content = `
-    <div style="margin-bottom: 20px;">
-      <div style="font-weight: 600; margin-bottom: 12px; color: var(--text);">${dateLabel}</div>
-
-      <div style="font-weight: 600; margin-top: 20px; margin-bottom: 12px; color: var(--text); text-decoration: underline;">Fermetures nocturnes de 21h à 6h</div>
-
-      <div style="margin-top: 15px;">
-        <div style="font-weight: 600; margin-bottom: 10px; color: var(--text);">Autoroutes et grands axes</div>
-        <div>${autoroutesHtml}</div>
-      </div>
-
-      <div style="margin-top: 15px;">
-        <div style="font-weight: 600; margin-bottom: 10px; color: var(--text);">Voies sur berges dans Paris</div>
-        <div style="color: var(--muted); line-height: 1.4;">${bergesParagraph}</div>
-      </div>
-
-      <div style="margin-top: 15px;">
-        <div style="font-weight: 600; margin-bottom: 10px; color: var(--text);">Quais, tunnels, viaducs dans Paris</div>
-        <div>${quaisHtml}</div>
-      </div>
-
-      ${footerHtml}
-    </div>
-  `;
-
-  fermeturesNocturnesContent.innerHTML = content;
-}
-
-if (fermeturesNocturnesContent) {
-  setInterval(() => {
-    generateFermeturesNocturnesContent(true);
-  }, FERME_AUTO_REFRESH_INTERVAL);
+  container.innerHTML = `<div class="sytadin-list">${itemsHtml}</div>`;
 }
 
 // Gestion de l'affichage du bloc Fermetures nocturnes
