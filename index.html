@@ -2826,17 +2826,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
               <label for="inputCoveragePkEnd">PK fin chantier (m)</label>
               <input id="inputCoveragePkEnd" type="number" placeholder="ex : 49000" />
             </div>
-            <div class="branch-choice-control branch-choice-wrapper">
-              <span class="branch-choice-label">Branche :</span>
-              <div class="branch-choice-menu-container">
-                <button id="btnBranchCoverage" type="button" class="branch-choice-button" aria-expanded="false">Tronçon central</button>
-                <div id="branchMenuCoverage" class="branch-choice-menu" hidden>
-                  <button type="button" data-branch="central" data-context="coverage">Tronçon central</button>
-                  <button type="button" data-branch="boissy" data-context="coverage">Boissy</button>
-                  <button type="button" data-branch="chessy" data-context="coverage">Chessy</button>
-                </div>
-              </div>
-            </div>
             <div class="field" style="display:flex; gap:10px; flex-wrap:wrap;">
               <button id="btnComputeCoverage" class="btn btn-primary btn-icon" type="button">
                 <span>🚦</span><span>Calculer rouges & pétards</span>
@@ -2859,8 +2848,8 @@ body[data-page-hidden="true"] .direction-arrow-moving {
               </p>
               <p style="margin: 0 0 8px;">Mode opératoire :</p>
               <ul>
-                <li>Signal de repérage : signal à main d'arrêt + 1 pétard positionnés à 100&nbsp;m de chaque extrémité du chantier.</li>
-                <li>Pétards d'annonce : 3 pétards à 800&nbsp;m (ou 1000&nbsp;m entre Torcy PK&nbsp;48,000 et Marne-la-Vallée–Chessy), alternés tous les 30&nbsp;m sur chaque file de rail.</li>
+                <li><strong>Signal de repérage (SAM)</strong> : signal à main d'arrêt positionné à 100&nbsp;m de chaque extrémité du chantier (en direction opposée au chantier).</li>
+                <li><strong>Pétards d'annonce</strong> : 3 pétards positionnés à 800&nbsp;m du SAM (ou 1000&nbsp;m entre Torcy PK&nbsp;48,000 et Marne-la-Vallée–Chessy), espacés de 30&nbsp;m entre eux et alternés sur chaque file de rail (droite, gauche, droite).</li>
               </ul>
               <p style="margin: 8px 0 0;">Indique le PK début, le PK fin ou les deux pour générer les points précis et les afficher sur la carte.</p>
             </div>
@@ -4396,7 +4385,7 @@ const accessPoints = [
 
   // === CONSTANTES DE BRANCHES (définies avant utilisation) ===
   const BRANCH_COMMON_MAX = 30000; // Fin du tronc commun (après Vincennes)
-  const BRANCH_CHESSY_MIN = 34000; // Début de la branche Chessy (Val de Fontenay)
+  const BRANCH_CHESSY_MIN = 31795; // Début de la branche Chessy (Val de Fontenay)
   const BRANCH_CHESSY_MAX = 59700; // Fin de la branche Chessy
   const BRANCH_BOISSY_MIN = 32750; // Début de la branche Boissy (Fontenay-sous-Bois)
   const BRANCH_BOISSY_MAX = 47200; // Fin de la branche Boissy (Boissy-Saint-Léger)
@@ -5210,7 +5199,6 @@ async function loadSharedCalibrations() {
   const btnPkLookupOpenMaps = document.getElementById("btnPkLookupOpenMaps");
   const btnPkLookupOpenWaze = document.getElementById("btnPkLookupOpenWaze");
   const btnBranchSearch = document.getElementById("btnBranchSearch");
-  const btnBranchCoverage = document.getElementById("btnBranchCoverage");
   const btnBranchTarget = document.getElementById("btnBranchTarget");
   const btnBranchIncident = document.getElementById("btnBranchIncident");
   const btnBranchRecal = document.getElementById("btnBranchRecal");
@@ -6056,7 +6044,6 @@ async function loadSharedCalibrations() {
   }
 
   branchSelectionButtons[BRANCH_SELECTION_CONTEXTS.search] = btnBranchSearch;
-  branchSelectionButtons[BRANCH_SELECTION_CONTEXTS.coverage] = btnBranchCoverage;
   branchSelectionButtons[BRANCH_SELECTION_CONTEXTS.target] = btnBranchTarget;
   branchSelectionButtons[BRANCH_SELECTION_CONTEXTS.incident] = btnBranchIncident;
   branchSelectionButtons[BRANCH_SELECTION_CONTEXTS.geoloc] = btnBranchGeoloc;
@@ -6066,7 +6053,6 @@ async function loadSharedCalibrations() {
     debugLog("🔧 Initialisation des menus de branche...");
     const branchMenuMap = {
       [BRANCH_SELECTION_CONTEXTS.search]: { button: btnBranchSearch, menu: document.getElementById("branchMenuSearch") },
-      [BRANCH_SELECTION_CONTEXTS.coverage]: { button: btnBranchCoverage, menu: document.getElementById("branchMenuCoverage") },
       [BRANCH_SELECTION_CONTEXTS.target]: { button: btnBranchTarget, menu: document.getElementById("branchMenuTarget") },
       [BRANCH_SELECTION_CONTEXTS.incident]: { button: btnBranchIncident, menu: document.getElementById("branchMenuIncident") },
       [BRANCH_SELECTION_CONTEXTS.recal]: { button: btnBranchRecal, menu: document.getElementById("branchMenuRecal") },
@@ -6386,9 +6372,45 @@ function buildCalibrationPolylines() {
     });
   }
   // Fonction principale pour calculer les marqueurs de couverture
+  // Fonction helper pour déterminer la branche d'un PK
+  function detectBranchForPk(pk) {
+    if (pk == null || !Number.isFinite(pk)) return "central";
+    if (pk <= BRANCH_COMMON_MAX) {
+      return "central";
+    } else if (pk >= BRANCH_CHESSY_MIN && pk < BRANCH_BOISSY_MIN) {
+      // Zone uniquement Chessy (entre 31795 et début Boissy à 32750)
+      return "chessy";
+    } else if (pk >= BRANCH_BOISSY_MIN && pk <= BRANCH_BOISSY_MAX) {
+      // Zone ambiguë : déterminer selon la gare la plus proche
+      const boissyStations = [34000, 35600, 37500, 38500, 40300, 41800, 44500, 47200];
+      const chessyStations = [34525, 36750, 37950, 39850, 42150, 44850];
+      let minBoissyDist = Infinity;
+      let minChessyDist = Infinity;
+      for (const boissyPk of boissyStations) {
+        const dist = Math.abs(pk - boissyPk);
+        if (dist < minBoissyDist) minBoissyDist = dist;
+      }
+      for (const chessyPk of chessyStations) {
+        const dist = Math.abs(pk - chessyPk);
+        if (dist < minChessyDist) minChessyDist = dist;
+      }
+      return minBoissyDist < minChessyDist ? "boissy" : "chessy";
+    } else if (pk > BRANCH_BOISSY_MAX && pk <= BRANCH_CHESSY_MAX) {
+      // Zone uniquement Chessy (après Boissy-Saint-Léger)
+      return "chessy";
+    }
+    return "central";
+  }
+
   function computeCoverageMarkers(pkStart, pkEnd) {
     const results = [];
-    const branchForCoverage = currentBranch || "central";
+    // Détecter automatiquement la branche selon les PK fournis
+    let branchForCoverage = "central";
+    if (pkStart != null && Number.isFinite(pkStart)) {
+      branchForCoverage = detectBranchForPk(pkStart);
+    } else if (pkEnd != null && Number.isFinite(pkEnd)) {
+      branchForCoverage = detectBranchForPk(pkEnd);
+    }
 
     if (Number.isFinite(pkStart)) {
       // Côté PK début : SAM à 100m en direction St-Germain (PK diminue)
@@ -6455,6 +6477,7 @@ function buildCalibrationPolylines() {
       lineId: "RERA",
       bySide: results,
       distanceRule: maxDistance,
+      detectedBranch: branchForCoverage // Retourner la branche détectée pour le formatage
     };
   }
 
@@ -6534,10 +6557,12 @@ function buildCalibrationPolylines() {
 
   function createCoveragePopupContent(point, extra = {}) {
     const title = extra.label || point.title || "";
-    const pkText = point.pk != null ? "PK " + formatPk(point.pk) : "";
+    const pointBranch = point.pk != null ? detectBranchForPk(point.pk) : null;
+    const pkText = point.pk != null ? "PK " + formatPk(point.pk, pointBranch) : "";
     const access = point.nearestAccess;
+    const accessBranch = access && access.pk != null ? detectBranchForPk(access.pk) : null;
     const accessText = access
-      ? `🚪 <strong>${access.name}</strong>${access.pk != null ? " · PK " + formatPk(access.pk) : ""}${access.distanceText ? " · " + access.distanceText : ""}`
+      ? `🚪 <strong>${access.name}</strong>${access.pk != null ? " · PK " + formatPk(access.pk, accessBranch) : ""}${access.distanceText ? " · " + access.distanceText : ""}`
       : null;
     const navHtml = createNavigationButtonsHTML(point.lat, point.lon, { compact: true });
     return `
@@ -6681,57 +6706,127 @@ function buildCalibrationPolylines() {
   // branchHint : branche choisie par l'utilisateur (boissy, central, chessy, ou null pour auto)
   function findNearestAccess(pk, branchHint = null) {
     if (pk == null) return null;
-    let best = null;
-    let bestDiff = Infinity;
+    
+    // Déterminer la branche du PK recherché selon sa valeur
+    let pkBranch = null;
+    if (pk <= BRANCH_COMMON_MAX) {
+      pkBranch = "central";
+    } else if (pk >= BRANCH_CHESSY_MIN && pk <= BRANCH_CHESSY_MAX) {
+      pkBranch = "chessy";
+    } else if (pk >= BRANCH_BOISSY_MIN && pk <= BRANCH_BOISSY_MAX) {
+      pkBranch = "boissy";
+    }
+    
+    // Utiliser la branche spécifiée par l'utilisateur, sinon celle déterminée par le PK
+    const effectiveBranch = branchHint && branchHint !== "auto" ? branchHint : pkBranch;
+    
+    debugLog("🔍 findNearestAccess: PK recherché =", pk, "pkBranch =", pkBranch, "effectiveBranch =", effectiveBranch);
+    
+    // Trouver tous les accès candidats avec leur distance
+    const candidates = [];
     
     for (const acc of accessPoints) {
       if (acc.pk == null) continue;
       
-      // Si une branche est spécifiée, filtrer les accès selon leur branche
-      if (branchHint && branchHint !== "auto") {
-        // Déterminer la branche de l'accès selon son PK
-        let accBranch = null;
-        if (acc.pk <= BRANCH_COMMON_MAX) {
-          accBranch = "central";
-        } else if (acc.pk >= BRANCH_CHESSY_MIN && acc.pk <= BRANCH_CHESSY_MAX) {
-          // PK entre 34000 et 59700 = Chessy
-          accBranch = "chessy";
-        } else if (acc.pk >= BRANCH_BOISSY_MIN && acc.pk <= BRANCH_BOISSY_MAX) {
-          // PK entre 32750 et 47200 = Boissy
+      const d = Math.abs(acc.pk - pk);
+      
+      // Déterminer la branche de l'accès selon son PK
+      // Dans la zone ambiguë, utiliser les gares comme référence pour déterminer la branche
+      let accBranch = null;
+      if (acc.pk <= BRANCH_COMMON_MAX) {
+        accBranch = "central"; // Tronc commun
+      } else if (acc.pk >= BRANCH_CHESSY_MIN && acc.pk < BRANCH_BOISSY_MIN) {
+        // Avant la zone ambiguë : uniquement Chessy (entre 31795 et début Boissy à 32750)
+        accBranch = "chessy";
+      } else if (acc.pk > BRANCH_BOISSY_MAX && acc.pk <= BRANCH_CHESSY_MAX) {
+        // Après la zone ambiguë : uniquement Chessy (après Boissy-Saint-Léger)
+        accBranch = "chessy";
+      } else if (acc.pk >= BRANCH_BOISSY_MIN && acc.pk <= BRANCH_BOISSY_MAX) {
+        // Zone ambiguë : déterminer selon la gare la plus proche
+        // D'abord, vérifier si le nom/adresse indique clairement une ville
+        const accText = ((acc.name || "") + " " + (acc.address || "")).toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[-'']/g, " ")
+          .replace(/\s+/g, " ");
+        
+        // Villes Boissy dans la zone ambiguë
+        const boissyCityKeywords = ["joinville", "nogent", "st maur", "champigny", "varenne", "sucy", "boissy"];
+        // Villes Chessy dans la zone ambiguë
+        const chessyCityKeywords = ["val de fontenay", "neuilly", "bry", "noisy", "noisiel"];
+        
+        let hasBoissyCity = boissyCityKeywords.some(keyword => accText.includes(keyword));
+        let hasChessyCity = chessyCityKeywords.some(keyword => accText.includes(keyword));
+        
+        // Si une ville est clairement identifiée, l'utiliser
+        if (hasBoissyCity && !hasChessyCity) {
           accBranch = "boissy";
+        } else if (hasChessyCity && !hasBoissyCity) {
+          accBranch = "chessy";
         } else {
-          // PK entre 30000 et 34000 (zone de transition après Vincennes)
-          accBranch = null; // À déterminer selon le contexte
+          // Sinon, utiliser la gare la plus proche
+          const boissyStations = [34000, 35600, 37500, 38500, 40300, 41800, 44500, 47200];
+          const chessyStations = [34525, 36750, 37950, 39850, 42150, 44850];
+          
+          let minBoissyDist = Infinity;
+          let minChessyDist = Infinity;
+          
+          for (const pk of boissyStations) {
+            const dist = Math.abs(acc.pk - pk);
+            if (dist < minBoissyDist) minBoissyDist = dist;
+          }
+          
+          for (const pk of chessyStations) {
+            const dist = Math.abs(acc.pk - pk);
+            if (dist < minChessyDist) minChessyDist = dist;
+          }
+          
+          accBranch = minBoissyDist < minChessyDist ? "boissy" : "chessy";
         }
-        
-        // Si la branche de l'accès ne correspond pas à celle demandée, l'ignorer
-        if (branchHint === "central" && accBranch !== "central") continue;
-        if (branchHint === "boissy" && accBranch !== "boissy") continue;
-        if (branchHint === "chessy" && accBranch !== "chessy") continue;
-        
-        console.log("  Accès", acc.name, "PK", acc.pk, "branche", accBranch, "→ accepté");
       }
       
-      const d = Math.abs(acc.pk - pk);
-      if (d < bestDiff) {
-        bestDiff = d;
-        best = acc;
+      // Filtrer selon la branche recherchée
+      let include = true;
+      if (effectiveBranch) {
+        if (effectiveBranch === "central") {
+          // Si on cherche dans le tronc commun, inclure uniquement les accès du tronc commun
+          include = (accBranch === "central");
+        } else {
+          // Si on cherche sur une branche spécifique (chessy ou boissy), inclure UNIQUEMENT cette branche
+          // C'est ici que le bouton fait son travail : exclure strictement l'autre branche
+          include = (accBranch === effectiveBranch);
+        }
+      }
+      
+      if (include) {
+        candidates.push({ acc, distance: d, branch: accBranch });
+        if (candidates.length <= 5) {
+          debugLog("  Candidat:", acc.name, "PK", acc.pk, "branche", accBranch, "distance", d, "m");
+        }
       }
     }
     
-    // Si aucun accès trouvé avec le filtre de branche, chercher sans filtre
-    if (!best && branchHint && branchHint !== "auto") {
-      console.log("Aucun accès trouvé sur la branche", branchHint, ", recherche sans filtre");
+    // Si aucun accès trouvé et qu'aucune branche n'est spécifiée, chercher sans filtre
+    if (candidates.length === 0 && !effectiveBranch) {
+      debugLog("Aucun accès trouvé, recherche sans filtre");
       for (const acc of accessPoints) {
         if (acc.pk == null) continue;
         const d = Math.abs(acc.pk - pk);
-        if (d < bestDiff) {
-          bestDiff = d;
-          best = acc;
-        }
+        candidates.push({ acc, distance: d, branch: null });
       }
     }
     
+    if (candidates.length === 0) {
+      console.warn("❌ findNearestAccess: Aucun candidat trouvé pour PK", pk, "branche", effectiveBranch);
+      return null;
+    }
+    
+    // Trier par distance (le plus proche en premier)
+    candidates.sort((a, b) => a.distance - b.distance);
+    
+    const best = candidates[0].acc;
+    console.log("✅ findNearestAccess: Meilleur accès trouvé:", best.name, "PK absolu:", best.pk, "branche:", candidates[0].branch, "distance:", candidates[0].distance, "m");
+    
+    // Retourner l'accès le plus proche
     return best;
   }
 
@@ -7027,7 +7122,7 @@ function detectBranch(lat, lon) {
     // Si on est proche de la bifurcation (PK ~30000, après Vincennes), on privilégie la distance
     if (pkBoissy > BRANCH_COMMON_MAX && pkChessy > BRANCH_COMMON_MAX) {
       // On est clairement sur une branche, on utilise la distance la plus proche
-      // Mais si le PK est >= 34000, on est sur Chessy (Val de Fontenay)
+      // Mais si le PK est >= BRANCH_CHESSY_MIN (31795), on est sur Chessy
       if (pkChessy >= BRANCH_CHESSY_MIN) return "chessy";
       // Si le PK est >= 32750, on est sur Boissy (Fontenay-sous-Bois)
       if (pkBoissy >= BRANCH_BOISSY_MIN) return "boissy";
@@ -7046,7 +7141,7 @@ function detectBranch(lat, lon) {
   if (diff < 30) {
     // Si la différence est très faible, on vérifie le PK pour trancher
     if (pkBoissy != null && pkChessy != null) {
-      // Si le PK est >= 34000, on est sur Chessy (Val de Fontenay)
+      // Si le PK est >= BRANCH_CHESSY_MIN (31795), on est sur Chessy
       if (pkChessy >= BRANCH_CHESSY_MIN) return "chessy";
       // Si le PK est >= 32750, on est sur Boissy (Fontenay-sous-Bois)
       if (pkBoissy >= BRANCH_BOISSY_MIN) return "boissy";
@@ -8434,7 +8529,7 @@ function detectBranch(lat, lon) {
     
     // === LOGIQUE AUTO (uniquement si pas d'override manuel) ===
     // D'abord, projeter sur les deux branches pour obtenir les PKs
-    // On a besoin des PKs pour appliquer la règle absolue : PK >= 34000 = Chessy (Val de Fontenay)
+    // On a besoin des PKs pour appliquer la règle absolue : PK >= BRANCH_CHESSY_MIN (31795) = Chessy
     const savedLinePoints = linePoints;
     const safeTroncCommun = Array.isArray(troncCommun) ? troncCommun : [];
     const safeBrancheBoissy = Array.isArray(brancheBoissy) ? brancheBoissy : [];
@@ -8460,10 +8555,10 @@ function detectBranch(lat, lon) {
     let bestProj = null;
     let bestBranch = null;
     
-    // RÈGLE ABSOLUE : Si le PK projeté est >= 34000, on est FORCÉMENT sur Chessy
+    // RÈGLE ABSOLUE : Si le PK projeté est >= BRANCH_CHESSY_MIN (31795), on est FORCÉMENT sur Chessy
     // (uniquement en mode Auto, pas d'override manuel)
     if (projChessyTemp && projChessyTemp.pkProj != null && projChessyTemp.pkProj >= BRANCH_CHESSY_MIN) {
-      debugLog("🔴 RÈGLE ABSOLUE : PK", projChessyTemp.pkProj, ">= 34000 → FORCÉMENT Chessy (ex: Val de Fontenay, Noisy-Champs)");
+      debugLog("🔴 RÈGLE ABSOLUE : PK", projChessyTemp.pkProj, ">= BRANCH_CHESSY_MIN (31795) → FORCÉMENT Chessy");
       currentBranch = "chessy";
       linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
       bestProj = projChessyTemp;
@@ -8490,11 +8585,11 @@ function detectBranch(lat, lon) {
         // Si le PK est > 30000, on est forcément sur une branche
         if (pkBoissy > BRANCH_COMMON_MAX && pkChessy > BRANCH_COMMON_MAX) {
           // PRIORITÉ 1 : Si le PK Chessy est >= 34000, on est sur Chessy (règle absolue)
-          // Val de Fontenay est à PK 34000, Noisy-Champs à PK 41000, donc Chessy
+          // Chessy commence à PK 31795, Noisy-Champs à PK 42150, donc Chessy
           if (pkChessy >= BRANCH_CHESSY_MIN) {
             bestBranch = "chessy";
             bestProj = projChessy;
-            debugLog("✅ Chessy choisi : PK", pkChessy, ">= 34000 (branche Chessy) - Ex: Val de Fontenay, Noisy-Champs");
+            debugLog("✅ Chessy choisi : PK", pkChessy, ">= BRANCH_CHESSY_MIN (31795) (branche Chessy)");
           } else if (pkBoissy < BRANCH_CHESSY_MIN && pkChessy < BRANCH_CHESSY_MIN) {
             // PK entre 30000 et 34000 (zone de transition après Vincennes), utiliser la distance à la voie
             if (projChessy.dist < projBoissy.dist) {
@@ -8518,7 +8613,7 @@ function detectBranch(lat, lon) {
             } else {
               bestBranch = "chessy";
               bestProj = projChessy;
-              debugLog("✅ Chessy choisi : PK", pkChessy, ">= 34000 (branche Chessy)");
+              debugLog("✅ Chessy choisi : PK", pkChessy, ">= BRANCH_CHESSY_MIN (31795) (branche Chessy)");
             }
           }
         } else if (pkBoissy > BRANCH_COMMON_MAX && pkChessy <= BRANCH_COMMON_MAX) {
@@ -8531,7 +8626,7 @@ function detectBranch(lat, lon) {
           if (pkChessy >= BRANCH_CHESSY_MIN) {
             bestBranch = "chessy";
             bestProj = projChessy;
-            debugLog("✅ Chessy choisi : PK", pkChessy, ">= 34000 (branche Chessy - Val de Fontenay)");
+            debugLog("✅ Chessy choisi : PK", pkChessy, ">= BRANCH_CHESSY_MIN (31795) (branche Chessy)");
           } else {
             bestBranch = "chessy";
             bestProj = projChessy;
@@ -10309,20 +10404,30 @@ function detectBranch(lat, lon) {
     }
   }
 
+  // Fonction helper pour déterminer la branche d'un accès selon son PK
+  function getBranchForAccess(accPk) {
+    // Utiliser detectBranchForPk qui gère mieux les zones ambiguës
+    return detectBranchForPk(accPk);
+  }
+
   function renderPkLookupSummary({ access, targetPk = null, distanceLabel = null, branchChoice = null }) {
     if (!pkLookupResult || !pkLookupResultField || !access) return;
     const details = [];
     details.push(`<strong>Accès :</strong> ${access.name}`);
+    // Déterminer la branche de l'accès pour un affichage correct du PK
+    const accessBranch = access.pk != null ? (getBranchForAccess(access.pk) || branchChoice || currentBranch) : (branchChoice || currentBranch);
     if (Number.isFinite(access.pk)) {
       if (Number.isFinite(targetPk)) {
         const delta = Math.round(Math.abs(access.pk - targetPk));
         const dir = access.pk >= targetPk ? "vers Chessy / Boissy" : "vers St-Germain / Paris";
-        details.push(`PK ${formatPk(access.pk)} (ΔPK ≈ ${delta} m ${dir})`);
+        details.push(`PK ${formatPk(access.pk, accessBranch)} (ΔPK ≈ ${delta} m ${dir})`);
       } else {
-        details.push(`PK ${formatPk(access.pk)}`);
+        details.push(`PK ${formatPk(access.pk, accessBranch)}`);
       }
     }
-    const branchLabel = getBranchLabel(branchChoice || currentBranch);
+    // Afficher la branche réelle de l'accès, pas celle recherchée
+    const actualBranch = accessBranch || branchChoice || currentBranch;
+    const branchLabel = getBranchLabel(actualBranch);
     details.push(`<span class="muted">${branchLabel}</span>`);
     if (access.address) {
       details.push(`<span class="muted">${access.address}</span>`);
@@ -10434,6 +10539,9 @@ function detectBranch(lat, lon) {
         showPkLookupNoResultMessage();
         return;
       }
+      console.log("✅ Accès trouvé:", access.name, "PK absolu:", access.pk, "branche recherchée:", branchChoice || "auto");
+      const foundBranch = getBranchForAccess(access.pk);
+      console.log("   Branche de l'accès:", foundBranch, "PK formaté:", formatPk(access.pk, foundBranch));
       debugLog("✅ Accès trouvé:", access.name, "PK", access.pk, "pour la branche", branchChoice || "auto");
       renderPkLookupSummary({
         access,
@@ -11264,11 +11372,18 @@ function addCoverageMarkersToMap(result, branchHint = null) {
       };
     });
 
+    // Utiliser la branche détectée pour formater les PK
+    const detectedBranch = result.detectedBranch || branchHint || "central";
+    
     if (coverageResultsLine) {
       const chips = sideSummaries.map(summary => {
-        const parts = [`<strong>${summary.sideLabel}</strong> 🔴 PK ${formatPk(summary.sam.pk)}`];
+        const samBranch = detectBranchForPk(summary.sam.pk);
+        const parts = [`<strong>${summary.sideLabel}</strong> 🔴 PK ${formatPk(summary.sam.pk, samBranch)}`];
         if (summary.petards.length) {
-          const petardList = summary.petards.map(p => formatPk(p.pk)).join(", ");
+          const petardList = summary.petards.map(p => {
+            const petardBranch = detectBranchForPk(p.pk);
+            return formatPk(p.pk, petardBranch);
+          }).join(", ");
           parts.push(`🟣 ${petardList}`);
         }
         if (summary.sam.nearestAccess) {
@@ -11276,7 +11391,8 @@ function addCoverageMarkersToMap(result, branchHint = null) {
           const accessParts = [];
           accessParts.push(`🚪 ${access.name}`);
           if (access.pk != null) {
-            accessParts.push(`PK ${formatPk(access.pk)}`);
+            const accessBranch = detectBranchForPk(access.pk);
+            accessParts.push(`PK ${formatPk(access.pk, accessBranch)}`);
           }
           if (access.distanceText) {
             accessParts.push(`<span>${access.distanceText}</span>`);
@@ -11295,14 +11411,16 @@ function addCoverageMarkersToMap(result, branchHint = null) {
 
       sideSummaries.forEach(summary => {
         const sideColor = summary.side === "pkStart" ? "#ff4b6b" : "#3d7bff";
+        const samBranch = detectBranchForPk(summary.sam.pk);
         let blockHtml = `<div class="coverage-point" style="border-left: 3px solid ${sideColor};">`;
         blockHtml += `<div class="coverage-point-header" style="color: ${sideColor};"><span>🚦</span><span>Côté ${summary.sideLabel}</span></div>`;
-        blockHtml += `<div class="coverage-point-info"><strong>Feu rouge :</strong> PK ${formatPk(summary.sam.pk)}</div>`;
+        blockHtml += `<div class="coverage-point-info"><strong>Feu rouge :</strong> PK ${formatPk(summary.sam.pk, samBranch)}</div>`;
         if (summary.sam.nearestAccess) {
           const access = summary.sam.nearestAccess;
           blockHtml += `<div class="coverage-point-info"><strong>Accès le plus proche :</strong> ${access.name}`;
           if (access.pk != null) {
-            blockHtml += ` · PK ${formatPk(access.pk)}`;
+            const accessBranch = detectBranchForPk(access.pk);
+            blockHtml += ` · PK ${formatPk(access.pk, accessBranch)}`;
           }
           if (access.distanceText) {
             blockHtml += ` · ${access.distanceText}`;
@@ -11314,14 +11432,16 @@ function addCoverageMarkersToMap(result, branchHint = null) {
         }
         if (summary.petards.length) {
           const petardsHtml = summary.petards.map(p => {
+            const petardBranch = detectBranchForPk(p.pk);
             let petardBlock = `<div class="coverage-point coverage-point--nested">`;
             petardBlock += `<div class="coverage-point-header"><span>🟣</span><span>${p.title}</span></div>`;
-            petardBlock += `<div class="coverage-point-info"><strong>PK :</strong> ${formatPk(p.pk)}</div>`;
+            petardBlock += `<div class="coverage-point-info"><strong>PK :</strong> ${formatPk(p.pk, petardBranch)}</div>`;
             if (p.nearestAccess) {
               const access = p.nearestAccess;
               petardBlock += `<div class="coverage-point-info"><strong>Accès :</strong> ${access.name}`;
               if (access.pk != null) {
-                petardBlock += ` · PK ${formatPk(access.pk)}`;
+                const accessBranch = detectBranchForPk(access.pk);
+                petardBlock += ` · PK ${formatPk(access.pk, accessBranch)}`;
               }
               if (access.distanceText) {
                 petardBlock += ` · ${access.distanceText}`;
@@ -11444,18 +11564,16 @@ if (btnComputeCoverage) {
         return;
       }
 
-      // Utiliser la branche choisie dans le menu pour ce contexte
-      const coverageBranch = getContextBranch(BRANCH_SELECTION_CONTEXTS.coverage);
-      
-      const pkStart = hasStart ? parsePkInput(rawStart, coverageBranch) : null;
-      const pkEnd = hasEnd ? parsePkInput(rawEnd, coverageBranch) : null;
+      // Parser les PK (en nombres absolus, pas de branche nécessaire)
+      const pkStart = hasStart ? parseFloat(rawStart) : null;
+      const pkEnd = hasEnd ? parseFloat(rawEnd) : null;
 
-      if (hasStart && pkStart == null) {
+      if (hasStart && (pkStart == null || isNaN(pkStart))) {
         alert("Le PK début doit être un nombre valide.");
         return;
       }
 
-      if (hasEnd && pkEnd == null) {
+      if (hasEnd && (pkEnd == null || isNaN(pkEnd))) {
         alert("Le PK fin doit être un nombre valide.");
         return;
       }
@@ -11465,32 +11583,12 @@ if (btnComputeCoverage) {
         return;
       }
       
-      debugLog("🔍 Branche choisie pour couverture:", coverageBranch);
-      const finalCoverageBranch = coverageBranch || "central";
-      
-      debugLog("🔍 Calcul de couverture - branche choisie:", coverageBranch);
-      debugLog("✅ Utilisation de la branche", coverageBranch, "pour le calcul de couverture");
-      
-      // Forcer l'override pour ce calcul
-      const savedOverride = manualBranchOverride;
-      manualBranchOverride = coverageBranch;
-      currentBranch = coverageBranch;
-      debugLog("🔧 Override temporairement défini à", coverageBranch, "pour le calcul");
-      
-      if (hasStart) {
-        ensureBranchForPk(pkStart, BRANCH_SELECTION_CONTEXTS.coverage);
-      }
-      if (hasEnd) {
-        ensureBranchForPk(pkEnd, BRANCH_SELECTION_CONTEXTS.coverage);
-      }
-      
+      // Le calcul détecte automatiquement la branche dans computeCoverageMarkers
       const result = computeCoverageMarkers(pkStart, pkEnd);
       
-      // Restaurer l'override précédent
-      manualBranchOverride = savedOverride;
-      if (savedOverride) {
-        currentBranch = savedOverride;
-      }
+      // Récupérer la branche détectée depuis le résultat
+      const coverageBranch = result.detectedBranch || "central";
+      debugLog("🔍 Branche détectée automatiquement pour couverture:", coverageBranch);
       
       if (!result || !result.bySide) {
         console.error("Erreur : computeCoverageMarkers n'a pas retourné un résultat valide", result);
