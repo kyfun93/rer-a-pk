@@ -6373,7 +6373,8 @@ function buildCalibrationPolylines() {
   }
   // Fonction principale pour calculer les marqueurs de couverture
   // Fonction helper pour déterminer la branche d'un PK
-  function detectBranchForPk(pk) {
+  // Peut aussi utiliser le nom/adresse pour améliorer la détection dans la zone ambiguë
+  function detectBranchForPk(pk, nameHint = null, addressHint = null) {
     if (pk == null || !Number.isFinite(pk)) return "central";
     if (pk <= BRANCH_COMMON_MAX) {
       return "central";
@@ -6381,7 +6382,30 @@ function buildCalibrationPolylines() {
       // Zone uniquement Chessy (entre 31795 et début Boissy à 32750)
       return "chessy";
     } else if (pk >= BRANCH_BOISSY_MIN && pk <= BRANCH_BOISSY_MAX) {
-      // Zone ambiguë : déterminer selon la gare la plus proche
+      // Zone ambiguë : d'abord vérifier si le nom/adresse indique clairement une ville
+      if (nameHint || addressHint) {
+        const accText = ((nameHint || "") + " " + (addressHint || "")).toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[-'']/g, " ")
+          .replace(/\s+/g, " ");
+        
+        // Villes Boissy dans la zone ambiguë
+        const boissyCityKeywords = ["joinville", "nogent", "st maur", "champigny", "varenne", "sucy", "boissy"];
+        // Villes Chessy dans la zone ambiguë
+        const chessyCityKeywords = ["val de fontenay", "neuilly", "bry", "noisy", "noisiel"];
+        
+        let hasBoissyCity = boissyCityKeywords.some(keyword => accText.includes(keyword));
+        let hasChessyCity = chessyCityKeywords.some(keyword => accText.includes(keyword));
+        
+        // Si une ville est clairement identifiée, l'utiliser
+        if (hasBoissyCity && !hasChessyCity) {
+          return "boissy";
+        } else if (hasChessyCity && !hasBoissyCity) {
+          return "chessy";
+        }
+      }
+      
+      // Sinon, déterminer selon la gare la plus proche
       const boissyStations = [34000, 35600, 37500, 38500, 40300, 41800, 44500, 47200];
       const chessyStations = [34525, 36750, 37950, 39850, 42150, 44850];
       let minBoissyDist = Infinity;
@@ -6742,46 +6766,8 @@ function buildCalibrationPolylines() {
         // Après la zone ambiguë : uniquement Chessy (après Boissy-Saint-Léger)
         accBranch = "chessy";
       } else if (acc.pk >= BRANCH_BOISSY_MIN && acc.pk <= BRANCH_BOISSY_MAX) {
-        // Zone ambiguë : déterminer selon la gare la plus proche
-        // D'abord, vérifier si le nom/adresse indique clairement une ville
-        const accText = ((acc.name || "") + " " + (acc.address || "")).toLowerCase()
-          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-          .replace(/[-'']/g, " ")
-          .replace(/\s+/g, " ");
-        
-        // Villes Boissy dans la zone ambiguë
-        const boissyCityKeywords = ["joinville", "nogent", "st maur", "champigny", "varenne", "sucy", "boissy"];
-        // Villes Chessy dans la zone ambiguë
-        const chessyCityKeywords = ["val de fontenay", "neuilly", "bry", "noisy", "noisiel"];
-        
-        let hasBoissyCity = boissyCityKeywords.some(keyword => accText.includes(keyword));
-        let hasChessyCity = chessyCityKeywords.some(keyword => accText.includes(keyword));
-        
-        // Si une ville est clairement identifiée, l'utiliser
-        if (hasBoissyCity && !hasChessyCity) {
-          accBranch = "boissy";
-        } else if (hasChessyCity && !hasBoissyCity) {
-          accBranch = "chessy";
-        } else {
-          // Sinon, utiliser la gare la plus proche
-          const boissyStations = [34000, 35600, 37500, 38500, 40300, 41800, 44500, 47200];
-          const chessyStations = [34525, 36750, 37950, 39850, 42150, 44850];
-          
-          let minBoissyDist = Infinity;
-          let minChessyDist = Infinity;
-          
-          for (const pk of boissyStations) {
-            const dist = Math.abs(acc.pk - pk);
-            if (dist < minBoissyDist) minBoissyDist = dist;
-          }
-          
-          for (const pk of chessyStations) {
-            const dist = Math.abs(acc.pk - pk);
-            if (dist < minChessyDist) minChessyDist = dist;
-          }
-          
-          accBranch = minBoissyDist < minChessyDist ? "boissy" : "chessy";
-        }
+        // Zone ambiguë : utiliser detectBranchForPk avec le nom/adresse pour une meilleure détection
+        accBranch = detectBranchForPk(acc.pk, acc.name, acc.address);
       }
       
       // Filtrer selon la branche recherchée
@@ -10405,9 +10391,9 @@ function detectBranch(lat, lon) {
   }
 
   // Fonction helper pour déterminer la branche d'un accès selon son PK
-  function getBranchForAccess(accPk) {
+  function getBranchForAccess(accPk, nameHint = null, addressHint = null) {
     // Utiliser detectBranchForPk qui gère mieux les zones ambiguës
-    return detectBranchForPk(accPk);
+    return detectBranchForPk(accPk, nameHint, addressHint);
   }
 
   function renderPkLookupSummary({ access, targetPk = null, distanceLabel = null, branchChoice = null }) {
@@ -10415,7 +10401,7 @@ function detectBranch(lat, lon) {
     const details = [];
     details.push(`<strong>Accès :</strong> ${access.name}`);
     // Déterminer la branche de l'accès pour un affichage correct du PK
-    const accessBranch = access.pk != null ? (getBranchForAccess(access.pk) || branchChoice || currentBranch) : (branchChoice || currentBranch);
+    const accessBranch = access.pk != null ? (getBranchForAccess(access.pk, access.name, access.address) || branchChoice || currentBranch) : (branchChoice || currentBranch);
     if (Number.isFinite(access.pk)) {
       if (Number.isFinite(targetPk)) {
         const delta = Math.round(Math.abs(access.pk - targetPk));
@@ -10540,7 +10526,7 @@ function detectBranch(lat, lon) {
         return;
       }
       console.log("✅ Accès trouvé:", access.name, "PK absolu:", access.pk, "branche recherchée:", branchChoice || "auto");
-      const foundBranch = getBranchForAccess(access.pk);
+      const foundBranch = getBranchForAccess(access.pk, access.name, access.address);
       console.log("   Branche de l'accès:", foundBranch, "PK formaté:", formatPk(access.pk, foundBranch));
       debugLog("✅ Accès trouvé:", access.name, "PK", access.pk, "pour la branche", branchChoice || "auto");
       renderPkLookupSummary({
