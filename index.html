@@ -532,6 +532,59 @@
     color: rgba(216, 222, 255, 0.72);
   }
 
+  .search-mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 12px;
+    font-size: 0.85rem;
+  }
+
+  .search-mode-btn {
+    border: none;
+    background: transparent;
+    color: rgba(216, 222, 255, 0.55);
+    cursor: pointer;
+    padding: 2px 4px;
+    font-size: 0.85rem;
+    transition: color 0.15s ease;
+  }
+
+  .search-mode-btn.is-active {
+    color: rgba(236, 239, 255, 0.95);
+    font-weight: 600;
+  }
+
+  .search-mode-sep {
+    color: rgba(216, 222, 255, 0.35);
+    user-select: none;
+  }
+
+  .poteau-result-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 14px;
+    margin-top: 8px;
+    border-radius: 14px;
+    border: 1px solid rgba(200, 206, 236, 0.22);
+    background: rgba(20, 26, 48, 0.65);
+    color: var(--text);
+    text-align: left;
+  }
+
+  .poteau-result-item strong {
+    font-weight: 600;
+  }
+
+  .poteau-results-heading {
+    margin: 0 0 4px;
+    color: rgba(216, 222, 255, 0.85);
+    font-size: 0.9rem;
+  }
+
   .branch-choice-control {
     display: flex;
     align-items: center;
@@ -2783,10 +2836,15 @@ body[data-page-hidden="true"] .direction-arrow-moving {
             <div class="card-header">
               <div class="card-title">Recherche PK, rues & accès</div>
             </div>
+            <div class="search-mode-toggle" role="group" aria-label="Type de recherche">
+              <button type="button" id="btnSearchModePk" class="search-mode-btn is-active" data-mode="pk" aria-pressed="true">PK</button>
+              <span class="search-mode-sep" aria-hidden="true">|</span>
+              <button type="button" id="btnSearchModePoteau" class="search-mode-btn" data-mode="poteau" aria-pressed="false">Poteau caténaire</button>
+            </div>
             <div class="field">
-              <label for="inputPkLookup">Recherche par PK et GPS (accès le plus proche)</label>
+              <label for="inputPkLookup" id="labelPkLookup">Recherche par PK et GPS (accès le plus proche)</label>
               <input id="inputPkLookup" type="text" placeholder="ex : 32400 ou 32+400" autocomplete="off" />
-              <div class="branch-choice-control branch-choice-wrapper">
+              <div id="searchBranchWrapper" class="branch-choice-control branch-choice-wrapper">
                 <span class="branch-choice-label">Branche :</span>
                 <div class="branch-choice-menu-container">
                   <button id="btnBranchSearch" type="button" class="branch-choice-button" aria-expanded="false">Tronçon central</button>
@@ -2803,7 +2861,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
             </div>
             <div class="field" id="pkLookupResultField" style="display:none;">
               <div id="pkLookupResult" class="muted"></div>
-              <div class="field">
+              <div id="pkLookupActionsField" class="field">
                 <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
                   <span>📍</span><span>Google Maps</span>
                 </button>
@@ -5196,8 +5254,13 @@ async function loadSharedCalibrations() {
   const btnPkLookup = document.getElementById("btnPkLookup");
   const pkLookupResultField = document.getElementById("pkLookupResultField");
   const pkLookupResult = document.getElementById("pkLookupResult");
+  const pkLookupActionsField = document.getElementById("pkLookupActionsField");
   const btnPkLookupOpenMaps = document.getElementById("btnPkLookupOpenMaps");
   const btnPkLookupOpenWaze = document.getElementById("btnPkLookupOpenWaze");
+  const btnSearchModePk = document.getElementById("btnSearchModePk");
+  const btnSearchModePoteau = document.getElementById("btnSearchModePoteau");
+  const labelPkLookup = document.getElementById("labelPkLookup");
+  const searchBranchWrapper = document.getElementById("searchBranchWrapper");
   const btnBranchSearch = document.getElementById("btnBranchSearch");
   const btnBranchTarget = document.getElementById("btnBranchTarget");
   const btnBranchIncident = document.getElementById("btnBranchIncident");
@@ -6161,12 +6224,21 @@ async function loadSharedCalibrations() {
     inputPkLookup.addEventListener("keydown", event => {
       if (event.key === "Enter") {
         event.preventDefault();
-        handlePkLookup().catch(err => console.error("handlePkLookup error", err));
+        runPkLookupAction();
       }
     });
     inputPkLookup.addEventListener("input", () => {
-      updatePkLookupSuggestionsList(inputPkLookup.value);
+      if (searchLookupMode === "pk") {
+        updatePkLookupSuggestionsList(inputPkLookup.value);
+      }
     });
+  }
+
+  if (btnSearchModePk) {
+    btnSearchModePk.addEventListener("click", () => setSearchLookupMode("pk"));
+  }
+  if (btnSearchModePoteau) {
+    btnSearchModePoteau.addEventListener("click", () => setSearchLookupMode("poteau"));
   }
 
   // ... (rest of the code remains unchanged)
@@ -7176,6 +7248,8 @@ function detectBranch(lat, lon) {
       ? storedTab
       : fallbackTab;
     activateTab(initialTab, { skipStore: true });
+
+    loadPoteauxCatenaires().catch(err => console.warn("Chargement poteaux caténaires différé", err));
 
     const storedPkLookup = safeGetItem("pkLookupQuery");
     if (storedPkLookup && inputPkLookup) {
@@ -10390,6 +10464,196 @@ function detectBranch(lat, lon) {
     }
   }
 
+  let searchLookupMode = "pk";
+  let poteauxCatenairesData = null;
+  let currentPoteauLookupResults = [];
+
+  const POTEAU_BRANCH_KEYS = {
+    "Chessy": "chessy",
+    "Boissy": "boissy",
+    "Paris-Ouest / tronçon central": "central"
+  };
+
+  async function loadPoteauxCatenaires() {
+    if (poteauxCatenairesData) return poteauxCatenairesData;
+    try {
+      const resp = await fetch("data/poteaux-catenaires.json", { cache: "no-store" });
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      poteauxCatenairesData = await resp.json();
+    } catch (error) {
+      console.error("Impossible de charger les poteaux caténaires", error);
+      poteauxCatenairesData = [];
+    }
+    return poteauxCatenairesData;
+  }
+
+  function normalizePoteauName(str) {
+    let s = String(str || "").trim().toLowerCase();
+    // Tous les espaces Unicode (y compris insécables, fines, copier-coller mobile)
+    s = s.replace(/[\s\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+/g, " ");
+    s = s.replace(/[–—−‑﹣－‒―]+/g, "-");
+    // Un espace entre chiffres équivaut au tiret (ex. « 45 5 » → « 45-5 »)
+    while (/(\d) +(\d)/.test(s)) {
+      s = s.replace(/(\d) +(\d)/g, "$1-$2");
+    }
+    s = s.replace(/ /g, "");
+    return s.replace(/-+/g, "-");
+  }
+
+  function poteauPkToMetric(pkRaw) {
+    const raw = String(pkRaw == null ? "" : pkRaw).trim();
+    if (!raw) return null;
+    const plusMatch = raw.replace(/\s+/g, "").match(/^(\d+)\+(\d+)$/);
+    if (plusMatch) {
+      return parseInt(plusMatch[1], 10) * 1000 + parseInt(plusMatch[2], 10);
+    }
+    const num = parseFloat(raw.replace(",", "."));
+    if (!Number.isFinite(num)) return null;
+    const km = Math.floor(num);
+    const meters = Math.round((num - km) * 1000);
+    return km * 1000 + meters;
+  }
+
+  function formatPoteauPkMetric(pkMetric) {
+    if (!Number.isFinite(pkMetric)) return "—";
+    const m = Math.round(pkMetric);
+    const km = Math.floor(m / 1000);
+    const rest = m % 1000;
+    return km + " " + String(rest).padStart(3, "0");
+  }
+
+  function formatPoteauPkApprox(pkRaw) {
+    const pkMetric = poteauPkToMetric(pkRaw);
+    if (!Number.isFinite(pkMetric)) {
+      return String(pkRaw || "—").replace(/\+/g, " ").trim() || "—";
+    }
+    return formatPoteauPkMetric(pkMetric);
+  }
+
+  function poteauPkToLookupInput(pkRaw) {
+    const pkMetric = poteauPkToMetric(pkRaw);
+    if (!Number.isFinite(pkMetric)) {
+      return String(pkRaw || "").replace(/\+/g, " ").trim();
+    }
+    return formatPoteauPkMetric(pkMetric);
+  }
+
+  function isExactPoteauMatch(queryNorm, entry) {
+    return normalizePoteauName(entry.poteau) === queryNorm;
+  }
+
+  function isSimilarPoteauMatch(queryNorm, entry) {
+    const poteauNorm = normalizePoteauName(entry.poteau);
+    if (poteauNorm === queryNorm) return false;
+    if (!poteauNorm.startsWith(queryNorm)) return false;
+    const suffix = poteauNorm.slice(queryNorm.length);
+    return /^[a-z]+$/.test(suffix);
+  }
+
+  function searchPoteauxCatenaires(query, data) {
+    const queryNorm = normalizePoteauName(query);
+    if (!queryNorm) return { exact: [], similar: [] };
+    const exact = [];
+    const similar = [];
+    for (const entry of data) {
+      if (isExactPoteauMatch(queryNorm, entry)) {
+        exact.push(entry);
+      } else if (isSimilarPoteauMatch(queryNorm, entry)) {
+        similar.push(entry);
+      }
+    }
+    return { exact, similar };
+  }
+
+  function setSearchLookupMode(mode) {
+    searchLookupMode = mode === "poteau" ? "poteau" : "pk";
+    if (btnSearchModePk) {
+      btnSearchModePk.classList.toggle("is-active", searchLookupMode === "pk");
+      btnSearchModePk.setAttribute("aria-pressed", searchLookupMode === "pk" ? "true" : "false");
+    }
+    if (btnSearchModePoteau) {
+      btnSearchModePoteau.classList.toggle("is-active", searchLookupMode === "poteau");
+      btnSearchModePoteau.setAttribute("aria-pressed", searchLookupMode === "poteau" ? "true" : "false");
+    }
+    if (labelPkLookup) {
+      labelPkLookup.textContent = searchLookupMode === "poteau"
+        ? "Recherche par numéro de poteau caténaire"
+        : "Recherche par PK et GPS (accès le plus proche)";
+    }
+    if (inputPkLookup) {
+      inputPkLookup.placeholder = searchLookupMode === "poteau"
+        ? "ex : 45 5 ou 45-5"
+        : "ex : 32400 ou 32+400";
+    }
+    if (searchBranchWrapper) {
+      searchBranchWrapper.style.display = searchLookupMode === "poteau" ? "none" : "";
+    }
+    if (pkLookupResultField && searchLookupMode === "poteau") {
+      pkLookupResultField.style.display = "none";
+    }
+  }
+
+  function renderPoteauLookupResults(results, options = {}) {
+    if (!pkLookupResult || !pkLookupResultField) return;
+    currentPoteauLookupResults = results.slice();
+    lastPkLookupAccess = null;
+    if (!results.length) {
+      pkLookupResult.innerHTML = "<span class='muted'>Aucun poteau correspondant n'a été trouvé.</span>";
+      pkLookupResultField.style.display = "block";
+      if (pkLookupActionsField) pkLookupActionsField.style.display = "none";
+      return;
+    }
+    const heading = options.multiple
+      ? "<p class='poteau-results-heading'>Plusieurs poteaux correspondent :</p>"
+      : "";
+    const items = results.map((entry, index) => {
+      const pkDisplay = formatPoteauPkApprox(entry.pk);
+      const branchKey = POTEAU_BRANCH_KEYS[entry.branche] || "central";
+      const pkInput = poteauPkToLookupInput(entry.pk, entry.branche);
+      return `<div class="poteau-result-item">
+        <div><strong>Poteau :</strong> ${entry.poteau}</div>
+        <div><strong>Branche :</strong> ${entry.branche}</div>
+        <div><strong>Voie :</strong> ${entry.voie}</div>
+        <div><strong>PK approximatif :</strong> ${pkDisplay}</div>
+        <button type="button" class="btn btn-secondary btn-icon poteau-use-pk" data-index="${index}" data-branch="${branchKey}" data-pk="${pkInput}">
+          <span>📍</span><span>Utiliser ce PK</span>
+        </button>
+      </div>`;
+    }).join("");
+    pkLookupResult.innerHTML = heading + items;
+    pkLookupResultField.style.display = "block";
+    if (pkLookupActionsField) pkLookupActionsField.style.display = "none";
+  }
+
+  async function handlePoteauLookup() {
+    if (!inputPkLookup) return;
+    const rawInput = inputPkLookup.value.trim();
+    currentPoteauLookupResults = [];
+    if (!rawInput) {
+      alert("Saisis un numéro de poteau.");
+      return;
+    }
+    safeSetItem("pkLookupQuery", rawInput);
+    const data = await loadPoteauxCatenaires();
+    const { exact, similar } = searchPoteauxCatenaires(rawInput, data);
+    const results = exact.length ? exact.concat(similar) : similar;
+    renderPoteauLookupResults(results, { multiple: results.length > 1 });
+  }
+
+  async function usePoteauPkForLookup(branchKey, pkInput) {
+    if (!inputPkLookup || !pkInput) return;
+    setSearchLookupMode("pk");
+    setBranchSelection(BRANCH_SELECTION_CONTEXTS.search, branchKey);
+    inputPkLookup.value = pkInput;
+    safeSetItem("pkLookupQuery", pkInput);
+    await handlePkLookup();
+  }
+
+  function runPkLookupAction() {
+    const action = searchLookupMode === "poteau" ? handlePoteauLookup() : handlePkLookup();
+    action.catch(err => console.error("lookup error", err));
+  }
+
   // Fonction helper pour déterminer la branche d'un accès selon son PK
   function getBranchForAccess(accPk, nameHint = null, addressHint = null) {
     // Utiliser detectBranchForPk qui gère mieux les zones ambiguës
@@ -10424,6 +10688,7 @@ function detectBranch(lat, lon) {
 
     pkLookupResult.innerHTML = details.join("<br>");
     pkLookupResultField.style.display = "block";
+    if (pkLookupActionsField) pkLookupActionsField.style.display = "";
     lastPkLookupAccess = access;
     try {
       safeSetItem("pkLookupLastAccess", JSON.stringify({
@@ -10447,6 +10712,7 @@ function detectBranch(lat, lon) {
     if (!pkLookupResult || !pkLookupResultField) return;
     pkLookupResult.innerHTML = "<span class='muted'>Aucun accès trouvé. Essaie un autre PK, une rue ou un nom d'accès.</span>";
     pkLookupResultField.style.display = "block";
+    if (pkLookupActionsField) pkLookupActionsField.style.display = "none";
   }
 
   function showPkLookupChoices(results) {
@@ -10476,6 +10742,7 @@ function detectBranch(lat, lon) {
     }).join("");
     pkLookupResult.innerHTML = list;
     pkLookupResultField.style.display = "block";
+    if (pkLookupActionsField) pkLookupActionsField.style.display = "none";
     lastPkLookupAccess = null;
   }
 
@@ -11041,23 +11308,17 @@ async function renderSytadinFermeturesList() {
 // Gestion de l'affichage du bloc Fermetures nocturnes
 // (affichage déclenché via l'onglet dédié)
 if (btnPkLookup) {
-  btnPkLookup.addEventListener("click", () => {
-    handlePkLookup().catch(err => console.error("handlePkLookup error", err));
-  });
-}
-if (inputPkLookup) {
-  inputPkLookup.addEventListener("keydown", event => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      handlePkLookup().catch(err => console.error("handlePkLookup error", err));
-    }
-  });
-  inputPkLookup.addEventListener("input", () => {
-    updatePkLookupSuggestionsList(inputPkLookup.value);
-  });
+  btnPkLookup.addEventListener("click", runPkLookupAction);
 }
 if (pkLookupResult) {
   pkLookupResult.addEventListener("click", event => {
+    const usePkBtn = event.target.closest(".poteau-use-pk");
+    if (usePkBtn) {
+      const branchKey = usePkBtn.getAttribute("data-branch");
+      const pkInput = usePkBtn.getAttribute("data-pk");
+      usePoteauPkForLookup(branchKey, pkInput).catch(err => console.error("usePoteauPkForLookup error", err));
+      return;
+    }
     const choice = event.target.closest(".pk-lookup-choice");
     if (!choice) return;
     const index = Number(choice.getAttribute("data-index"));
