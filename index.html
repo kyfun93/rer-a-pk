@@ -2712,7 +2712,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   </div>
                   <button class="pdf-nav-btn pdf-nav-next" data-pdf="boissy" aria-label="Page suivante">›</button>
                 </div>
-                <iframe id="planBoissyIframe" class="plan-line-iframe" src="docs/Boissy.pdf#page=1&zoom=page-fit" title="Plan de Boissy" type="application/pdf"></iframe>
+                <iframe id="planBoissyIframe" class="plan-line-iframe" data-pdf-src="docs/Boissy.pdf" title="Plan de Boissy" type="application/pdf"></iframe>
               </div>
             </div>
             <div class="field plan-toggle">
@@ -2729,7 +2729,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   </div>
                   <button class="pdf-nav-btn pdf-nav-next" data-pdf="parisouest" aria-label="Page suivante">›</button>
                 </div>
-                <iframe id="planParisOuestIframe" class="plan-line-iframe" src="docs/Paris%20-%20Ouest.pdf#page=1" title="Plan de Paris-Ouest" type="application/pdf"></iframe>
+                <iframe id="planParisOuestIframe" class="plan-line-iframe" data-pdf-src="docs/Paris%20-%20Ouest.pdf" title="Plan de Paris-Ouest" type="application/pdf"></iframe>
               </div>
             </div>
             <div class="field plan-toggle">
@@ -2746,7 +2746,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   </div>
                   <button class="pdf-nav-btn pdf-nav-next" data-pdf="chessy" aria-label="Page suivante">›</button>
                 </div>
-                <iframe id="planChessyIframe" class="plan-line-iframe" src="docs/Chessy.pdf#page=1&zoom=page-fit" title="Plan de Chessy" type="application/pdf"></iframe>
+                <iframe id="planChessyIframe" class="plan-line-iframe" data-pdf-src="docs/Chessy.pdf" title="Plan de Chessy" type="application/pdf"></iframe>
               </div>
             </div>
           </div>
@@ -12084,9 +12084,10 @@ function initAccessGate() {
 
 
   const storedCode = safeGetItem(ACCESS_LAST_USED_CODE_KEY);
-  const requiresFreshValidation = !storedCode || storedCode !== ACCESS_CODE;
+  const codeChanged = storedCode && storedCode !== ACCESS_CODE;
+  const requiresFreshValidation = !storedCode || codeChanged;
 
-  if (requiresFreshValidation) {
+  if (codeChanged) {
     try {
       localStorage.clear();
     } catch (error) {
@@ -12284,8 +12285,9 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     if (!toggle || !container) return;
     toggle.addEventListener("change", () => {
       container.style.display = toggle.checked ? "block" : "none";
-      if (toggle.checked && pdfId && typeof restorePdfPage === "function") {
-        restorePdfPage(pdfId);
+      if (toggle.checked && pdfId) {
+        initPdfNavigationOnce();
+        ensurePdfLoaded(pdfId);
       }
     });
   }
@@ -12404,17 +12406,30 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
   function restorePdfPage(pdfId) {
     const config = pdfConfig[pdfId];
     if (!config || !config.iframe || !isPdfContainerVisible(config.iframe)) return;
+    if (!config.loaded) {
+      ensurePdfLoaded(pdfId);
+      return;
+    }
     const savedPage = getSavedPdfPage(pdfId);
     updatePdfPage(pdfId, savedPage, { force: true });
   }
 
-  function restorePdfPagesForPlanTab() {
-    Object.keys(pdfConfig).forEach(restorePdfPage);
+  let pdfNavigationInitialized = false;
+
+  function ensurePdfLoaded(pdfId) {
+    const config = pdfConfig[pdfId];
+    if (!config || !config.iframe || config.loaded) return;
+    config.loaded = true;
+    const initialPage = getSavedPdfPage(pdfId);
+    config.currentPage = initialPage;
+    updatePdfPage(pdfId, initialPage, { force: true });
   }
 
-  window.restorePdfPagesForPlanTab = restorePdfPagesForPlanTab;
+  function initPdfNavigationOnce() {
+    if (pdfNavigationInitialized) return;
+    pdfNavigationInitialized = true;
 
-  // Initialiser la navigation pour chaque PDF
+  // Initialiser la navigation pour chaque PDF (sans charger les iframes)
   Object.keys(pdfConfig).forEach(pdfId => {
     const config = pdfConfig[pdfId];
     if (!config.iframe) return;
@@ -12423,6 +12438,7 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     const prevBtn = document.querySelector(`.pdf-nav-prev[data-pdf="${pdfId}"]`);
     if (prevBtn) {
       prevBtn.addEventListener("click", () => {
+        ensurePdfLoaded(pdfId);
         const currentPage = config.currentPage || 1;
         updatePdfPage(pdfId, currentPage - 1);
       });
@@ -12432,6 +12448,7 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     const nextBtn = document.querySelector(`.pdf-nav-next[data-pdf="${pdfId}"]`);
     if (nextBtn) {
       nextBtn.addEventListener("click", () => {
+        ensurePdfLoaded(pdfId);
         const currentPage = config.currentPage || 1;
         updatePdfPage(pdfId, currentPage + 1);
       });
@@ -12441,6 +12458,7 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     const pageInput = document.querySelector(`.pdf-page-input[data-pdf="${pdfId}"]`);
     if (pageInput) {
       pageInput.addEventListener("change", (e) => {
+        ensurePdfLoaded(pdfId);
         const pageNum = parseInt(e.target.value, 10);
         if (!isNaN(pageNum) && pageNum > 0) {
           updatePdfPage(pdfId, pageNum);
@@ -12452,6 +12470,7 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
       pageInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
           e.target.blur();
+          ensurePdfLoaded(pdfId);
           const pageNum = parseInt(e.target.value, 10);
           if (!isNaN(pageNum) && pageNum > 0) {
             updatePdfPage(pdfId, pageNum);
@@ -12460,11 +12479,32 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
       });
     }
 
-    // Initialiser à la page mémorisée (ou 1)
     const initialPage = getSavedPdfPage(pdfId);
     config.currentPage = initialPage;
-    updatePdfPage(pdfId, initialPage, { force: true });
+    const totalSpan = document.querySelector(`.pdf-page-total[data-pdf="${pdfId}"]`);
+    const prevBtnInit = document.querySelector(`.pdf-nav-prev[data-pdf="${pdfId}"]`);
+    const nextBtnInit = document.querySelector(`.pdf-nav-next[data-pdf="${pdfId}"]`);
+    if (pageInput) pageInput.value = initialPage;
+    if (totalSpan) totalSpan.textContent = "/ " + (config.maxPages || 50);
+    if (prevBtnInit) prevBtnInit.disabled = initialPage <= 1;
+    if (nextBtnInit) nextBtnInit.disabled = initialPage >= (config.maxPages || 50);
   });
+  }
+
+  function restorePdfPagesForPlanTab() {
+    initPdfNavigationOnce();
+    Object.keys(pdfConfig).forEach(pdfId => {
+      const config = pdfConfig[pdfId];
+      if (!config?.iframe || !isPdfContainerVisible(config.iframe)) return;
+      if (!config.loaded) {
+        ensurePdfLoaded(pdfId);
+      } else {
+        restorePdfPage(pdfId);
+      }
+    });
+  }
+
+  window.restorePdfPagesForPlanTab = restorePdfPagesForPlanTab;
 
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
