@@ -328,6 +328,10 @@
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 2px 8px rgba(20, 40, 80, 0.3);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    z-index: 2;
   }
 
   .pdf-nav-btn:hover:not(:disabled) {
@@ -2689,14 +2693,14 @@ body[data-page-hidden="true"] .direction-arrow-moving {
               </label>
               <div id="planBoissyContainer" class="plan-line-container" style="display: none;">
                 <div class="pdf-navigation">
-                  <button class="pdf-nav-btn pdf-nav-prev" data-pdf="boissy" aria-label="Page précédente">‹</button>
+                  <button type="button" class="pdf-nav-btn pdf-nav-prev" data-pdf="boissy" aria-label="Page précédente">‹</button>
                   <div class="pdf-page-info">
                     <input type="number" class="pdf-page-input" data-pdf="boissy" min="1" value="1" aria-label="Numéro de page">
                     <span class="pdf-page-total" data-pdf="boissy">/ ?</span>
                   </div>
-                  <button class="pdf-nav-btn pdf-nav-next" data-pdf="boissy" aria-label="Page suivante">›</button>
+                  <button type="button" class="pdf-nav-btn pdf-nav-next" data-pdf="boissy" aria-label="Page suivante">›</button>
                 </div>
-                <iframe id="planBoissyIframe" class="plan-line-iframe" data-pdf-src="docs/Boissy.pdf" title="Plan de Boissy" type="application/pdf"></iframe>
+                <iframe id="planBoissyIframe" class="plan-line-iframe" data-pdf-src="docs/Boissy.pdf" src="docs/Boissy.pdf#page=1&zoom=page-fit" title="Plan de Boissy" type="application/pdf"></iframe>
               </div>
             </div>
             <div class="field plan-toggle">
@@ -2706,14 +2710,14 @@ body[data-page-hidden="true"] .direction-arrow-moving {
               </label>
               <div id="planParisOuestContainer" class="plan-line-container" style="display: none;">
                 <div class="pdf-navigation">
-                  <button class="pdf-nav-btn pdf-nav-prev" data-pdf="parisouest" aria-label="Page précédente">‹</button>
+                  <button type="button" class="pdf-nav-btn pdf-nav-prev" data-pdf="parisouest" aria-label="Page précédente">‹</button>
                   <div class="pdf-page-info">
                     <input type="number" class="pdf-page-input" data-pdf="parisouest" min="1" value="1" aria-label="Numéro de page">
                     <span class="pdf-page-total" data-pdf="parisouest">/ ?</span>
                   </div>
-                  <button class="pdf-nav-btn pdf-nav-next" data-pdf="parisouest" aria-label="Page suivante">›</button>
+                  <button type="button" class="pdf-nav-btn pdf-nav-next" data-pdf="parisouest" aria-label="Page suivante">›</button>
                 </div>
-                <iframe id="planParisOuestIframe" class="plan-line-iframe" data-pdf-src="docs/Paris%20-%20Ouest.pdf" title="Plan de Paris-Ouest" type="application/pdf"></iframe>
+                <iframe id="planParisOuestIframe" class="plan-line-iframe" data-pdf-src="docs/Paris%20-%20Ouest.pdf" src="docs/Paris%20-%20Ouest.pdf#page=1&zoom=page-fit" title="Plan de Paris-Ouest" type="application/pdf"></iframe>
               </div>
             </div>
             <div class="field plan-toggle">
@@ -2723,14 +2727,14 @@ body[data-page-hidden="true"] .direction-arrow-moving {
               </label>
               <div id="planChessyContainer" class="plan-line-container" style="display: none;">
                 <div class="pdf-navigation">
-                  <button class="pdf-nav-btn pdf-nav-prev" data-pdf="chessy" aria-label="Page précédente">‹</button>
+                  <button type="button" class="pdf-nav-btn pdf-nav-prev" data-pdf="chessy" aria-label="Page précédente">‹</button>
                   <div class="pdf-page-info">
                     <input type="number" class="pdf-page-input" data-pdf="chessy" min="1" value="1" aria-label="Numéro de page">
                     <span class="pdf-page-total" data-pdf="chessy">/ ?</span>
                   </div>
-                  <button class="pdf-nav-btn pdf-nav-next" data-pdf="chessy" aria-label="Page suivante">›</button>
+                  <button type="button" class="pdf-nav-btn pdf-nav-next" data-pdf="chessy" aria-label="Page suivante">›</button>
                 </div>
-                <iframe id="planChessyIframe" class="plan-line-iframe" data-pdf-src="docs/Chessy.pdf" title="Plan de Chessy" type="application/pdf"></iframe>
+                <iframe id="planChessyIframe" class="plan-line-iframe" data-pdf-src="docs/Chessy.pdf" src="docs/Chessy.pdf#page=1&zoom=page-fit" title="Plan de Chessy" type="application/pdf"></iframe>
               </div>
             </div>
           </div>
@@ -7446,8 +7450,8 @@ function detectBranch(lat, lon) {
     if (tabId === "plan") {
       ensureOrientationMapReady();
       updateOrientationPanel();
-      if (typeof restorePdfPagesForPlanTab === "function") {
-        restorePdfPagesForPlanTab();
+      if (typeof window.restorePdfPagesForPlanTab === "function") {
+        window.restorePdfPagesForPlanTab();
       }
     }
   }
@@ -12302,7 +12306,12 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
       container.style.display = toggle.checked ? "block" : "none";
       if (toggle.checked && pdfId) {
         initPdfNavigationOnce();
-        ensurePdfLoaded(pdfId);
+        const applyPage = () => restorePdfPage(pdfId);
+        if (isIOSDevice) {
+          requestAnimationFrame(() => requestAnimationFrame(applyPage));
+        } else {
+          applyPage();
+        }
       }
     });
   }
@@ -12351,10 +12360,27 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     return true;
   }
 
-  function buildPdfIframeSrc(baseUrl, page) {
-    const separator = baseUrl.includes("?") ? "&" : "?";
-    const cacheBust = isIOSDevice ? separator + "p=" + page + "&t=" + Date.now() : "";
-    return baseUrl + cacheBust + "#page=" + page + "&zoom=page-fit";
+  function buildPdfIframeSrc(baseUrl, page, forceReload) {
+    const cleanBase = String(baseUrl || "").split("#")[0].split("?")[0];
+    if (forceReload && isIOSDevice) {
+      return cleanBase + "?p=" + page + "&t=" + Date.now() + "#page=" + page + "&zoom=page-fit";
+    }
+    return cleanBase + "#page=" + page + "&zoom=page-fit";
+  }
+
+  function replacePdfIframe(pdfId, newSrc) {
+    const config = pdfConfig[pdfId];
+    if (!config || !config.iframe) return null;
+    const iframe = config.iframe;
+    const parent = iframe.parentNode;
+    if (!parent) return iframe;
+
+    const replacement = iframe.cloneNode(false);
+    replacement.removeAttribute("id");
+    replacement.src = newSrc;
+    parent.replaceChild(replacement, iframe);
+    config.iframe = replacement;
+    return replacement;
   }
 
   // Gestion de la navigation des PDF
@@ -12384,22 +12410,17 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     const maxPages = config.maxPages || 50;
     const page = Math.max(1, Math.min(pageNum, maxPages));
     const iframe = config.iframe;
-    const newSrc = buildPdfIframeSrc(config.baseUrl, page);
+    const baseUrl = iframe.getAttribute("data-pdf-src") || config.baseUrl;
     const force = options.force === true;
+    const previousPage = config.currentPage;
+    const isPageChange = force || previousPage == null || previousPage !== page;
+    const newSrc = buildPdfIframeSrc(baseUrl, page, isPageChange);
 
-    if (!force && config.currentPage === page && iframe.src && iframe.src.indexOf("#page=" + page) !== -1) {
+    if (!force && !isPageChange && iframe.src && iframe.src.indexOf("#page=" + page) !== -1) {
       return;
     }
 
-    if (isIOSDevice) {
-      iframe.src = newSrc;
-    } else {
-      iframe.src = "";
-      setTimeout(() => {
-        iframe.src = newSrc;
-      }, 50);
-    }
-
+    config.loaded = true;
     config.currentPage = page;
     savePdfPageState(pdfId, page);
 
@@ -12412,28 +12433,64 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     if (totalSpan) totalSpan.textContent = "/ " + maxPages;
     if (prevBtn) prevBtn.disabled = page <= 1;
     if (nextBtn) nextBtn.disabled = page >= maxPages;
+
+    const applySrc = () => {
+      if (isIOSDevice && isPageChange) {
+        replacePdfIframe(pdfId, newSrc);
+        return;
+      }
+      if (isIOSDevice) {
+        iframe.src = newSrc;
+        return;
+      }
+      iframe.src = "";
+      setTimeout(() => {
+        config.iframe.src = newSrc;
+      }, 50);
+    };
+
+    if (isIOSDevice && !isPdfContainerVisible(config.iframe)) {
+      requestAnimationFrame(() => requestAnimationFrame(applySrc));
+    } else {
+      applySrc();
+    }
   }
 
   function restorePdfPage(pdfId) {
     const config = pdfConfig[pdfId];
     if (!config || !config.iframe || !isPdfContainerVisible(config.iframe)) return;
-    if (!config.loaded) {
-      ensurePdfLoaded(pdfId);
-      return;
-    }
     const savedPage = getSavedPdfPage(pdfId);
     updatePdfPage(pdfId, savedPage, { force: true });
   }
 
   let pdfNavigationInitialized = false;
 
-  function ensurePdfLoaded(pdfId) {
+  function bindPdfNavAction(button, handler) {
+    if (!button) return;
+    let lastRun = 0;
+    const run = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const now = Date.now();
+      if (now - lastRun < 350) return;
+      lastRun = now;
+      handler();
+    };
+    button.addEventListener("click", run);
+    if (isIOSDevice) {
+      button.addEventListener("touchend", run, { passive: false });
+    }
+  }
+
+  function markPdfLoadedFromIframe(pdfId) {
     const config = pdfConfig[pdfId];
-    if (!config || !config.iframe || config.loaded) return;
+    if (!config || !config.iframe) return;
+    const src = config.iframe.getAttribute("src") || config.iframe.src || "";
+    if (!src || src === "about:blank") return;
     config.loaded = true;
-    const initialPage = getSavedPdfPage(pdfId);
-    config.currentPage = initialPage;
-    updatePdfPage(pdfId, initialPage, { force: true });
+    if (!config.currentPage) {
+      config.currentPage = getSavedPdfPage(pdfId);
+    }
   }
 
   function initPdfNavigationOnce() {
@@ -12447,29 +12504,24 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
 
     // Bouton précédent
     const prevBtn = document.querySelector(`.pdf-nav-prev[data-pdf="${pdfId}"]`);
-    if (prevBtn) {
-      prevBtn.addEventListener("click", () => {
-        ensurePdfLoaded(pdfId);
-        const currentPage = config.currentPage || 1;
-        updatePdfPage(pdfId, currentPage - 1);
-      });
-    }
+    markPdfLoadedFromIframe(pdfId);
+
+    bindPdfNavAction(prevBtn, () => {
+      const currentPage = config.currentPage || getSavedPdfPage(pdfId);
+      updatePdfPage(pdfId, currentPage - 1);
+    });
 
     // Bouton suivant
     const nextBtn = document.querySelector(`.pdf-nav-next[data-pdf="${pdfId}"]`);
-    if (nextBtn) {
-      nextBtn.addEventListener("click", () => {
-        ensurePdfLoaded(pdfId);
-        const currentPage = config.currentPage || 1;
-        updatePdfPage(pdfId, currentPage + 1);
-      });
-    }
+    bindPdfNavAction(nextBtn, () => {
+      const currentPage = config.currentPage || getSavedPdfPage(pdfId);
+      updatePdfPage(pdfId, currentPage + 1);
+    });
 
     // Champ de saisie
     const pageInput = document.querySelector(`.pdf-page-input[data-pdf="${pdfId}"]`);
     if (pageInput) {
       pageInput.addEventListener("change", (e) => {
-        ensurePdfLoaded(pdfId);
         const pageNum = parseInt(e.target.value, 10);
         if (!isNaN(pageNum) && pageNum > 0) {
           updatePdfPage(pdfId, pageNum);
@@ -12481,7 +12533,6 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
       pageInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
           e.target.blur();
-          ensurePdfLoaded(pdfId);
           const pageNum = parseInt(e.target.value, 10);
           if (!isNaN(pageNum) && pageNum > 0) {
             updatePdfPage(pdfId, pageNum);
@@ -12507,15 +12558,13 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     Object.keys(pdfConfig).forEach(pdfId => {
       const config = pdfConfig[pdfId];
       if (!config || !config.iframe || !isPdfContainerVisible(config.iframe)) return;
-      if (!config.loaded) {
-        ensurePdfLoaded(pdfId);
-      } else {
-        restorePdfPage(pdfId);
-      }
+      restorePdfPage(pdfId);
     });
   }
 
   window.restorePdfPagesForPlanTab = restorePdfPagesForPlanTab;
+
+  initPdfNavigationOnce();
 
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
