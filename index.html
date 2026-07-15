@@ -680,22 +680,6 @@
   .tab-panel.is-active {
     display: block;
   }
-
-  /* iOS : éviter display:none sur les onglets (Safari recharge les iframes PDF) */
-  html.ios-device .tab-panel {
-    display: block;
-    visibility: hidden;
-    height: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  html.ios-device .tab-panel.is-active {
-    visibility: visible;
-    height: auto;
-    overflow: visible;
-    pointer-events: auto;
-  }
   @media (max-width: 640px) {
     .tabbar {
       width: calc(100% - 18px);
@@ -2535,7 +2519,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     </div>
 
     <div class="field">
-      <button id="btnAccessCode" class="btn btn-primary btn-icon" type="button">
+      <button id="btnAccessCode" class="btn btn-primary btn-icon" type="button" onclick="if(window.tryAccessCode){window.tryAccessCode();}">
         <span>🔓</span><span>Déverrouiller</span>
       </button>
     </div>
@@ -12081,7 +12065,8 @@ function initAccessGate() {
   const err = document.getElementById("accessError");
 
   if (!overlay || !input || !btn) return;
-
+  if (overlay.dataset.initialized === "true") return;
+  overlay.dataset.initialized = "true";
 
   const storedCode = safeGetItem(ACCESS_LAST_USED_CODE_KEY);
   const codeChanged = storedCode && storedCode !== ACCESS_CODE;
@@ -12099,28 +12084,30 @@ function initAccessGate() {
   const already = !requiresFreshValidation && safeGetItem(ACCESS_CODE_KEY);
   if (already === "ok") {
     overlay.style.display = "none";
+    bootAppData();
     return;
   }
 
   function grantAccess() {
     safeSetItem(ACCESS_CODE_KEY, "ok");
     safeSetItem(ACCESS_LAST_USED_CODE_KEY, ACCESS_CODE);
-    err.style.display = "none";
-    overlay.style.transition = "opacity 0.2s ease";
-    overlay.style.opacity = "0";
-    setTimeout(() => {
-      overlay.style.display = "none";
-    }, 200);
+    if (err) err.style.display = "none";
+    overlay.style.transition = "none";
+    overlay.style.opacity = "1";
+    overlay.style.display = "none";
+    bootAppData();
   }
 
   function tryCode() {
-    const v = (input.value || "").trim();
-    if (v === ACCESS_CODE) {
+    const v = String(input.value || "").trim();
+    if (v === String(ACCESS_CODE)) {
       grantAccess();
-    } else {
+    } else if (err) {
       err.style.display = "block";
     }
   }
+
+  window.tryAccessCode = tryCode;
 
   btn.addEventListener("click", tryCode);
   input.addEventListener("keydown", (e) => {
@@ -12130,12 +12117,40 @@ function initAccessGate() {
   });
 }
 
-loadSettings();
-loadLocalCalibrations();
-loadMapPoints();
-loadIncidents();
-updateSmsPreview();
-setGpsStatus("off");
+function bootAccessGate() {
+  initAccessGate();
+}
+
+function bootAppData() {
+  if (window.__pkAppDataBooted) return;
+  window.__pkAppDataBooted = true;
+  try {
+    loadSettings();
+  } catch (error) {
+    console.error("loadSettings a échoué :", error);
+  }
+  try {
+    loadLocalCalibrations();
+    loadMapPoints();
+    loadIncidents();
+    updateSmsPreview();
+    setGpsStatus("off");
+  } catch (error) {
+    console.error("Chargement des données locales a échoué :", error);
+  }
+}
+
+function bootAppShell() {
+  if (window.__pkAppBooted) return;
+  window.__pkAppBooted = true;
+  bootAccessGate();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootAppShell, { once: true });
+} else {
+  bootAppShell();
+}
 
 // === TEST getDisplayPk pour Boissy ===
 (function testGetDisplayPkBoissy() {
@@ -12175,7 +12190,7 @@ setGpsStatus("off");
 })();
 
 document.addEventListener("DOMContentLoaded", async () => {
-  initAccessGate();
+  bootAppShell();
   // Charger les sélections de branche depuis localStorage
   loadBranchSelections();
   await Promise.all([loadSharedCalibrations(), loadSharedMapPoints()]);
@@ -12299,10 +12314,6 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
   const PDF_PAGE_STORAGE_KEY = "pdfCurrentPages";
   const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent)
     || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-  if (isIOSDevice) {
-    document.documentElement.classList.add("ios-device");
-  }
 
   function loadPdfPageState() {
     try {
@@ -12495,7 +12506,7 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     initPdfNavigationOnce();
     Object.keys(pdfConfig).forEach(pdfId => {
       const config = pdfConfig[pdfId];
-      if (!config?.iframe || !isPdfContainerVisible(config.iframe)) return;
+      if (!config || !config.iframe || !isPdfContainerVisible(config.iframe)) return;
       if (!config.loaded) {
         ensurePdfLoaded(pdfId);
       } else {
