@@ -401,6 +401,36 @@
     pointer-events: auto;
   }
 
+  .plan-line-canvas-wrap {
+    display: none;
+    width: 100%;
+    background: #0a0c12;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .plan-line-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #fff;
+  }
+
+  .pdf-canvas-loading {
+    padding: 24px 16px;
+    text-align: center;
+    color: rgba(200, 210, 230, 0.75);
+    font-size: 0.9rem;
+  }
+
+  html.ios-device .plan-line-iframe {
+    display: none !important;
+  }
+
+  html.ios-device .plan-line-canvas-wrap {
+    display: block;
+  }
+
   @media (max-width: 640px) {
     .pdf-navigation {
       padding: 10px 12px;
@@ -2701,6 +2731,10 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   <button type="button" class="pdf-nav-btn pdf-nav-next" data-pdf="boissy" aria-label="Page suivante">›</button>
                 </div>
                 <iframe id="planBoissyIframe" class="plan-line-iframe" data-pdf-src="docs/Boissy.pdf" src="docs/Boissy.pdf#page=1&zoom=page-fit" title="Plan de Boissy" type="application/pdf"></iframe>
+                <div class="plan-line-canvas-wrap" data-pdf-view="boissy">
+                  <div class="pdf-canvas-loading" data-pdf-loading="boissy">Chargement du plan…</div>
+                  <canvas class="plan-line-canvas" data-pdf-canvas="boissy"></canvas>
+                </div>
               </div>
             </div>
             <div class="field plan-toggle">
@@ -2718,6 +2752,10 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   <button type="button" class="pdf-nav-btn pdf-nav-next" data-pdf="parisouest" aria-label="Page suivante">›</button>
                 </div>
                 <iframe id="planParisOuestIframe" class="plan-line-iframe" data-pdf-src="docs/Paris%20-%20Ouest.pdf" src="docs/Paris%20-%20Ouest.pdf#page=1&zoom=page-fit" title="Plan de Paris-Ouest" type="application/pdf"></iframe>
+                <div class="plan-line-canvas-wrap" data-pdf-view="parisouest">
+                  <div class="pdf-canvas-loading" data-pdf-loading="parisouest">Chargement du plan…</div>
+                  <canvas class="plan-line-canvas" data-pdf-canvas="parisouest"></canvas>
+                </div>
               </div>
             </div>
             <div class="field plan-toggle">
@@ -2735,6 +2773,10 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   <button type="button" class="pdf-nav-btn pdf-nav-next" data-pdf="chessy" aria-label="Page suivante">›</button>
                 </div>
                 <iframe id="planChessyIframe" class="plan-line-iframe" data-pdf-src="docs/Chessy.pdf" src="docs/Chessy.pdf#page=1&zoom=page-fit" title="Plan de Chessy" type="application/pdf"></iframe>
+                <div class="plan-line-canvas-wrap" data-pdf-view="chessy">
+                  <div class="pdf-canvas-loading" data-pdf-loading="chessy">Chargement du plan…</div>
+                  <canvas class="plan-line-canvas" data-pdf-canvas="chessy"></canvas>
+                </div>
               </div>
             </div>
           </div>
@@ -12324,6 +12366,32 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
   const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent)
     || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
+  if (isIOSDevice) {
+    document.documentElement.classList.add("ios-device");
+  }
+
+  let pdfJsLibPromise = null;
+
+  function ensurePdfJsLib() {
+    if (pdfJsLibPromise) return pdfJsLibPromise;
+    pdfJsLibPromise = new Promise((resolve, reject) => {
+      if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        resolve(pdfjsLib);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+      script.onload = () => {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        resolve(pdfjsLib);
+      };
+      script.onerror = () => reject(new Error("Impossible de charger pdf.js"));
+      document.head.appendChild(script);
+    });
+    return pdfJsLibPromise;
+  }
+
   function loadPdfPageState() {
     try {
       const raw = safeGetItem(PDF_PAGE_STORAGE_KEY);
@@ -12351,114 +12419,158 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     return Number.isFinite(page) && page >= 1 ? page : 1;
   }
 
-  function isPdfContainerVisible(iframe) {
-    if (!iframe) return false;
-    const container = iframe.closest(".plan-line-container");
+  function isPdfContainerVisible(pdfIdOrNode) {
+    const config = typeof pdfIdOrNode === "string" ? pdfConfig[pdfIdOrNode] : null;
+    const root = config
+      ? (isIOSDevice ? config.canvasWrap : config.iframe)
+      : pdfIdOrNode;
+    if (!root) return false;
+    const container = root.closest(".plan-line-container");
     if (!container || container.style.display === "none") return false;
-    const planPanel = iframe.closest('.tab-panel[data-tab="plan"]');
+    const planPanel = root.closest('.tab-panel[data-tab="plan"]');
     if (planPanel && !planPanel.classList.contains("is-active")) return false;
     return true;
   }
 
-  function buildPdfIframeSrc(baseUrl, page, forceReload) {
-    const cleanBase = String(baseUrl || "").split("#")[0].split("?")[0];
-    if (forceReload && isIOSDevice) {
-      return cleanBase + "?p=" + page + "&t=" + Date.now() + "#page=" + page + "&zoom=page-fit";
-    }
-    return cleanBase + "#page=" + page + "&zoom=page-fit";
+  function updatePdfNavControls(pdfId, page, maxPages) {
+    const pageInput = document.querySelector(`.pdf-page-input[data-pdf="${pdfId}"]`);
+    const totalSpan = document.querySelector(`.pdf-page-total[data-pdf="${pdfId}"]`);
+    const prevBtn = document.querySelector(`.pdf-nav-prev[data-pdf="${pdfId}"]`);
+    const nextBtn = document.querySelector(`.pdf-nav-next[data-pdf="${pdfId}"]`);
+    if (pageInput) pageInput.value = page;
+    if (totalSpan) totalSpan.textContent = "/ " + maxPages;
+    if (prevBtn) prevBtn.disabled = page <= 1;
+    if (nextBtn) nextBtn.disabled = page >= maxPages;
   }
 
-  function replacePdfIframe(pdfId, newSrc) {
-    const config = pdfConfig[pdfId];
-    if (!config || !config.iframe) return null;
-    const iframe = config.iframe;
-    const parent = iframe.parentNode;
-    if (!parent) return iframe;
-
-    const replacement = iframe.cloneNode(false);
-    replacement.removeAttribute("id");
-    replacement.src = newSrc;
-    parent.replaceChild(replacement, iframe);
-    config.iframe = replacement;
-    return replacement;
+  function buildPdfIframeSrc(baseUrl, page) {
+    const cleanBase = String(baseUrl || "").split("#")[0].split("?")[0];
+    return cleanBase + "#page=" + page + "&zoom=page-fit";
   }
 
   // Gestion de la navigation des PDF
   const pdfConfig = {
     boissy: {
       iframe: document.getElementById("planBoissyIframe"),
+      canvasWrap: document.querySelector('[data-pdf-view="boissy"]'),
+      canvas: document.querySelector('[data-pdf-canvas="boissy"]'),
+      loadingEl: document.querySelector('[data-pdf-loading="boissy"]'),
       baseUrl: "docs/Boissy.pdf",
-      maxPages: 50 // Valeur par défaut, sera mise à jour si détectée
+      maxPages: 50
     },
     parisouest: {
       iframe: document.getElementById("planParisOuestIframe"),
+      canvasWrap: document.querySelector('[data-pdf-view="parisouest"]'),
+      canvas: document.querySelector('[data-pdf-canvas="parisouest"]'),
+      loadingEl: document.querySelector('[data-pdf-loading="parisouest"]'),
       baseUrl: "docs/Paris%20-%20Ouest.pdf",
       maxPages: 50
     },
     chessy: {
       iframe: document.getElementById("planChessyIframe"),
+      canvasWrap: document.querySelector('[data-pdf-view="chessy"]'),
+      canvas: document.querySelector('[data-pdf-canvas="chessy"]'),
+      loadingEl: document.querySelector('[data-pdf-loading="chessy"]'),
       baseUrl: "docs/Chessy.pdf",
       maxPages: 50
     }
   };
 
+  if (isIOSDevice) {
+    Object.keys(pdfConfig).forEach(pdfId => {
+      const config = pdfConfig[pdfId];
+      if (config.iframe) {
+        config.iframe.removeAttribute("src");
+      }
+    });
+  }
+
+  async function loadPdfDocumentForPlan(pdfId) {
+    const config = pdfConfig[pdfId];
+    if (!config) throw new Error("Plan PDF inconnu");
+    if (config.pdfDoc) return config.pdfDoc;
+    if (config.pdfLoadingPromise) return config.pdfLoadingPromise;
+    config.pdfLoadingPromise = (async () => {
+      const lib = await ensurePdfJsLib();
+      const doc = await lib.getDocument(config.baseUrl).promise;
+      config.pdfDoc = doc;
+      config.maxPages = doc.numPages;
+      updatePdfNavControls(pdfId, config.currentPage || getSavedPdfPage(pdfId), doc.numPages);
+      return doc;
+    })();
+    return config.pdfLoadingPromise;
+  }
+
+  async function renderIosPdfPage(pdfId, pageNum) {
+    const config = pdfConfig[pdfId];
+    if (!config || !config.canvas || !config.canvasWrap) return;
+
+    if (config.loadingEl) {
+      config.loadingEl.hidden = false;
+      config.loadingEl.textContent = "Chargement du plan…";
+    }
+
+    try {
+      const doc = await loadPdfDocumentForPlan(pdfId);
+      const page = Math.max(1, Math.min(pageNum, doc.numPages));
+      const pdfPage = await doc.getPage(page);
+      const canvas = config.canvas;
+      const wrap = config.canvasWrap;
+      const availableWidth = wrap.clientWidth || Math.min(window.innerWidth - 24, 900);
+      const baseViewport = pdfPage.getViewport({ scale: 1 });
+      const scale = availableWidth / baseViewport.width;
+      const viewport = pdfPage.getViewport({ scale });
+      const context = canvas.getContext("2d");
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+      await pdfPage.render({ canvasContext: context, viewport }).promise;
+      if (config.loadingEl) config.loadingEl.hidden = true;
+    } catch (error) {
+      console.error("Erreur rendu PDF iOS :", pdfId, error);
+      if (config.loadingEl) {
+        config.loadingEl.hidden = false;
+        config.loadingEl.textContent = "Impossible de charger le plan.";
+      }
+    }
+  }
+
   // Fonction pour mettre à jour la page du PDF
   function updatePdfPage(pdfId, pageNum, options = {}) {
     const config = pdfConfig[pdfId];
-    if (!config || !config.iframe) return;
+    if (!config) return;
 
     const maxPages = config.maxPages || 50;
     const page = Math.max(1, Math.min(pageNum, maxPages));
-    const iframe = config.iframe;
-    const baseUrl = iframe.getAttribute("data-pdf-src") || config.baseUrl;
     const force = options.force === true;
     const previousPage = config.currentPage;
     const isPageChange = force || previousPage == null || previousPage !== page;
-    const newSrc = buildPdfIframeSrc(baseUrl, page, isPageChange);
 
-    if (!force && !isPageChange && iframe.src && iframe.src.indexOf("#page=" + page) !== -1) {
-      return;
-    }
+    if (!force && !isPageChange) return;
 
     config.loaded = true;
     config.currentPage = page;
     savePdfPageState(pdfId, page);
+    updatePdfNavControls(pdfId, page, maxPages);
 
-    const pageInput = document.querySelector(`.pdf-page-input[data-pdf="${pdfId}"]`);
-    const totalSpan = document.querySelector(`.pdf-page-total[data-pdf="${pdfId}"]`);
-    const prevBtn = document.querySelector(`.pdf-nav-prev[data-pdf="${pdfId}"]`);
-    const nextBtn = document.querySelector(`.pdf-nav-next[data-pdf="${pdfId}"]`);
-
-    if (pageInput) pageInput.value = page;
-    if (totalSpan) totalSpan.textContent = "/ " + maxPages;
-    if (prevBtn) prevBtn.disabled = page <= 1;
-    if (nextBtn) nextBtn.disabled = page >= maxPages;
-
-    const applySrc = () => {
-      if (isIOSDevice && isPageChange) {
-        replacePdfIframe(pdfId, newSrc);
-        return;
-      }
-      if (isIOSDevice) {
-        iframe.src = newSrc;
-        return;
-      }
-      iframe.src = "";
-      setTimeout(() => {
-        config.iframe.src = newSrc;
-      }, 50);
-    };
-
-    if (isIOSDevice && !isPdfContainerVisible(config.iframe)) {
-      requestAnimationFrame(() => requestAnimationFrame(applySrc));
-    } else {
-      applySrc();
+    if (isIOSDevice && config.canvas) {
+      renderIosPdfPage(pdfId, page);
+      return;
     }
+
+    if (!config.iframe) return;
+
+    const iframe = config.iframe;
+    const baseUrl = iframe.getAttribute("data-pdf-src") || config.baseUrl;
+    const newSrc = buildPdfIframeSrc(baseUrl, page);
+
+    iframe.src = "";
+    setTimeout(() => {
+      config.iframe.src = newSrc;
+    }, 50);
   }
 
   function restorePdfPage(pdfId) {
-    const config = pdfConfig[pdfId];
-    if (!config || !config.iframe || !isPdfContainerVisible(config.iframe)) return;
+    if (!isPdfContainerVisible(pdfId)) return;
     const savedPage = getSavedPdfPage(pdfId);
     updatePdfPage(pdfId, savedPage, { force: true });
   }
@@ -12484,7 +12596,15 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
 
   function markPdfLoadedFromIframe(pdfId) {
     const config = pdfConfig[pdfId];
-    if (!config || !config.iframe) return;
+    if (!config) return;
+    if (isIOSDevice && config.canvas) {
+      config.loaded = true;
+      if (!config.currentPage) {
+        config.currentPage = getSavedPdfPage(pdfId);
+      }
+      return;
+    }
+    if (!config.iframe) return;
     const src = config.iframe.getAttribute("src") || config.iframe.src || "";
     if (!src || src === "about:blank") return;
     config.loaded = true;
@@ -12500,7 +12620,7 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
   // Initialiser la navigation pour chaque PDF (sans charger les iframes)
   Object.keys(pdfConfig).forEach(pdfId => {
     const config = pdfConfig[pdfId];
-    if (!config.iframe) return;
+    if (!config.iframe && !config.canvas) return;
 
     // Bouton précédent
     const prevBtn = document.querySelector(`.pdf-nav-prev[data-pdf="${pdfId}"]`);
@@ -12556,8 +12676,7 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
   function restorePdfPagesForPlanTab() {
     initPdfNavigationOnce();
     Object.keys(pdfConfig).forEach(pdfId => {
-      const config = pdfConfig[pdfId];
-      if (!config || !config.iframe || !isPdfContainerVisible(config.iframe)) return;
+      if (!isPdfContainerVisible(pdfId)) return;
       restorePdfPage(pdfId);
     });
   }
