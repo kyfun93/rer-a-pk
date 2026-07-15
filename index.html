@@ -3053,11 +3053,6 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                 <div id="recalHistoryList" class="recal-history-list muted"></div>
               </div>
               <div class="field">
-                <button id="btnResetOffset" class="btn btn-secondary" type="button">
-                  Réinitialiser le recalage PK
-                </button>
-              </div>
-              <div class="field">
                 <button id="btnExportCalibrations" class="btn btn-secondary btn-icon" type="button">
                   <span>📤</span><span>Exporter mes recalages (JSON)</span>
                 </button>
@@ -5480,7 +5475,6 @@ async function loadSharedCalibrations() {
   const recalPreviewBranch = document.getElementById("recalPreviewBranch");
   const recalMessages = document.getElementById("recalMessages");
   const recalHistoryList = document.getElementById("recalHistoryList");
-  const btnResetOffset = document.getElementById("btnResetOffset");
   const btnNoteLocation = document.getElementById("btnNoteLocation");
   const btnExportMapPoints = document.getElementById("btnExportMapPoints");
   const btnExportMapPointsNote = document.getElementById("btnExportMapPointsNote");
@@ -11896,30 +11890,6 @@ function detectBranch(lat, lon) {
       }
     });
   }
-  if (btnResetOffset) {
-  btnResetOffset.addEventListener("click", () => {
-    hideRecalPreview();
-    pendingRecal = null;
-    pkOffset = 0;
-    safeSetItem("pkOffset", pkOffset);
-    updateOffsetInfo();
-    if (state.lastRawPk != null) {
-      state.lastPk = computePkWithCalibrations(state.lastRawPk, currentBranch);
-      state.nearestStation = findNearestStation(state.lastPk, currentBranch);
-      state.nearestAccess = (state.lastLat != null && state.lastLon != null)
-        ? findNearestAccessGeo(state.lastLat, state.lastLon)
-        : findNearestAccess(state.lastPk, currentBranch);
-      updateNearestStation(state.lastPk, state.nearestStation);
-      updateNextStation(state.lastPk);
-      updateNearestAccess(state.lastPk);
-      updatePkTargetView();
-      updateSmsPreview();
-      updateOrientationPanel();
-    }
-    updatePkEstimateInSettings();
-    setRecalMessage("Offset remis à zéro.", "info");
-  });
-}
 if (btnApplyRecal && inputPkRecal) {
   btnApplyRecal.addEventListener("click", () => {
     const recalBranch = getContextBranch(BRANCH_SELECTION_CONTEXTS.recal);
