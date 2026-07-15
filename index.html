@@ -3067,10 +3067,10 @@ body[data-page-hidden="true"] .direction-arrow-moving {
               </div>
               <div class="field">
                 <button id="btnClearLocalCalibrations" class="btn btn-warning btn-icon" type="button">
-                  <span>🗑️</span><span>Effacer mes recalages locaux</span>
+                  <span>🗑️</span><span>Réinitialiser toutes les calibrations locales</span>
                 </button>
                 <div class="muted">
-                  Supprime les recalages enregistrés sur ce téléphone (après export ou mise à jour de l'app). Les recalages partagés restent actifs.
+                  Remet le décalage global à zéro, supprime les recalages locaux et l'historique sur ce téléphone. Les calibrations partagées (calibrations.json) restent actives.
                 </div>
               </div>
             </div>
@@ -4798,8 +4798,10 @@ const BRANCH_OPTION_LABELS = {
 
   // === AJOUT CALIBRAGE : stockage des recalages locaux + fichier partagé ===
   const LOCAL_CAL_KEY = "pkCalibrations";
+  const PK_OFFSET_LEGACY_BACKUP_KEY = "pkOffsetLegacyBackup";
   let localCalibrations = [];
   let sharedCalibrations = [];
+  let legacyPkOffsetMigrationMessage = null;
 
   function loadLocalCalibrations() {
     const raw = safeGetItem(LOCAL_CAL_KEY);
@@ -5002,28 +5004,90 @@ const BRANCH_OPTION_LABELS = {
   function clearLocalCalibrations() {
     const count = localCalibrations.length;
     const historyCount = recalHistory.length;
-    if (count === 0 && historyCount === 0) {
-      alert("Aucun recalage local à effacer.");
+    const hasOffset = Number.isFinite(pkOffset) && pkOffset !== 0;
+    const hasLegacyBackup = !!safeGetItem(PK_OFFSET_LEGACY_BACKUP_KEY);
+    if (count === 0 && historyCount === 0 && !hasOffset && !hasLegacyBackup) {
+      alert("Aucune calibration locale à réinitialiser.");
       return;
     }
 
-    let message = "Effacer les recalages enregistrés sur ce téléphone ?";
-    if (count > 0) {
-      message = `Effacer tes ${count} recalage(s) local(aux) ?\n\nLes recalages partagés (mis à jour avec l'app) restent actifs.`;
-    } else {
-      message = "Effacer l'historique de recalage sur ce téléphone ?";
-    }
+    const message = [
+      "Réinitialiser toutes les calibrations locales ?",
+      "",
+      "Cette action va :",
+      "• remettre le décalage global (pkOffset) à zéro ;",
+      "• supprimer les recalages locaux de ce téléphone ;",
+      "• supprimer l'historique de recalage ;",
+      "• supprimer la sauvegarde pkOffsetLegacyBackup ;",
+      "",
+      "Les calibrations partagées (calibrations.json) restent actives."
+    ].join("\n");
 
     if (!confirm(message)) return;
 
+    pkOffset = 0;
+    safeSetItem("pkOffset", pkOffset);
+    try {
+      localStorage.removeItem(PK_OFFSET_LEGACY_BACKUP_KEY);
+    } catch (e) {
+      console.warn("Impossible de supprimer pkOffsetLegacyBackup :", e);
+    }
     localCalibrations = [];
     saveLocalCalibrations();
     recalHistory = [];
     saveRecalHistory();
     renderRecalHistoryList();
-    updateOffsetInfo();
+    hideRecalPreview();
+    pendingRecal = null;
+    lastCalibrationBuildTime = 0;
     buildCalibrationPolylines();
-    alert("✅ Recalages locaux effacés.");
+    updateOffsetInfo();
+    if (state.lastRawPk != null) {
+      state.lastPk = computePkWithCalibrations(state.lastRawPk, currentBranch);
+      updatePkEstimateInSettings();
+      updatePkTargetView();
+      updateSmsPreview();
+      updateOrientationPanel();
+    }
+    setRecalMessage("Toutes les calibrations locales ont été réinitialisées. Les calibrations partagées restent actives.", "info");
+    alert("✅ Toutes les calibrations locales ont été réinitialisées.\nLes calibrations partagées restent actives.");
+  }
+
+  function migrateLegacyPkOffsetIfNeeded() {
+    legacyPkOffsetMigrationMessage = null;
+    const hasLocal = Array.isArray(localCalibrations) && localCalibrations.length > 0;
+    const hasShared = Array.isArray(sharedCalibrations) && sharedCalibrations.length > 0;
+    if (!hasLocal && !hasShared) {
+      return false;
+    }
+    if (!Number.isFinite(pkOffset) || pkOffset === 0) {
+      return false;
+    }
+    // Ne jamais écraser une sauvegarde déjà présente
+    const existingBackup = safeGetItem(PK_OFFSET_LEGACY_BACKUP_KEY);
+    if (!existingBackup) {
+      const backup = {
+        value: pkOffset,
+        migratedAt: new Date().toISOString(),
+        reason: "Conflit avec calibrations locales/partagées actives — non cumulables."
+      };
+      try {
+        safeSetItem(PK_OFFSET_LEGACY_BACKUP_KEY, JSON.stringify(backup));
+      } catch (e) {
+        console.warn("Impossible de sauvegarder pkOffsetLegacyBackup :", e);
+      }
+    }
+    const previous = pkOffset;
+    pkOffset = 0;
+    safeSetItem("pkOffset", pkOffset);
+    legacyPkOffsetMigrationMessage =
+      "Ancien décalage global (" + Math.round(previous) + " m) désactivé pour éviter une double correction avec les calibrations locales/partagées. Valeur sauvegardée dans pkOffsetLegacyBackup.";
+    console.warn(legacyPkOffsetMigrationMessage);
+    updateOffsetInfo();
+    if (recalMessages) {
+      setRecalMessage(legacyPkOffsetMigrationMessage, "info");
+    }
+    return true;
   }
 
   function clearMapPoints() {
@@ -5951,20 +6015,16 @@ async function loadSharedCalibrations() {
   }
 
   function determineCalibrationBranch(pk, branchHint, lat, lon) {
+    if (Number.isFinite(pk) && pk <= BRANCH_COMMON_MAX) {
+      return "central";
+    }
+
     let branch = branchHint;
-
     if (branch === "both") {
-      branch = "central";
+      branch = null;
     }
-
-    if (branch === "boissy" || branch === "chessy" || branch === "central") {
+    if (branch === "boissy" || branch === "chessy") {
       return branch;
-    }
-
-    if (Number.isFinite(pk)) {
-      if (pk <= BRANCH_COMMON_MAX) {
-        return "central";
-      }
     }
 
     if (Number.isFinite(lat) && Number.isFinite(lon)) {
@@ -5974,7 +6034,21 @@ async function loadSharedCalibrations() {
       }
     }
 
-    return "central";
+    return detectBranchForPk(pk);
+  }
+
+  function getCalibrationZoneForPk(pk, branchKey) {
+    if (!Number.isFinite(pk)) {
+      return null;
+    }
+    if (pk <= BRANCH_COMMON_MAX) {
+      return "central";
+    }
+    const normalized = normalizeBranchKey(branchKey);
+    if (normalized === "boissy" || normalized === "chessy") {
+      return normalized;
+    }
+    return detectBranchForPk(pk);
   }
 
   function computeCalibrationOffsetFromEntry(entry) {
@@ -6000,12 +6074,50 @@ async function loadSharedCalibrations() {
     return null;
   }
 
+  /**
+   * Ancre de contrôle pour les segments (obligatoirement un pkRaw de mesure).
+   * - Si entry.pkRaw est présent → utilisé tel quel.
+   * - Sinon, si pkExact + offset connus → dérive pkRaw = pkExact - offset
+   *   (migration explicite : reconstruit le PK brut de mesure, ne déplace pas silencieusement l'ancre).
+   * - Sinon → null (entrée rejetée, avertissement).
+   */
+  function resolveCalibrationAnchorPk(entry) {
+    if (!entry || typeof entry !== "object") {
+      return { anchorPk: null, source: "rejected", message: "Entrée de calibration invalide." };
+    }
+    if (Number.isFinite(entry.pkRaw)) {
+      return { anchorPk: entry.pkRaw, source: "pkRaw", message: null };
+    }
+    const pkExact = Number.isFinite(entry.pkExact) ? entry.pkExact : (Number.isFinite(entry.pk) ? entry.pk : null);
+    const offset = computeCalibrationOffsetFromEntry(entry);
+    if (pkExact != null && Number.isFinite(offset)) {
+      const derived = pkExact - offset;
+      return {
+        anchorPk: derived,
+        source: "derived",
+        message: "Calibration sans pkRaw : ancre dérivée pkExact - offset = " + derived + " (migration explicite, pas un déplacement silencieux)."
+      };
+    }
+    return {
+      anchorPk: null,
+      source: "rejected",
+      message: "Calibration ignorée : pkRaw manquant et impossible à dériver (pkExact/offset incomplets)."
+    };
+  }
+
   function buildCalibrationSegmentsForBranch(points) {
     if (!Array.isArray(points) || !points.length) {
       return [];
     }
-    if (points.length === 1) {
-      const center = points[0];
+    const sorted = points
+      .filter(point => point && Number.isFinite(point.pk) && Number.isFinite(point.offset))
+      .slice()
+      .sort((a, b) => a.pk - b.pk);
+    if (!sorted.length) {
+      return [];
+    }
+    if (sorted.length === 1) {
+      const center = sorted[0];
       return [{
         type: "single",
         center,
@@ -6014,10 +6126,22 @@ async function loadSharedCalibrations() {
         radius: CALIBRATION_SINGLE_RADIUS
       }];
     }
+
     const segments = [];
-    for (let i = 0; i < points.length - 1; i++) {
-      const left = points[i];
-      const right = points[i + 1];
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+
+    segments.push({
+      type: "ramp",
+      start: first.pk - CALIBRATION_SINGLE_RADIUS,
+      end: first.pk,
+      offsetStart: 0,
+      offsetEnd: first.offset
+    });
+
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const left = sorted[i];
+      const right = sorted[i + 1];
       if (!Number.isFinite(left.pk) || !Number.isFinite(right.pk)) continue;
       if (right.pk <= left.pk) continue;
       segments.push({
@@ -6028,6 +6152,15 @@ async function loadSharedCalibrations() {
         end: right.pk
       });
     }
+
+    segments.push({
+      type: "ramp",
+      start: last.pk,
+      end: last.pk + CALIBRATION_SINGLE_RADIUS,
+      offsetStart: last.offset,
+      offsetEnd: 0
+    });
+
     return segments;
   }
 
@@ -6035,9 +6168,9 @@ async function loadSharedCalibrations() {
     const branches = ["central", "boissy", "chessy"];
     branches.forEach(branch => {
       const arr = Array.isArray(sourceByBranch[branch]) ? sourceByBranch[branch].slice() : [];
-      arr.sort((a, b) => a.pk - b.pk);
-      calibrationControlPoints[branch] = arr;
-      calibrationSegments[branch] = buildCalibrationSegmentsForBranch(arr);
+      const deduped = dedupeCalibrationPointsByPk(arr);
+      calibrationControlPoints[branch] = deduped;
+      calibrationSegments[branch] = buildCalibrationSegmentsForBranch(deduped);
     });
   }
 
@@ -6054,7 +6187,15 @@ async function loadSharedCalibrations() {
         if (!(span > 0)) continue;
         const t = (pk - left.pk) / span;
         return left.offset + (right.offset - left.offset) * t;
-      } else if (segment.type === "single") {
+      }
+      if (segment.type === "ramp") {
+        if (pk < segment.start || pk > segment.end) continue;
+        const span = segment.end - segment.start;
+        if (!(span > 0)) continue;
+        const t = (pk - segment.start) / span;
+        return segment.offsetStart + (segment.offsetEnd - segment.offsetStart) * t;
+      }
+      if (segment.type === "single") {
         if (pk < segment.start || pk > segment.end) continue;
         const radius = segment.radius;
         if (!(radius > 0)) {
@@ -6072,43 +6213,553 @@ async function loadSharedCalibrations() {
     if (!Number.isFinite(pk)) {
       return 0;
     }
-    const normalized = normalizeBranchKey(branchKey);
-    
-    // Filtrage strict par branche : ne chercher QUE dans la branche demandée
-    // Exception : si on est sur le tronc commun (pk <= 30000), on peut utiliser "central"
-    // Mais pour Boissy/Chessy, on ne cherche QUE dans leur branche respective
-    
-    if (normalized === "boissy") {
-      // Pour Boissy : uniquement si PK > 30000 (hors tronc commun)
-      if (pk > BRANCH_COMMON_MAX && pk >= BRANCH_BOISSY_MIN && pk <= BRANCH_BOISSY_MAX) {
-        const offset = computeOffsetFromSegments(pk, calibrationSegments["boissy"]);
-        if (offset != null) return offset;
+    const zone = getCalibrationZoneForPk(pk, branchKey);
+    if (!zone) {
+      return 0;
+    }
+    const offset = computeOffsetFromSegments(pk, calibrationSegments[zone]);
+    return offset != null ? offset : 0;
+  }
+
+  function resolveCalibrationBranchForRegistration(pk, branchHint, lat, lon) {
+    if (!Number.isFinite(pk)) {
+      return {
+        branch: null,
+        certain: false,
+        message: "PK invalide pour l'enregistrement du recalage."
+      };
+    }
+    if (pk <= BRANCH_COMMON_MAX) {
+      return { branch: "central", certain: true, message: null };
+    }
+    if (branchHint === "chessy" || branchHint === "boissy") {
+      return { branch: branchHint, certain: true, message: null };
+    }
+    return {
+      branch: null,
+      certain: false,
+      message: "PK après la bifurcation : sélectionne explicitement Chessy ou Boissy dans le menu Branche avant de confirmer."
+    };
+  }
+
+  function dedupeCalibrationPointsByPk(points) {
+    if (!Array.isArray(points) || !points.length) {
+      return [];
+    }
+    const byPk = new Map();
+    points.forEach(point => {
+      if (!point || !Number.isFinite(point.pk) || !Number.isFinite(point.offset)) {
+        return;
       }
-      // Si dans le tronc commun, utiliser central
-      if (pk <= BRANCH_COMMON_MAX) {
-        const offset = computeOffsetFromSegments(pk, calibrationSegments["central"]);
-        if (offset != null) return offset;
+      const existing = byPk.get(point.pk);
+      if (!existing) {
+        byPk.set(point.pk, point);
+        return;
       }
-    } else if (normalized === "chessy") {
-      // Pour Chessy : uniquement si PK > 30000 (hors tronc commun)
-      if (pk > BRANCH_COMMON_MAX && pk >= BRANCH_CHESSY_MIN && pk <= BRANCH_CHESSY_MAX) {
-        const offset = computeOffsetFromSegments(pk, calibrationSegments["chessy"]);
-        if (offset != null) return offset;
+      const nextTs = point.timestamp || 0;
+      const prevTs = existing.timestamp || 0;
+      if (nextTs >= prevTs) {
+        byPk.set(point.pk, point);
       }
-      // Si dans le tronc commun, utiliser central
-      if (pk <= BRANCH_COMMON_MAX) {
-        const offset = computeOffsetFromSegments(pk, calibrationSegments["central"]);
-        if (offset != null) return offset;
+    });
+    return Array.from(byPk.values()).sort((a, b) => a.pk - b.pk);
+  }
+
+  function explainCalibrationOffsetDetail(pk, segments) {
+    if (!Array.isArray(segments) || !Number.isFinite(pk)) {
+      return {
+        segmentType: "none",
+        interpolationFactor: null,
+        localOffset: 0,
+        controlPoints: []
+      };
+    }
+    for (const segment of segments) {
+      if (segment.type === "pair") {
+        const left = segment.left;
+        const right = segment.right;
+        if (pk < left.pk || pk > right.pk) continue;
+        const span = right.pk - left.pk;
+        if (!(span > 0)) continue;
+        const t = (pk - left.pk) / span;
+        return {
+          segmentType: "pair",
+          interpolationFactor: t,
+          localOffset: left.offset + (right.offset - left.offset) * t,
+          controlPoints: [
+            { pk: left.pk, offset: left.offset },
+            { pk: right.pk, offset: right.offset }
+          ]
+        };
       }
-    } else {
-      // Pour central : uniquement le tronc commun
-      if (pk <= BRANCH_COMMON_MAX) {
-        const offset = computeOffsetFromSegments(pk, calibrationSegments["central"]);
-        if (offset != null) return offset;
+      if (segment.type === "ramp") {
+        if (pk < segment.start || pk > segment.end) continue;
+        const span = segment.end - segment.start;
+        if (!(span > 0)) continue;
+        const t = (pk - segment.start) / span;
+        const isHead = segment.offsetStart === 0;
+        const isTail = segment.offsetEnd === 0;
+        const segmentType = isHead ? "ramp-head" : (isTail ? "ramp-tail" : "ramp");
+        return {
+          segmentType,
+          interpolationFactor: t,
+          localOffset: segment.offsetStart + (segment.offsetEnd - segment.offsetStart) * t,
+          controlPoints: [
+            { pk: segment.start, offset: segment.offsetStart },
+            { pk: segment.end, offset: segment.offsetEnd }
+          ]
+        };
+      }
+      if (segment.type === "single") {
+        if (pk < segment.start || pk > segment.end) continue;
+        const radius = segment.radius;
+        const dist = Math.abs(pk - segment.center.pk);
+        const factor = radius > 0 ? Math.max(0, 1 - dist / radius) : 1;
+        return {
+          segmentType: "single",
+          interpolationFactor: factor,
+          localOffset: segment.center.offset * factor,
+          controlPoints: [{ pk: segment.center.pk, offset: segment.center.offset }]
+        };
       }
     }
-    
-    return 0;
+    return {
+      segmentType: "none",
+      interpolationFactor: null,
+      localOffset: 0,
+      controlPoints: []
+    };
+  }
+
+  function classifyCalibrationRegistration(pk, offset, branchHint, lat, lon) {
+    if (!Number.isFinite(pk) || !Number.isFinite(offset)) {
+      return null;
+    }
+    const resolved = resolveCalibrationBranchForRegistration(pk, branchHint, lat, lon);
+    if (!resolved.certain || !resolved.branch) {
+      return null;
+    }
+    if (resolved.branch === "central") {
+      return pk <= BRANCH_COMMON_MAX ? "central" : null;
+    }
+    if (pk <= BRANCH_COMMON_MAX) {
+      return null;
+    }
+    return resolved.branch;
+  }
+
+  function registerCalibrationControlPoint(pk, offset, branchHint, lat, lon, targetBuckets, meta) {
+    const zone = classifyCalibrationRegistration(pk, offset, branchHint, lat, lon);
+    if (!zone || !targetBuckets || !targetBuckets[zone]) {
+      return null;
+    }
+    targetBuckets[zone].push({
+      pk,
+      offset,
+      timestamp: meta && meta.timestamp ? meta.timestamp : null
+    });
+    return zone;
+  }
+
+  function diagnosePkCalibration(pkRaw, branchKey, options = {}) {
+    const branch = branchKey == null ? "central" : branchKey;
+    const zone = getCalibrationZoneForPk(pkRaw, branch);
+    const segments = zone ? calibrationSegments[zone] : [];
+    const detail = zone ? explainCalibrationOffsetDetail(pkRaw, segments) : {
+      segmentType: "none",
+      interpolationFactor: null,
+      localOffset: 0,
+      controlPoints: []
+    };
+    const globalOffset = Number.isFinite(options.pkOffset) ? options.pkOffset : pkOffset;
+    const pkFinal = Number.isFinite(pkRaw) ? pkRaw + globalOffset + detail.localOffset : pkRaw;
+    return {
+      pkRaw,
+      branchKey: branch,
+      zone: zone || null,
+      segmentType: detail.segmentType,
+      controlPoints: detail.controlPoints,
+      interpolationFactor: detail.interpolationFactor,
+      localOffset: detail.localOffset,
+      globalOffset,
+      pkFinal
+    };
+  }
+
+  function runCalibrationVerificationSuite(options = {}) {
+    const verbose = options.verbose === true;
+    const results = [];
+    const approx = (actual, expected, epsilon = 0.02) => Math.abs(actual - expected) <= epsilon;
+
+    function record(name, pass, details) {
+      results.push({ name, pass: !!pass, details: details || {} });
+      if (verbose) {
+        console.log((pass ? "✅" : "❌") + " " + name, details || "");
+      }
+      if (!pass && options.throwOnFail) {
+        throw new Error("Échec test calibration : " + name);
+      }
+    }
+
+    function withFixture(sourceByBranch, fn) {
+      const saved = {
+        central: calibrationControlPoints.central.slice(),
+        boissy: calibrationControlPoints.boissy.slice(),
+        chessy: calibrationControlPoints.chessy.slice()
+      };
+      updateCalibrationAdjustments(sourceByBranch);
+      try {
+        fn();
+      } finally {
+        updateCalibrationAdjustments({
+          central: saved.central,
+          boissy: saved.boissy,
+          chessy: saved.chessy
+        });
+      }
+    }
+
+    const zones = ["central", "chessy", "boissy"];
+
+    zones.forEach(zone => {
+      withFixture({ central: [], boissy: [], chessy: [] }, () => {
+        const branch = zone === "central" ? "central" : zone;
+        const samplePk = zone === "central" ? 25000 : (zone === "chessy" ? 32500 : 34500);
+        const empty = diagnosePkCalibration(samplePk, branch);
+        record("zero " + zone + " offset", approx(empty.localOffset, 0), empty);
+        record("zero " + zone + " segment", empty.segmentType === "none", empty);
+      });
+    });
+
+    const singleFixtures = {
+      central: { pk: 28000, offset: -30 },
+      chessy: { pk: 32000, offset: -100 },
+      boissy: { pk: 34000, offset: 40 }
+    };
+
+    zones.forEach(zone => {
+      const point = singleFixtures[zone];
+      const fixture = { central: [], boissy: [], chessy: [] };
+      fixture[zone] = [point];
+      withFixture(fixture, () => {
+        const branch = zone === "central" ? "central" : zone;
+        const atPoint = diagnosePkCalibration(point.pk, branch);
+        record("single " + zone + " @ point", approx(atPoint.localOffset, point.offset), atPoint);
+        record("single " + zone + " zone", atPoint.zone === zone, atPoint);
+
+        const before = diagnosePkCalibration(point.pk - 1200, branch);
+        record("single " + zone + " -1200m", approx(before.localOffset, 0), before);
+
+        const after = diagnosePkCalibration(point.pk + 1200, branch);
+        record("single " + zone + " +1200m", approx(after.localOffset, 0), after);
+
+        const mid = diagnosePkCalibration(point.pk + 300, branch);
+        record("single " + zone + " +300m", approx(mid.localOffset, point.offset * 0.75), mid);
+      });
+    });
+
+    const twoPointFixtures = {
+      central: [{ pk: 28000, offset: -30 }, { pk: 29000, offset: -20 }],
+      chessy: [{ pk: 32000, offset: -100 }, { pk: 33000, offset: -80 }],
+      boissy: [{ pk: 34000, offset: 40 }, { pk: 35000, offset: 20 }]
+    };
+
+    zones.forEach(zone => {
+      const fixture = { central: [], boissy: [], chessy: [] };
+      fixture[zone] = twoPointFixtures[zone];
+      withFixture(fixture, () => {
+        const branch = zone === "central" ? "central" : zone;
+        const headStart = twoPointFixtures[zone][0].pk - 1200;
+        const tailEnd = twoPointFixtures[zone][1].pk + 1200;
+        const midPk = (twoPointFixtures[zone][0].pk + twoPointFixtures[zone][1].pk) / 2;
+
+        record("double " + zone + " head start", approx(diagnosePkCalibration(headStart, branch).localOffset, 0), { pk: headStart });
+        record("double " + zone + " tail end", approx(diagnosePkCalibration(tailEnd, branch).localOffset, 0), { pk: tailEnd });
+
+        const junctionFirst = diagnosePkCalibration(twoPointFixtures[zone][0].pk, branch);
+        const leftOffset = twoPointFixtures[zone][0].offset;
+        const rightOffset = twoPointFixtures[zone][1].offset;
+        record("double " + zone + " first junction", approx(junctionFirst.localOffset, leftOffset), junctionFirst);
+
+        const junctionLast = diagnosePkCalibration(twoPointFixtures[zone][1].pk, branch);
+        record("double " + zone + " last junction", approx(junctionLast.localOffset, rightOffset), junctionLast);
+
+        const expectedMid = leftOffset + (rightOffset - leftOffset) * 0.5;
+        record("double " + zone + " mid interpolation", approx(diagnosePkCalibration(midPk, branch).localOffset, expectedMid), { pk: midPk });
+      });
+    });
+
+    zones.forEach(zone => {
+      const fixture = { central: [], boissy: [], chessy: [] };
+      const base = twoPointFixtures[zone];
+      fixture[zone] = base.concat([{
+        pk: base[1].pk + 1000,
+        offset: base[1].offset / 2
+      }]);
+      withFixture(fixture, () => {
+        const branch = zone === "central" ? "central" : zone;
+        const second = fixture[zone][1];
+        const third = fixture[zone][2];
+        const betweenSecondThird = second.pk + 500;
+        const expected = second.offset + (third.offset - second.offset) * 0.5;
+        record("triple " + zone + " pair 2-3", approx(diagnosePkCalibration(betweenSecondThird, branch).localOffset, expected), { pk: betweenSecondThird });
+      });
+    });
+
+    withFixture({ central: twoPointFixtures.central, boissy: [], chessy: twoPointFixtures.chessy }, () => {
+      const centralAt30000 = diagnosePkCalibration(30000, "chessy");
+      record("bifurcation 30000 uses central", centralAt30000.zone === "central", centralAt30000);
+      record("bifurcation 30000 offset", approx(centralAt30000.localOffset, -20 + 20 * (1000 / 1200), 0.05), centralAt30000);
+
+      const chessyAt30001 = diagnosePkCalibration(30001, "chessy");
+      record("bifurcation 30001 uses chessy", chessyAt30001.zone === "chessy", chessyAt30001);
+      record("bifurcation 30001 no central leak", approx(chessyAt30001.localOffset, 0), chessyAt30001);
+    });
+
+    withFixture({ central: [], boissy: [], chessy: [{ pk: 32000, offset: -100 }] }, () => {
+      const centralPk = diagnosePkCalibration(29000, "central");
+      record("isolation chessy->central", approx(centralPk.localOffset, 0), centralPk);
+      const boissyPk = diagnosePkCalibration(34500, "boissy");
+      record("isolation chessy->boissy", approx(boissyPk.localOffset, 0), boissyPk);
+    });
+
+    withFixture({ central: [{ pk: 29000, offset: -20 }], boissy: [], chessy: [] }, () => {
+      const chessyPk = diagnosePkCalibration(32500, "chessy");
+      record("isolation central->chessy", approx(chessyPk.localOffset, 0), chessyPk);
+    });
+
+    const registrationCases = [
+      { pk: 29000, offset: -20, branch: "chessy", expected: "central" },
+      { pk: 32000, offset: -100, branch: "chessy", expected: "chessy" },
+      { pk: 32000, offset: -100, branch: "central", expected: null },
+      { pk: 32000, offset: -100, branch: "auto", expected: null },
+      { pk: 34000, offset: 40, branch: "boissy", expected: "boissy" },
+      { pk: 29950, offset: -5, branch: "chessy", expected: "central" },
+      { pk: 30100, offset: -10, branch: "chessy", expected: "chessy" },
+      { pk: 30100, offset: -10, branch: "central", expected: null }
+    ];
+    registrationCases.forEach(testCase => {
+      const zone = classifyCalibrationRegistration(testCase.pk, testCase.offset, testCase.branch, null, null);
+      record("register pk " + testCase.pk + " (" + testCase.branch + ")", zone === testCase.expected, testCase);
+    });
+
+    const uncertain = resolveCalibrationBranchForRegistration(34500, "central", null, null);
+    record("security uncertain branch blocks", !uncertain.certain && uncertain.branch == null, uncertain);
+
+    withFixture({ central: [], boissy: [], chessy: [{ pk: 32000, offset: -100 }, { pk: 33000, offset: -80 }] }, () => {
+      const rampHead = diagnosePkCalibration(31400, "chessy");
+      record("segment ramp-head", rampHead.segmentType === "ramp-head", rampHead);
+      const rampTail = diagnosePkCalibration(33600, "chessy");
+      record("segment ramp-tail", rampTail.segmentType === "ramp-tail", rampTail);
+      const pairMid = diagnosePkCalibration(32500, "chessy");
+      record("segment pair", pairMid.segmentType === "pair", pairMid);
+      record("limit +1200 exact tail", approx(diagnosePkCalibration(34200, "chessy").localOffset, 0), { pk: 34200 });
+      record("limit +1201 zero tail", approx(diagnosePkCalibration(34201, "chessy").localOffset, 0), { pk: 34201 });
+      record("limit -1200 exact head", approx(diagnosePkCalibration(30800, "chessy").localOffset, 0), { pk: 30800 });
+      record("limit -1201 zero head", approx(diagnosePkCalibration(30799, "chessy").localOffset, 0), { pk: 30799 });
+    });
+
+    withFixture({ central: [], boissy: [], chessy: [{ pk: 32000, offset: -100 }, { pk: 33000, offset: 80 }, { pk: 34500, offset: -150 }] }, () => {
+      const between23 = diagnosePkCalibration(33750, "chessy");
+      record("triple continuity 2-3", approx(between23.localOffset, -35), between23);
+      const at33000 = diagnosePkCalibration(33000, "chessy");
+      record("triple junction 33000", approx(at33000.localOffset, 80), at33000);
+    });
+
+    withFixture({ central: [], boissy: [], chessy: [{ pk: 32000, offset: -100, timestamp: 1 }, { pk: 32000, offset: -50, timestamp: 2 }] }, () => {
+      record("duplicate pk keeps latest", approx(diagnosePkCalibration(32000, "chessy").localOffset, -50), calibrationControlPoints.chessy);
+    });
+
+    withFixture({
+      central: [{ pk: 28000, offset: -30 }],
+      boissy: [],
+      chessy: [{ pk: 38600, offset: 73, timestamp: "shared" }]
+    }, () => {
+      const localAndShared = diagnosePkCalibration(28000, "central");
+      record("shared+local coexist central", approx(localAndShared.localOffset, -30), localAndShared);
+      const sharedChessy = diagnosePkCalibration(38600, "chessy");
+      record("shared+local coexist chessy", approx(sharedChessy.localOffset, 73), sharedChessy);
+    });
+
+    const buckets = { central: [], boissy: [], chessy: [] };
+    registerCalibrationControlPoint(29950, -5, "chessy", 48.84, 2.43, buckets);
+    registerCalibrationControlPoint(30100, -10, "chessy", 48.84, 2.44, buckets);
+    record("register near bifurcation central bucket", buckets.central.length === 1 && buckets.chessy.length === 1, buckets);
+
+    withFixture({ central: [], boissy: [], chessy: twoPointFixtures.chessy }, () => {
+      const examples = [
+        { pk: 30800, expected: 0 },
+        { pk: 31400, expected: -50 },
+        { pk: 32500, expected: -90 },
+        { pk: 33600, expected: -40 },
+        { pk: 34200, expected: 0 }
+      ];
+      examples.forEach(example => {
+        record("doc chessy pk " + example.pk, approx(diagnosePkCalibration(example.pk, "chessy").localOffset, example.expected), example);
+      });
+    });
+
+    withFixture({ central: [], boissy: [], chessy: twoPointFixtures.chessy }, () => {
+      const ambiguous = diagnosePkCalibration(34500, "both");
+      record("branch both on chessy pk uses detect", ambiguous.zone === "boissy" || ambiguous.zone === "chessy", ambiguous);
+      const forcedChessy = diagnosePkCalibration(34500, "chessy");
+      record("branch chessy forced", forcedChessy.zone === "chessy", forcedChessy);
+    });
+
+    withFixture({ central: [], boissy: [], chessy: twoPointFixtures.chessy }, () => {
+      const mismatchBoissy = diagnosePkCalibration(32500, "boissy");
+      record("branch mismatch boissy selected", approx(mismatchBoissy.localOffset, 0), mismatchBoissy);
+      const mismatchChessy = diagnosePkCalibration(32500, "chessy");
+      record("branch mismatch chessy selected", approx(mismatchChessy.localOffset, -90), mismatchChessy);
+    });
+
+    // Anti double-correction : même pkRaw avant/après, seule la correction locale change
+    withFixture({ central: [], boissy: [], chessy: [] }, () => {
+      const before = diagnosePkCalibration(32050, "chessy", { pkOffset: 0 });
+      record("anti-double before raw", before.pkRaw === 32050, before);
+      record("anti-double before local", approx(before.localOffset, 0), before);
+      record("anti-double before final", approx(before.pkFinal, 32050), before);
+    });
+    // Contrôle centré sur le pkRaw de mesure → offset plein −50, final 32000 (jamais 31950)
+    withFixture({ central: [], boissy: [], chessy: [{ pk: 32050, offset: -50 }] }, () => {
+      const after = diagnosePkCalibration(32050, "chessy", { pkOffset: 0 });
+      record("anti-double after raw unchanged", after.pkRaw === 32050, after);
+      record("anti-double after local -50", approx(after.localOffset, -50), after);
+      record("anti-double after final 32000", approx(after.pkFinal, 32000), after);
+      record("anti-double never 31950", !approx(after.pkFinal, 31950), after);
+      record("anti-double single chain", approx(after.pkFinal, after.pkRaw + after.localOffset), after);
+    });
+    // Contrôle au pkExact 32000 : le brut de lookup reste 32050 → pas de fusion géométrie+offset
+    withFixture({ central: [], boissy: [], chessy: [{ pk: 32000, offset: -50 }] }, () => {
+      const afterExact = diagnosePkCalibration(32050, "chessy", { pkOffset: 0 });
+      record("anti-double exactPk control raw stable", afterExact.pkRaw === 32050, afterExact);
+      record(
+        "anti-double exactPk control not 31950",
+        !approx(afterExact.pkFinal, 31950) && approx(afterExact.pkFinal, afterExact.pkRaw + afterExact.localOffset),
+        afterExact
+      );
+    });
+
+    // Polylignes de base : les calibrations n'alimentent que les segments
+    withFixture({
+      central: [],
+      boissy: [],
+      chessy: [{ pk: 32000, offset: -50, timestamp: 1 }]
+    }, () => {
+      record(
+        "calib feeds segments only",
+        Array.isArray(calibrationControlPoints.chessy) &&
+          calibrationControlPoints.chessy.length === 1 &&
+          approx(calibrationControlPoints.chessy[0].offset, -50),
+        calibrationControlPoints.chessy
+      );
+    });
+
+    // === Persistance / ancrage pkRaw / navigateur vierge / legacy ===
+    const sampleExport = {
+      pkExact: 32000,
+      pkRaw: 32050,
+      pkOffset: -50,
+      lat: 48.85,
+      lon: 2.55,
+      accuracy: 5,
+      branch: "chessy",
+      timestamp: "2026-07-15T12:00:00.000Z"
+    };
+    record("export schema has pkExact", sampleExport.pkExact === 32000, sampleExport);
+    record("export schema has pkRaw", sampleExport.pkRaw === 32050, sampleExport);
+    record("export schema has pkOffset", sampleExport.pkOffset === -50, sampleExport);
+    record("export schema has branch", sampleExport.branch === "chessy", sampleExport);
+
+    const anchorExplicit = resolveCalibrationAnchorPk(sampleExport);
+    record("anchor from pkRaw", anchorExplicit.anchorPk === 32050 && anchorExplicit.source === "pkRaw", anchorExplicit);
+
+    // Ancien JSON sans pkRaw mais avec pkExact + pkOffset → dérivation explicite
+    const legacyDerived = resolveCalibrationAnchorPk({
+      pkExact: 32000,
+      pkOffset: -50,
+      branch: "chessy"
+    });
+    record("legacy without pkRaw derives 32050", legacyDerived.anchorPk === 32050 && legacyDerived.source === "derived", legacyDerived);
+
+    // Ancien JSON sans pkRaw ni offset → rejet
+    const legacyRejected = resolveCalibrationAnchorPk({
+      pkExact: 32000,
+      branch: "chessy"
+    });
+    record("legacy incomplete rejected", legacyRejected.anchorPk == null && legacyRejected.source === "rejected", legacyRejected);
+
+    // Après "rechargement" : entrée locale restaurée → ancre 32050, final 32000
+    withFixture({ central: [], boissy: [], chessy: [{ pk: 32050, offset: -50 }] }, () => {
+      const reloaded = diagnosePkCalibration(32050, "chessy", { pkOffset: 0 });
+      record("reload anchor 32050", reloaded.controlPoints[0] && reloaded.controlPoints[0].pk === 32050, reloaded);
+      record("reload final 32000", approx(reloaded.pkFinal, 32000), reloaded);
+      record("reload raw unchanged", reloaded.pkRaw === 32050, reloaded);
+    });
+
+    // Navigateur vierge : pas de local, pas de pkOffset, uniquement partagé
+    withFixture({ central: [], boissy: [], chessy: [{ pk: 32050, offset: -50 }] }, () => {
+      const virgin = diagnosePkCalibration(32050, "chessy", { pkOffset: 0 });
+      record("virgin browser final 32000", approx(virgin.pkFinal, 32000), virgin);
+      record("virgin browser raw 32050", virgin.pkRaw === 32050, virgin);
+      record("virgin browser local -50", approx(virgin.localOffset, -50), virgin);
+    });
+
+    // pkOffset +30 avec shared présentes : après migration, ne cumule plus
+    const simulatedOffsetBefore = 30;
+    const migratedOffset = 0; // migrateLegacyPkOffsetIfNeeded force 0
+    withFixture({ central: [], boissy: [], chessy: [{ pk: 32050, offset: -50 }] }, () => {
+      const withoutMigration = diagnosePkCalibration(32050, "chessy", { pkOffset: simulatedOffsetBefore });
+      record("before migration cumulates +30", approx(withoutMigration.pkFinal, 32030), withoutMigration);
+      const afterMigration = diagnosePkCalibration(32050, "chessy", { pkOffset: migratedOffset });
+      record("after migration no +30", approx(afterMigration.pkFinal, 32000), afterMigration);
+      record("after migration never 32030", !approx(afterMigration.pkFinal, 32030), afterMigration);
+    });
+
+    // Backup legacy jamais utilisé dans le calcul (globalOffset explicite 0 même si backup existerait)
+    withFixture({ central: [], boissy: [], chessy: [{ pk: 32050, offset: -50 }] }, () => {
+      const ignoreBackup = diagnosePkCalibration(32050, "chessy", { pkOffset: 0 });
+      record("legacy backup unused in calc", approx(ignoreBackup.pkFinal, 32000) && ignoreBackup.globalOffset === 0, ignoreBackup);
+    });
+
+    // Avant vs après chargement calibs : même pkRaw
+    const rawBeforeLoad = 32050;
+    withFixture({ central: [], boissy: [], chessy: [] }, () => {
+      const beforeLoad = diagnosePkCalibration(rawBeforeLoad, "chessy", { pkOffset: 0 });
+      record("raw before calib load", beforeLoad.pkRaw === 32050, beforeLoad);
+    });
+    withFixture({ central: [], boissy: [], chessy: [{ pk: 32050, offset: -50 }] }, () => {
+      const afterLoad = diagnosePkCalibration(rawBeforeLoad, "chessy", { pkOffset: 0 });
+      record("raw after calib load same", afterLoad.pkRaw === 32050, afterLoad);
+      record("only localOffset changed", approx(afterLoad.localOffset, -50) && approx(afterLoad.pkFinal, 32000), afterLoad);
+    });
+
+    const summary = {
+      pass: results.every(item => item.pass),
+      total: results.length,
+      failed: results.filter(item => !item.pass)
+    };
+    if (verbose || !summary.pass) {
+      console.log("Calibration verification:", summary.pass ? "OK" : "ECHEC", summary.total + " tests, " + summary.failed.length + " échec(s)");
+    }
+    return { summary, results };
+  }
+
+  window.diagnosePkCalibration = diagnosePkCalibration;
+  window.runCalibrationVerificationSuite = runCalibrationVerificationSuite;
+  window.classifyCalibrationRegistration = classifyCalibrationRegistration;
+  window.resolveCalibrationBranchForRegistration = resolveCalibrationBranchForRegistration;
+  window.explainCalibrationOffsetDetail = explainCalibrationOffsetDetail;
+  window.dedupeCalibrationPointsByPk = dedupeCalibrationPointsByPk;
+  window.resolveCalibrationAnchorPk = resolveCalibrationAnchorPk;
+  window.migrateLegacyPkOffsetIfNeeded = migrateLegacyPkOffsetIfNeeded;
+
+  try {
+    if (typeof URLSearchParams !== "undefined" && new URLSearchParams(window.location.search).has("calibtest")) {
+      runCalibrationVerificationSuite({ verbose: true });
+    }
+  } catch (calibTestError) {
+    console.warn("Impossible d'exécuter calibtest :", calibTestError);
   }
 
   function computePkWithCalibrations(pkRaw, branchKey) {
@@ -6165,65 +6816,28 @@ async function loadSharedCalibrations() {
       return best;
     }
     
-    // Méthode 2 : Interpolation pondérée basée sur TOUS les points GPS connus (affinage)
-    // Utilise les accessPoints + les points de calibration pour améliorer la précision
+    // Méthode 2 : Interpolation pondérée basée uniquement sur les accès / points géométriques officiels.
+    // Les calibrations PK (local + partagé) n'interviennent JAMAIS ici : elles ne corrigent
+    // le PK qu'après projection, via getCalibrationOffsetForPk (évite la double correction).
     const nearbyPoints = [];
     
-    // 1) Points issus des accessPoints (191 accès + gares ajoutées)
     for (const acc of accessPoints) {
       if (acc.lat == null || acc.lon == null || acc.pk == null) continue;
       const d = distanceMeters(lat, lon, acc.lat, acc.lon);
-      // On garde les points dans un rayon de 1000m pour l'interpolation (augmenté de 500m)
       if (d < 1000) {
         nearbyPoints.push({ pk: acc.pk, lat: acc.lat, lon: acc.lon, dist: d, weight: 1.0 });
       }
     }
     
-    // 2) Points issus des recalages PK (local + partagé) - ces points sont plus précis
-    const allCals = [];
-    if (Array.isArray(sharedCalibrations)) allCals.push(...sharedCalibrations);
-    if (Array.isArray(localCalibrations))  allCals.push(...localCalibrations);
-    
-    for (const c of allCals) {
-      if (!c || c.lat == null || c.lon == null) continue;
-      const pk = c.pkExact != null ? c.pkExact : c.pk;
-      if (pk == null) continue;
-      const d = distanceMeters(lat, lon, c.lat, c.lon);
-      // Les points de calibration sont plus précis, on les garde dans un rayon de 3000m (augmenté de 1000m)
-      // et on leur donne un poids plus élevé (2.0 au lieu de 1.0) car ce sont des mesures calibrées
-      if (d < 3000) {
-        // Ajuster le poids selon l'accuracy GPS du point de calibration (si disponible)
-        // Plus l'accuracy est bonne (faible valeur), plus le poids est élevé
-        let calibWeight = 2.0;
-        if (c.accuracy != null && c.accuracy > 0) {
-          // Si accuracy < 10m, poids maximal (2.5), sinon dégressif
-          if (c.accuracy < 10) calibWeight = 2.5;
-          else if (c.accuracy < 20) calibWeight = 2.2;
-          else if (c.accuracy < 50) calibWeight = 2.0;
-          else calibWeight = 1.8;
-        }
-        nearbyPoints.push({ pk: pk, lat: c.lat, lon: c.lon, dist: d, weight: calibWeight });
-      }
-    }
-    
-    // Si on a des points GPS proches, on affine le calcul
     if (nearbyPoints.length >= 1) {
-      // Tri par distance
       nearbyPoints.sort((a, b) => a.dist - b.dist);
-      
-      // Interpolation pondérée : on utilise jusqu'à 10 points les plus proches (augmenté de 5)
-      // Plus on a de points GPS, plus la précision est grande
       const maxPoints = Math.min(10, nearbyPoints.length);
       const topPoints = nearbyPoints.slice(0, maxPoints);
       
-      // Calcul du poids inverse de la distance (plus proche = plus de poids)
       let totalWeight = 0;
       let weightedPk = 0;
       
       for (const pt of topPoints) {
-        // Poids = (weight * 1) / (distance + 1)^0.8 pour éviter division par zéro
-        // Utilisation d'une fonction exponentielle pour donner plus de poids aux points proches
-        // Les points de calibration ont un poids plus élevé (2.0 vs 1.0)
         const weight = (pt.weight || 1.0) / Math.pow(pt.dist + 1, 0.8);
         totalWeight += weight;
         weightedPk += pt.pk * weight;
@@ -6231,47 +6845,32 @@ async function loadSharedCalibrations() {
       
       if (totalWeight > 0) {
         const interpolatedPk = weightedPk / totalWeight;
-        
-        // On combine la projection sur la ligne (méthode 1) avec l'interpolation GPS (méthode 2)
         const minDist = topPoints[0].dist;
         
         let finalPk = null;
         if (minDist < 50) {
-          // Très proche d'un point GPS connu (< 50m) : on privilégie fortement l'interpolation
           finalPk = interpolatedPk;
           best.dist = minDist;
         } else if (minDist < 200) {
-          // Proche d'un point GPS connu (< 200m) : on privilégie l'interpolation
           if (best.pkProj != null) {
             finalPk = best.pkProj * 0.3 + interpolatedPk * 0.7;
           } else {
             finalPk = interpolatedPk;
           }
         } else if (minDist < 500 && best.pkProj != null) {
-          // Moyennement proche (< 500m) : on combine les deux méthodes
           const projectionWeight = best.dist < 100 ? 0.5 : 0.4;
           const interpolationWeight = 1 - projectionWeight;
           finalPk = best.pkProj * projectionWeight + interpolatedPk * interpolationWeight;
         } else if (minDist < 1000 && best.pkProj != null) {
-          // Assez proche (< 1000m) : on utilise l'interpolation comme correction
-          const projectionWeight = 0.7;
-          const interpolationWeight = 0.3;
-          finalPk = best.pkProj * projectionWeight + interpolatedPk * interpolationWeight;
-        } else if (minDist < 2000 && best.pkProj != null) {
-          // Loin mais dans le rayon (< 2000m) : on utilise l'interpolation comme correction légère
-          const projectionWeight = 0.85;
-          const interpolationWeight = 0.15;
-          finalPk = best.pkProj * projectionWeight + interpolatedPk * interpolationWeight;
+          finalPk = best.pkProj * 0.7 + interpolatedPk * 0.3;
         }
         
-        // Appliquer l'arrondi à 10800 ou 11300 si dans la zone de saut (découpage strict)
         if (finalPk != null) {
           best.pkProj = roundPkToDiscontinuityBounds(finalPk, currentBranch);
         }
       }
     }
     
-    // Appliquer l'arrondi à 10800 ou 11300 si dans la zone de saut (pour la projection directe aussi)
     if (best.pkProj != null) {
       best.pkProj = roundPkToDiscontinuityBounds(best.pkProj, currentBranch);
     }
@@ -6419,109 +7018,91 @@ function buildCalibrationPolylines() {
   // Cache : ne reconstruire que si nécessaire (nouveau recalage ou cache expiré)
   const now = Date.now();
   if (now - lastCalibrationBuildTime < CALIBRATION_CACHE_MS && linePointsBoissy && linePointsChessy) {
-    return; // Utiliser le cache
+    return;
   }
   lastCalibrationBuildTime = now;
-  
-  const calibTronc  = [];
-  const calibBoissy = [];
-  const calibChessy = [];
 
+  // Géométrie de projection : polylignes de base + accès officiels uniquement.
+  // Les calibrations PK n'entrent JAMAIS dans la géométrie (évite double correction).
+  const geomTronc = [];
+  const geomBoissy = [];
+  const geomChessy = [];
   const calibrationPointsByBranch = { central: [], boissy: [], chessy: [] };
 
-  // Ajoute un point de calibration dans les bons tableaux
-  function addCalibPoint(pk, lat, lon, branchHint) {
+  function addGeometryPoint(pk, lat, lon, branchHint) {
     if (pk == null || lat == null || lon == null) return null;
-    const calPoint = { pk, lat, lon };
-
+    const point = { pk, lat, lon };
     if (pk <= BRANCH_COMMON_MAX) {
-      calibTronc.push(calPoint);
+      geomTronc.push(point);
       return "central";
     }
-
     const resolved = determineCalibrationBranch(pk, branchHint, lat, lon);
-
     if (resolved === "boissy") {
-      calibBoissy.push(calPoint);
+      geomBoissy.push(point);
       return "boissy";
     }
     if (resolved === "chessy") {
-      calibChessy.push(calPoint);
+      geomChessy.push(point);
       return "chessy";
     }
-
-    calibTronc.push(calPoint);
-    return "central";
+    return null;
   }
 
-  // 1) Points issus des accessPoints eux-mêmes (tes 191 accès + les gares ajoutées)
   for (const acc of accessPoints) {
-    addCalibPoint(acc.pk, acc.lat, acc.lon, acc.branch);
+    addGeometryPoint(acc.pk, acc.lat, acc.lon, acc.branch);
   }
 
-  // 2) Points issus des recalages PK (local + partagé)
+  // Offsets uniquement : local + partagé → segments, jamais les polylignes
   const allCals = [];
   if (Array.isArray(sharedCalibrations)) allCals.push(...sharedCalibrations);
-  if (Array.isArray(localCalibrations))  allCals.push(...localCalibrations);
+  if (Array.isArray(localCalibrations)) allCals.push(...localCalibrations);
 
   for (const c of allCals) {
     if (!c) continue;
-    const pk = c.pkExact != null ? c.pkExact : c.pk;
-    if (pk == null) continue;
-    
-    // Déterminer la branche du point de calibration de manière stricte
-    const calBranch = determineCalibrationBranch(pk, c.branch, c.lat, c.lon);
-    const branchUsed = addCalibPoint(pk, c.lat, c.lon, calBranch);
+    const pkExact = c.pkExact != null ? c.pkExact : c.pk;
+    if (pkExact == null) continue;
     const offset = computeCalibrationOffsetFromEntry(c);
-    
-    // Filtrer strictement : n'ajouter que si la branche déterminée correspond
-    if (branchUsed && Number.isFinite(offset) && branchUsed === calBranch) {
-      const normalized = normalizeBranchKey(branchUsed);
-      if (!calibrationPointsByBranch[normalized]) {
-        calibrationPointsByBranch[normalized] = [];
-      }
-      calibrationPointsByBranch[normalized].push({ pk, offset });
+    if (!Number.isFinite(offset)) continue;
+    const anchor = resolveCalibrationAnchorPk(c);
+    if (!Number.isFinite(anchor.anchorPk)) {
+      console.warn(anchor.message || "Calibration ignorée (ancre absente).", c);
+      continue;
     }
+    if (anchor.source === "derived") {
+      console.warn(anchor.message, c);
+    }
+    // Ancre = pkRaw de mesure (explicite ou dérivé). Jamais pkExact seul sans justification.
+    registerCalibrationControlPoint(anchor.anchorPk, offset, c.branch, c.lat, c.lon, calibrationPointsByBranch, { timestamp: c.timestamp });
   }
 
   updateCalibrationAdjustments(calibrationPointsByBranch);
 
-  // Tri par PK
-  calibTronc.sort((a, b) => a.pk - b.pk);
-  calibBoissy.sort((a, b) => a.pk - b.pk);
-  calibChessy.sort((a, b) => a.pk - b.pk);
+  geomTronc.sort((a, b) => a.pk - b.pk);
+  geomBoissy.sort((a, b) => a.pk - b.pk);
+  geomChessy.sort((a, b) => a.pk - b.pk);
 
-  // Vérification de sécurité : s'assurer que troncCommun, brancheBoissy et brancheChessy sont des tableaux
   const safeTroncCommun = Array.isArray(troncCommun) ? troncCommun : [];
   const safeBrancheBoissy = Array.isArray(brancheBoissy) ? brancheBoissy : [];
   const safeBrancheChessy = Array.isArray(brancheChessy) ? brancheChessy : [];
 
-  // Poly-ligne calibrée Boissy = tronc commun + branche Boissy + points de calibration
   linePointsBoissy = safeTroncCommun
-    .concat(calibTronc, safeBrancheBoissy, calibBoissy)
+    .concat(geomTronc, safeBrancheBoissy, geomBoissy)
     .sort((a, b) => a.pk - b.pk);
 
-  // Poly-ligne calibrée Chessy = tronc commun + branche Chessy + points de calibration
   linePointsChessy = safeTroncCommun
-    .concat(calibTronc, safeBrancheChessy, calibChessy)
+    .concat(geomTronc, safeBrancheChessy, geomChessy)
     .sort((a, b) => a.pk - b.pk);
-  
-  // S'assurer que les tableaux ne sont jamais null (au moins des tableaux vides)
+
   if (!Array.isArray(linePointsBoissy)) {
     linePointsBoissy = safeTroncCommun.concat(safeBrancheBoissy);
   }
   if (!Array.isArray(linePointsChessy)) {
     linePointsChessy = safeTroncCommun.concat(safeBrancheChessy);
   }
-  
-  // Initialiser linePoints par défaut si pas encore défini
+
   if (!linePoints || linePoints.length === 0) {
     linePoints = linePointsChessy || safeTroncCommun.concat(safeBrancheChessy);
-    console.log("linePoints initialisé par défaut (Chessy), longueur:", linePoints.length);
   }
-  
-  console.log("Polylignes construites - Boissy:", linePointsBoissy ? linePointsBoissy.length : 0, 
-              "Chessy:", linePointsChessy ? linePointsChessy.length : 0);
 }
   function findNearestStation(pk, branch) {
     if (pk == null) return null;
@@ -7884,19 +8465,25 @@ function detectBranch(lat, lon) {
   function applyPendingRecal(entry) {
     if (!entry) {
       setRecalMessage("Aucun recalage en attente.", "error");
-      return;
+      return false;
     }
     const timestamp = entry.timestamp || new Date().toISOString();
     entry.timestamp = timestamp;
 
     const appliedOffset = entry.offset;
-    // Déterminer la branche de manière stricte en utilisant le PK et les coordonnées GPS
-    const branchForCal = determineCalibrationBranch(
-      entry.pkExactMetric != null ? entry.pkExactMetric : entry.pkExact,
-      entry.branch || currentBranch,
+    const pkExactForStorage = entry.pkExactMetric != null ? entry.pkExactMetric : entry.pkExact;
+    const branchHint = entry.branch || getContextBranch(BRANCH_SELECTION_CONTEXTS.recal);
+    const registration = resolveCalibrationBranchForRegistration(
+      pkExactForStorage,
+      branchHint,
       entry.lat,
       entry.lon
     );
+    if (!registration.certain || !registration.branch) {
+      setRecalMessage(registration.message || "Branche non déterminée pour ce recalage.", "error");
+      return false;
+    }
+    const branchForCal = registration.branch;
 
     const recalLat = entry.lat;
     const recalLon = entry.lon;
@@ -7904,10 +8491,8 @@ function detectBranch(lat, lon) {
 
     let calibrationTimestamp = null;
     if (recalLat != null && recalLon != null) {
-      // Utiliser le PK métrique pour le stockage interne (sans saut d'affichage)
-      const pkExactForStorage = entry.pkExactMetric != null ? entry.pkExactMetric : entry.pkExact;
       const calib = {
-        pkExact: pkExactForStorage, // Stocker le PK métrique (sans saut)
+        pkExact: pkExactForStorage,
         pkRaw: entry.pkRaw,
         pkOffset: appliedOffset,
         lat: recalLat,
@@ -7963,6 +8548,7 @@ function detectBranch(lat, lon) {
       message += " ⚠️ Coordonnées GPS indisponibles, point non enregistré.";
     }
     setRecalMessage(message.trim(), "success");
+    return true;
   }
 
   function undoLastRecal() {
@@ -8664,7 +9250,7 @@ function detectBranch(lat, lon) {
       state.lastRawPk = rawPk;
       
       updateLegendBranchUI();
-      updatePkDisplay();
+      updatePkEstimateInSettings();
       updateNearestStation(correctedPk, null);
       updateNearestAccess();
       updateMapMarker(lat, lon, correctedPk);
@@ -8739,7 +9325,7 @@ function detectBranch(lat, lon) {
         state.lastRawPk = rawPk;
         
         updateLegendBranchUI();
-        updatePkDisplay();
+        updatePkEstimateInSettings();
         updateNearestStation(correctedPk, null);
         updateNearestAccess();
         updateMapMarker(lat, lon, correctedPk);
@@ -11346,23 +11932,24 @@ if (btnApplyRecal && inputPkRecal) {
       setRecalMessage("Pas de position GPS pour recaler. Lance la géoloc d'abord.", "error");
       return;
     }
-    // exactPk est déjà un PK métrique (retourné par parsePkInput qui utilise parseUserPkInput)
-    // convertDisplayPkToMetricPk gère uniquement les discontinuités (sauts PK), pas la conversion relatif/absolu
-    const branchForCal = ensureBranchForPk(exactPk, BRANCH_SELECTION_CONTEXTS.recal) || (recalBranch && recalBranch !== "auto" ? recalBranch : currentBranch);
-    const metricPk = convertDisplayPkToMetricPk(exactPk, branchForCal);
+    const metricPk = convertDisplayPkToMetricPk(exactPk, recalBranch);
+    if (metricPk > BRANCH_COMMON_MAX && recalBranch !== "chessy" && recalBranch !== "boissy") {
+      setRecalMessage("PK après la bifurcation : sélectionne explicitement Chessy ou Boissy dans le menu Branche.", "error");
+      return;
+    }
     const offset = metricPk - state.lastRawPk;
     
     // Vérifier si on est dans une zone de discontinuité
-    const disc = findDiscontinuityForDisplayPk(exactPk, branchForCal);
+    const disc = findDiscontinuityForDisplayPk(exactPk, recalBranch);
     const hasDiscontinuity = disc != null;
     
     pendingRecal = {
-      pkExact: exactPk, // PK métrique (déjà converti depuis le PK relatif saisi par l'utilisateur)
-      pkExactMetric: metricPk, // PK métrique après gestion des discontinuités (pour le stockage interne)
+      pkExact: exactPk,
+      pkExactMetric: metricPk,
       pkRaw: state.lastRawPk,
       offset,
       previousOffset: pkOffset,
-      branch: branchForCal,
+      branch: recalBranch,
       lat: state.lastLat,
       lon: state.lastLon,
       accuracy: state.lastAccuracy,
@@ -12240,6 +12827,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Charger les sélections de branche depuis localStorage
   loadBranchSelections();
   await Promise.all([loadSharedCalibrations(), loadSharedMapPoints()]);
+  // Si un ancien pkOffset coexiste avec des calibrations : ne pas cumuler → migrer vers 0
+  migrateLegacyPkOffsetIfNeeded();
   // Initialiser les polylignes après le chargement des données partagées
   buildCalibrationPolylines();
   
