@@ -680,6 +680,22 @@
   .tab-panel.is-active {
     display: block;
   }
+
+  /* iOS : éviter display:none sur les onglets (Safari recharge les iframes PDF) */
+  html.ios-device .tab-panel {
+    display: block;
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  html.ios-device .tab-panel.is-active {
+    visibility: visible;
+    height: auto;
+    overflow: visible;
+    pointer-events: auto;
+  }
   @media (max-width: 640px) {
     .tabbar {
       width: calc(100% - 18px);
@@ -3019,6 +3035,14 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   Exporte les recalages que tu as faits (PK exact + GPS) pour les déposer ensuite dans GitHub.
                 </div>
               </div>
+              <div class="field">
+                <button id="btnClearLocalCalibrations" class="btn btn-warning btn-icon" type="button">
+                  <span>🗑️</span><span>Effacer mes recalages locaux</span>
+                </button>
+                <div class="muted">
+                  Supprime les recalages enregistrés sur ce téléphone (après export ou mise à jour de l'app). Les recalages partagés restent actifs.
+                </div>
+              </div>
             </div>
             <div class="divider"></div>
             <div class="pk-calibration-section">
@@ -3047,6 +3071,14 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                 </div>
                 <div class="muted" style="margin-top: 8px;">
                   Exporte tous les points enregistrés : JSON pour GitHub, Note pour un format texte lisible.
+                </div>
+              </div>
+              <div class="field">
+                <button id="btnClearMapPoints" class="btn btn-warning btn-icon" type="button">
+                  <span>🗑️</span><span>Effacer mes points de carte</span>
+                </button>
+                <div class="muted">
+                  Supprime les points enregistrés sur ce téléphone (après export ou mise à jour de l'app). Les accès intégrés dans l'application restent disponibles.
                 </div>
               </div>
             </div>
@@ -3756,7 +3788,7 @@ const accessPoints = [
   {
     name: "Parking 23 bvd G. Clémenceau, Bry-sur-Marne",
     address: "Parking 23 bvd G. Clémenceau, Bry-sur-Marne",
-    pk: 38500,
+    pk: 38200,
     lat: 48.84262630,
     lon: 2.52663406
   },
@@ -4130,6 +4162,15 @@ const accessPoints = [
     pk: 38380,
     lat: null,
     lon: null
+  },
+  {
+    name: "Accès 38500, Bry-sur-Marne",
+    address: "Accès 38500, Bry-sur-Marne",
+    pk: 38500,
+    lat: 48.84127402,
+    lon: 2.53057398,
+    branch: "chessy",
+    aliases: ["Accès 38500", "38500"]
   },
   {
     name: "« Razel » / 1 rue des Vignes, Bry-sur-Marne",
@@ -4605,15 +4646,20 @@ const accessPoints = [
     return pkDisplay;
   }
 
-   // Attribue une branche simple à chaque accès
-  // (tronc commun = both, le reste on laissera null)
-  for (const acc of accessPoints) {
-    if (acc.pk <= BRANCH_COMMON_MAX) {
-      acc.branch = "both"; // tronc commun
-    } else {
-      acc.branch = null;   // on déterminera la branche à la volée si besoin
+  function assignAccessBranches() {
+    for (const acc of accessPoints) {
+      if (acc.branch === "boissy" || acc.branch === "chessy" || acc.branch === "both") {
+        continue;
+      }
+      if (acc.pk <= BRANCH_COMMON_MAX) {
+        acc.branch = "both";
+      } else {
+        acc.branch = null;
+      }
     }
   }
+
+  assignAccessBranches();
 
   // Ligne courante utilisée pour la projection (tronc + branche selon où tu es)
 let currentBranch = "chessy";
@@ -4923,6 +4969,48 @@ const BRANCH_OPTION_LABELS = {
     }
   }
 
+  function clearLocalCalibrations() {
+    const count = localCalibrations.length;
+    const historyCount = recalHistory.length;
+    if (count === 0 && historyCount === 0) {
+      alert("Aucun recalage local à effacer.");
+      return;
+    }
+
+    let message = "Effacer les recalages enregistrés sur ce téléphone ?";
+    if (count > 0) {
+      message = `Effacer tes ${count} recalage(s) local(aux) ?\n\nLes recalages partagés (mis à jour avec l'app) restent actifs.`;
+    } else {
+      message = "Effacer l'historique de recalage sur ce téléphone ?";
+    }
+
+    if (!confirm(message)) return;
+
+    localCalibrations = [];
+    saveLocalCalibrations();
+    recalHistory = [];
+    saveRecalHistory();
+    renderRecalHistoryList();
+    updateOffsetInfo();
+    buildCalibrationPolylines();
+    alert("✅ Recalages locaux effacés.");
+  }
+
+  function clearMapPoints() {
+    if (mapPoints.length === 0) {
+      alert("Aucun point de carte à effacer.");
+      return;
+    }
+
+    if (!confirm(`Effacer tes ${mapPoints.length} point(s) de carte enregistré(s) sur ce téléphone ?\n\nLes accès intégrés dans l'application restent disponibles.`)) {
+      return;
+    }
+
+    mapPoints = [];
+    saveMapPoints();
+    alert("✅ Points de carte effacés.");
+  }
+
   function updateMapPointsInfo() {
     const mapPointsInfo = document.getElementById("mapPointsInfo");
     if (!mapPointsInfo) return;
@@ -5103,9 +5191,62 @@ async function loadSharedCalibrations() {
     console.log("Impossible de charger les calibrages partagés :", e);
   }
 }
-// Laisse l'appel désactivé tant que le fichier n'existe pas :
-// loadSharedCalibrations();
+  function mapPointToAccess(point) {
+    if (!point || point.lat == null || point.lon == null) return null;
+    const desc = (point.description || "Point cartographié").trim();
+    if (!desc) return null;
+    const pk = point.pk != null ? Math.round(point.pk) : null;
+    const name = desc.includes(",") ? desc : (desc + (point.branch === "chessy" ? ", Bry-sur-Marne" : ""));
+    return {
+      name,
+      address: name,
+      pk,
+      lat: point.lat,
+      lon: point.lon,
+      branch: point.branch === "boissy" || point.branch === "chessy" ? point.branch : null,
+      aliases: desc !== name ? [desc] : undefined
+    };
+  }
 
+  function accessPointAlreadyExists(acc) {
+    return accessPoints.some(existing => {
+      if (!existing) return false;
+      if (existing.name === acc.name) return true;
+      if (acc.lat != null && acc.lon != null && existing.lat != null && existing.lon != null) {
+        return distanceMeters(acc.lat, acc.lon, existing.lat, existing.lon) < 30;
+      }
+      return false;
+    });
+  }
+
+  function mergeMapPointIntoAccessPoints(point) {
+    const acc = mapPointToAccess(point);
+    if (!acc || accessPointAlreadyExists(acc)) return false;
+    accessPoints.push(acc);
+    return true;
+  }
+
+  async function loadSharedMapPoints() {
+    try {
+      const resp = await fetch("data/map-points.json", { cache: "no-store" });
+      if (!resp.ok) {
+        console.log("Aucun point carte partagé (data/map-points.json).");
+        return;
+      }
+      const data = await resp.json();
+      if (!Array.isArray(data)) return;
+      let added = 0;
+      for (const point of data) {
+        if (mergeMapPointIntoAccessPoints(point)) added++;
+      }
+      if (added > 0) {
+        assignAccessBranches();
+        console.log("Points carte partagés fusionnés dans accessPoints :", added);
+      }
+    } catch (e) {
+      console.log("Impossible de charger les points carte partagés :", e);
+    }
+  }
 
   function exportLocalCalibrationsForGitHub() {
     if (!localCalibrations.length) {
@@ -5249,6 +5390,7 @@ async function loadSharedCalibrations() {
   const btnNoteLocation = document.getElementById("btnNoteLocation");
   const btnExportMapPoints = document.getElementById("btnExportMapPoints");
   const btnExportMapPointsNote = document.getElementById("btnExportMapPointsNote");
+  const btnClearMapPoints = document.getElementById("btnClearMapPoints");
   const inputPkLookup = document.getElementById("inputPkLookup");
   const pkLookupSuggestions = document.getElementById("pkLookupSuggestions");
   const btnPkLookup = document.getElementById("btnPkLookup");
@@ -5283,6 +5425,7 @@ async function loadSharedCalibrations() {
 
   // AJOUT CALIBRAGE : bouton d'export
   const btnExportCalibrations = document.getElementById("btnExportCalibrations");
+  const btnClearLocalCalibrations = document.getElementById("btnClearLocalCalibrations");
 
   // Convertit un PK absolu en PK relatif selon la branche
   // NOTE : Seule la branche Boissy utilise des PK relatifs. Chessy et tronc commun utilisent les PK absolus.
@@ -6446,6 +6589,20 @@ function buildCalibrationPolylines() {
   // Fonction principale pour calculer les marqueurs de couverture
   // Fonction helper pour déterminer la branche d'un PK
   // Peut aussi utiliser le nom/adresse pour améliorer la détection dans la zone ambiguë
+  function resolveAccessBranch(acc) {
+    if (!acc) return null;
+    if (acc.branch === "boissy" || acc.branch === "chessy") return acc.branch;
+    if (acc.branch === "both" || (acc.pk != null && acc.pk <= BRANCH_COMMON_MAX)) return "central";
+    if (acc.pk == null) return null;
+    if (acc.pk <= BRANCH_COMMON_MAX) return "central";
+    if (acc.pk >= BRANCH_CHESSY_MIN && acc.pk < BRANCH_BOISSY_MIN) return "chessy";
+    if (acc.pk > BRANCH_BOISSY_MAX && acc.pk <= BRANCH_CHESSY_MAX) return "chessy";
+    if (acc.pk >= BRANCH_BOISSY_MIN && acc.pk <= BRANCH_BOISSY_MAX) {
+      return detectBranchForPk(acc.pk, acc.name, acc.address);
+    }
+    return detectBranchForPk(acc.pk, acc.name, acc.address);
+  }
+
   function detectBranchForPk(pk, nameHint = null, addressHint = null) {
     if (pk == null || !Number.isFinite(pk)) return "central";
     if (pk <= BRANCH_COMMON_MAX) {
@@ -6656,7 +6813,7 @@ function buildCalibrationPolylines() {
     const pointBranch = point.pk != null ? detectBranchForPk(point.pk) : null;
     const pkText = point.pk != null ? "PK " + formatPk(point.pk, pointBranch) : "";
     const access = point.nearestAccess;
-    const accessBranch = access && access.pk != null ? detectBranchForPk(access.pk) : null;
+    const accessBranch = access ? resolveAccessBranch(access) : null;
     const accessText = access
       ? `🚪 <strong>${access.name}</strong>${access.pk != null ? " · PK " + formatPk(access.pk, accessBranch) : ""}${access.distanceText ? " · " + access.distanceText : ""}`
       : null;
@@ -6825,22 +6982,7 @@ function buildCalibrationPolylines() {
       if (acc.pk == null) continue;
       
       const d = Math.abs(acc.pk - pk);
-      
-      // Déterminer la branche de l'accès selon son PK
-      // Dans la zone ambiguë, utiliser les gares comme référence pour déterminer la branche
-      let accBranch = null;
-      if (acc.pk <= BRANCH_COMMON_MAX) {
-        accBranch = "central"; // Tronc commun
-      } else if (acc.pk >= BRANCH_CHESSY_MIN && acc.pk < BRANCH_BOISSY_MIN) {
-        // Avant la zone ambiguë : uniquement Chessy (entre 31795 et début Boissy à 32750)
-        accBranch = "chessy";
-      } else if (acc.pk > BRANCH_BOISSY_MAX && acc.pk <= BRANCH_CHESSY_MAX) {
-        // Après la zone ambiguë : uniquement Chessy (après Boissy-Saint-Léger)
-        accBranch = "chessy";
-      } else if (acc.pk >= BRANCH_BOISSY_MIN && acc.pk <= BRANCH_BOISSY_MAX) {
-        // Zone ambiguë : utiliser detectBranchForPk avec le nom/adresse pour une meilleure détection
-        accBranch = detectBranchForPk(acc.pk, acc.name, acc.address);
-      }
+      const accBranch = resolveAccessBranch(acc);
       
       // Filtrer selon la branche recherchée
       let include = true;
@@ -7320,6 +7462,9 @@ function detectBranch(lat, lon) {
     if (tabId === "plan") {
       ensureOrientationMapReady();
       updateOrientationPanel();
+      if (typeof restorePdfPagesForPlanTab === "function") {
+        restorePdfPagesForPlanTab();
+      }
     }
   }
 
@@ -8258,6 +8403,7 @@ function detectBranch(lat, lon) {
     const sucyStation = brancheBoissy.find(s => s.name === "Sucy – Bonneuil");
     const boissyStation = brancheBoissy.find(s => s.name === "Boissy-Saint-Léger");
     const valFontenayStation = brancheChessy.find(s => s.name === "Val de Fontenay");
+    const bryChessyStation = brancheChessy.find(s => s.name === "Bry-sur-Marne");
 
     // Calculer les coordonnées approximatives pour Parc de Saint-Maur (interpolation entre Saint-Maur et La Varenne)
     let parcLat = null;
@@ -8291,6 +8437,15 @@ function detectBranch(lat, lon) {
         lat: valFontenayStation ? valFontenayStation.lat : 48.8544183594,
         lon: valFontenayStation ? valFontenayStation.lon : 2.4890884591,
         radius: 1000,
+        priority: 2
+      },
+      {
+        name: "Bry-sur-Marne",
+        branch: "chessy",
+        pk: bryChessyStation ? bryChessyStation.pk : 37950,
+        lat: bryChessyStation ? bryChessyStation.lat : 48.8442657465,
+        lon: bryChessyStation ? bryChessyStation.lon : 2.5261924528,
+        radius: 1200,
         priority: 2
       },
       {
@@ -10655,8 +10810,9 @@ function detectBranch(lat, lon) {
   }
 
   // Fonction helper pour déterminer la branche d'un accès selon son PK
-  function getBranchForAccess(accPk, nameHint = null, addressHint = null) {
-    // Utiliser detectBranchForPk qui gère mieux les zones ambiguës
+  function getBranchForAccess(accPk, nameHint = null, addressHint = null, explicitBranch = null) {
+    if (explicitBranch === "boissy" || explicitBranch === "chessy") return explicitBranch;
+    if (explicitBranch === "both" || explicitBranch === "central") return "central";
     return detectBranchForPk(accPk, nameHint, addressHint);
   }
 
@@ -10665,7 +10821,7 @@ function detectBranch(lat, lon) {
     const details = [];
     details.push(`<strong>Accès :</strong> ${access.name}`);
     // Déterminer la branche de l'accès pour un affichage correct du PK
-    const accessBranch = access.pk != null ? (getBranchForAccess(access.pk, access.name, access.address) || branchChoice || currentBranch) : (branchChoice || currentBranch);
+    const accessBranch = access.pk != null ? (getBranchForAccess(access.pk, access.name, access.address, access.branch) || branchChoice || currentBranch) : (branchChoice || currentBranch);
     if (Number.isFinite(access.pk)) {
       if (Number.isFinite(targetPk)) {
         const delta = Math.round(Math.abs(access.pk - targetPk));
@@ -10793,7 +10949,7 @@ function detectBranch(lat, lon) {
         return;
       }
       console.log("✅ Accès trouvé:", access.name, "PK absolu:", access.pk, "branche recherchée:", branchChoice || "auto");
-      const foundBranch = getBranchForAccess(access.pk, access.name, access.address);
+      const foundBranch = getBranchForAccess(access.pk, access.name, access.address, access.branch);
       console.log("   Branche de l'accès:", foundBranch, "PK formaté:", formatPk(access.pk, foundBranch));
       debugLog("✅ Accès trouvé:", access.name, "PK", access.pk, "pour la branche", branchChoice || "auto");
       renderPkLookupSummary({
@@ -11339,6 +11495,9 @@ if (btnPkLookupOpenWaze) {
 if (btnExportCalibrations) {
   btnExportCalibrations.addEventListener("click", exportLocalCalibrationsForGitHub);
 }
+if (btnClearLocalCalibrations) {
+  btnClearLocalCalibrations.addEventListener("click", clearLocalCalibrations);
+}
 
 // Points de carte
 if (btnNoteLocation) {
@@ -11351,6 +11510,9 @@ if (btnExportMapPoints) {
 
 if (btnExportMapPointsNote) {
   btnExportMapPointsNote.addEventListener("click", exportMapPointsAsNote);
+}
+if (btnClearMapPoints) {
+  btnClearMapPoints.addEventListener("click", clearMapPoints);
 }
 
 // Calcul de couverture travaux (feux rouges et pétards)
@@ -11638,7 +11800,7 @@ function addCoverageMarkersToMap(result, branchHint = null) {
           const accessParts = [];
           accessParts.push(`🚪 ${access.name}`);
           if (access.pk != null) {
-            const accessBranch = detectBranchForPk(access.pk);
+            const accessBranch = resolveAccessBranch(access);
             accessParts.push(`PK ${formatPk(access.pk, accessBranch)}`);
           }
           if (access.distanceText) {
@@ -11666,7 +11828,7 @@ function addCoverageMarkersToMap(result, branchHint = null) {
           const access = summary.sam.nearestAccess;
           blockHtml += `<div class="coverage-point-info"><strong>Accès le plus proche :</strong> ${access.name}`;
           if (access.pk != null) {
-            const accessBranch = detectBranchForPk(access.pk);
+            const accessBranch = resolveAccessBranch(access);
             blockHtml += ` · PK ${formatPk(access.pk, accessBranch)}`;
           }
           if (access.distanceText) {
@@ -11687,7 +11849,7 @@ function addCoverageMarkersToMap(result, branchHint = null) {
               const access = p.nearestAccess;
               petardBlock += `<div class="coverage-point-info"><strong>Accès :</strong> ${access.name}`;
               if (access.pk != null) {
-                const accessBranch = detectBranchForPk(access.pk);
+                const accessBranch = resolveAccessBranch(access);
                 petardBlock += ` · PK ${formatPk(access.pk, accessBranch)}`;
               }
               if (access.distanceText) {
@@ -12011,11 +12173,12 @@ setGpsStatus("off");
   });
 })();
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   initAccessGate();
   // Charger les sélections de branche depuis localStorage
   loadBranchSelections();
-  // Initialiser les polylignes après le chargement du DOM
+  await Promise.all([loadSharedCalibrations(), loadSharedMapPoints()]);
+  // Initialiser les polylignes après le chargement des données partagées
   buildCalibrationPolylines();
   
   // Attacher l'event listener au bouton de géolocalisation
@@ -12117,16 +12280,69 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
   const planChessyToggle = document.getElementById("planChessyToggle");
   const planChessyContainer = document.getElementById("planChessyContainer");
 
-  function bindPlanToggle(toggle, container) {
+  function bindPlanToggle(toggle, container, pdfId) {
     if (!toggle || !container) return;
     toggle.addEventListener("change", () => {
       container.style.display = toggle.checked ? "block" : "none";
+      if (toggle.checked && pdfId && typeof restorePdfPage === "function") {
+        restorePdfPage(pdfId);
+      }
     });
   }
 
-  bindPlanToggle(planBoissyToggle, planBoissyContainer);
-  bindPlanToggle(planParisOuestToggle, planParisOuestContainer);
-  bindPlanToggle(planChessyToggle, planChessyContainer);
+  bindPlanToggle(planBoissyToggle, planBoissyContainer, "boissy");
+  bindPlanToggle(planParisOuestToggle, planParisOuestContainer, "parisouest");
+  bindPlanToggle(planChessyToggle, planChessyContainer, "chessy");
+
+  const PDF_PAGE_STORAGE_KEY = "pdfCurrentPages";
+  const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  if (isIOSDevice) {
+    document.documentElement.classList.add("ios-device");
+  }
+
+  function loadPdfPageState() {
+    try {
+      const raw = safeGetItem(PDF_PAGE_STORAGE_KEY);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function savePdfPageState(pdfId, page) {
+    try {
+      const state = loadPdfPageState();
+      state[pdfId] = page;
+      safeSetItem(PDF_PAGE_STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn("Impossible de sauvegarder la page PDF", e);
+    }
+  }
+
+  function getSavedPdfPage(pdfId) {
+    const state = loadPdfPageState();
+    const page = state[pdfId];
+    return Number.isFinite(page) && page >= 1 ? page : 1;
+  }
+
+  function isPdfContainerVisible(iframe) {
+    if (!iframe) return false;
+    const container = iframe.closest(".plan-line-container");
+    if (!container || container.style.display === "none") return false;
+    const planPanel = iframe.closest('.tab-panel[data-tab="plan"]');
+    if (planPanel && !planPanel.classList.contains("is-active")) return false;
+    return true;
+  }
+
+  function buildPdfIframeSrc(baseUrl, page) {
+    const separator = baseUrl.includes("?") ? "&" : "?";
+    const cacheBust = isIOSDevice ? separator + "p=" + page + "&t=" + Date.now() : "";
+    return baseUrl + cacheBust + "#page=" + page + "&zoom=page-fit";
+  }
 
   // Gestion de la navigation des PDF
   const pdfConfig = {
@@ -12148,33 +12364,32 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
   };
 
   // Fonction pour mettre à jour la page du PDF
-  function updatePdfPage(pdfId, pageNum) {
+  function updatePdfPage(pdfId, pageNum, options = {}) {
     const config = pdfConfig[pdfId];
     if (!config || !config.iframe) return;
 
     const maxPages = config.maxPages || 50;
     const page = Math.max(1, Math.min(pageNum, maxPages));
-    
-    // Pour iOS, forcer le rechargement complet de l'iframe
-    // En vidant d'abord le src, puis en le remettant avec le nouveau paramètre
     const iframe = config.iframe;
-    // Ajouter zoom=page-fit pour permettre le défilement vertical des pages sur mobile
-    const newSrc = config.baseUrl + "#page=" + page + "&zoom=page-fit";
-    
-    // Si c'est la même page, ne rien faire
-    if (config.currentPage === page && iframe.src === newSrc) {
+    const newSrc = buildPdfIframeSrc(config.baseUrl, page);
+    const force = options.force === true;
+
+    if (!force && config.currentPage === page && iframe.src && iframe.src.indexOf("#page=" + page) !== -1) {
       return;
     }
-    
-    // Forcer le rechargement en vidant puis remettant le src
-    iframe.src = "";
-    // Petit délai pour s'assurer que le navigateur a bien vidé l'iframe
-    setTimeout(() => {
-      iframe.src = newSrc;
-      config.currentPage = page;
-    }, 50);
 
-    // Mettre à jour l'interface
+    if (isIOSDevice) {
+      iframe.src = newSrc;
+    } else {
+      iframe.src = "";
+      setTimeout(() => {
+        iframe.src = newSrc;
+      }, 50);
+    }
+
+    config.currentPage = page;
+    savePdfPageState(pdfId, page);
+
     const pageInput = document.querySelector(`.pdf-page-input[data-pdf="${pdfId}"]`);
     const totalSpan = document.querySelector(`.pdf-page-total[data-pdf="${pdfId}"]`);
     const prevBtn = document.querySelector(`.pdf-nav-prev[data-pdf="${pdfId}"]`);
@@ -12185,6 +12400,19 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
     if (prevBtn) prevBtn.disabled = page <= 1;
     if (nextBtn) nextBtn.disabled = page >= maxPages;
   }
+
+  function restorePdfPage(pdfId) {
+    const config = pdfConfig[pdfId];
+    if (!config || !config.iframe || !isPdfContainerVisible(config.iframe)) return;
+    const savedPage = getSavedPdfPage(pdfId);
+    updatePdfPage(pdfId, savedPage, { force: true });
+  }
+
+  function restorePdfPagesForPlanTab() {
+    Object.keys(pdfConfig).forEach(restorePdfPage);
+  }
+
+  window.restorePdfPagesForPlanTab = restorePdfPagesForPlanTab;
 
   // Initialiser la navigation pour chaque PDF
   Object.keys(pdfConfig).forEach(pdfId => {
@@ -12232,8 +12460,19 @@ console.log("PK Assistant RER A – script chargé sans erreur ✅");
       });
     }
 
-    // Initialiser à la page 1
-    updatePdfPage(pdfId, 1);
+    // Initialiser à la page mémorisée (ou 1)
+    const initialPage = getSavedPdfPage(pdfId);
+    config.currentPage = initialPage;
+    updatePdfPage(pdfId, initialPage, { force: true });
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      const planPanel = document.querySelector('.tab-panel[data-tab="plan"]');
+      if (planPanel && planPanel.classList.contains("is-active")) {
+        restorePdfPagesForPlanTab();
+      }
+    }
   });
 
   // Liste de tests sur la page d'accueil
