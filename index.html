@@ -637,6 +637,7 @@
   .search-mode-toggle {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 6px;
     margin: 0 0 12px;
     font-size: 0.85rem;
@@ -685,6 +686,25 @@
     margin: 0 0 4px;
     color: rgba(216, 222, 255, 0.85);
     font-size: 0.9rem;
+  }
+
+  .depeche-result-title {
+    font-size: 1.12rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: rgba(238, 242, 255, 0.98);
+  }
+
+  .depeche-result-pk {
+    font-size: 1.02rem;
+    font-weight: 600;
+    margin: 2px 0 8px;
+    color: rgba(236, 239, 255, 0.95);
+  }
+
+  .depeche-result-meta {
+    font-size: 0.82rem;
+    color: rgba(216, 222, 255, 0.72);
   }
 
   .branch-choice-control {
@@ -2954,6 +2974,8 @@ body[data-page-hidden="true"] .direction-arrow-moving {
               <button type="button" id="btnSearchModePk" class="search-mode-btn is-active" data-mode="pk" aria-pressed="true">PK</button>
               <span class="search-mode-sep" aria-hidden="true">|</span>
               <button type="button" id="btnSearchModePoteau" class="search-mode-btn" data-mode="poteau" aria-pressed="false">Poteau caténaire</button>
+              <span class="search-mode-sep" aria-hidden="true">|</span>
+              <button type="button" id="btnSearchModeDepeche" class="search-mode-btn" data-mode="depeche" aria-pressed="false">Dépêche</button>
             </div>
             <div class="field">
               <label for="inputPkLookup" id="labelPkLookup">Recherche par PK et GPS (accès le plus proche)</label>
@@ -3244,6 +3266,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
    </div>
 
   <script src="config/access-config.js" onerror="console.log('Fichier access-config.js non trouvé, utilisation du code par défaut.')"></script>
+  <script src="data/zones-depeche.js"></script>
 
   <script>
 
@@ -4201,13 +4224,6 @@ const accessPoints = [
     lon: null
   },
   {
-    name: "5 av. Gambetta, Saint-Mandé",
-    address: "5 av. Gambetta, Saint-Mandé",
-    pk: 32200,
-    lat: 48.84437790,
-    lon: 2.42016489
-  },
-  {
     name: "145 av. du Général Leclerc, St Mandé",
     address: "145 av. du Général Leclerc, St Mandé",
     pk: 31950,
@@ -4581,6 +4597,9 @@ const accessPoints = [
   const BRANCH_CHESSY_MAX = 59700; // Fin de la branche Chessy
   const BRANCH_BOISSY_MIN = 32750; // Début de la branche Boissy (Fontenay-sous-Bois)
   const BRANCH_BOISSY_MAX = 47200; // Fin de la branche Boissy (Boissy-Saint-Léger)
+  // Un accès trop loin en PK du projeté géométrique ne doit pas tirer l'interpolation
+  // (ex. doublon Saint-Mandé à 32200 alors que la voie est à 28900).
+  const INTERPOLATION_PK_MAX_DELTA = 2000;
   const COMMON_BRANCH_PROMPT_MIN = 7050;
   const COMMON_BRANCH_PROMPT_MAX = 22300;
 
@@ -5557,6 +5576,7 @@ async function loadSharedCalibrations() {
   const btnPkLookupOpenWaze = document.getElementById("btnPkLookupOpenWaze");
   const btnSearchModePk = document.getElementById("btnSearchModePk");
   const btnSearchModePoteau = document.getElementById("btnSearchModePoteau");
+  const btnSearchModeDepeche = document.getElementById("btnSearchModeDepeche");
   const labelPkLookup = document.getElementById("labelPkLookup");
   const searchBranchWrapper = document.getElementById("searchBranchWrapper");
   const btnBranchSearch = document.getElementById("btnBranchSearch");
@@ -6885,6 +6905,7 @@ async function loadSharedCalibrations() {
     
     for (const acc of accessPoints) {
       if (acc.lat == null || acc.lon == null || acc.pk == null) continue;
+      if (best.pkProj != null && Math.abs(acc.pk - best.pkProj) > INTERPOLATION_PK_MAX_DELTA) continue;
       const d = distanceMeters(lat, lon, acc.lat, acc.lon);
       if (d < 1000) {
         nearbyPoints.push({ pk: acc.pk, lat: acc.lat, lon: acc.lon, dist: d, weight: 1.0 });
@@ -7074,8 +7095,29 @@ async function loadSharedCalibrations() {
   if (btnSearchModePoteau) {
     btnSearchModePoteau.addEventListener("click", () => setSearchLookupMode("poteau"));
   }
+  if (btnSearchModeDepeche) {
+    btnSearchModeDepeche.addEventListener("click", () => setSearchLookupMode("depeche"));
+  }
 
   // ... (rest of the code remains unchanged)
+  function isGpsOnCommonTrunk(lat, lon) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
+    if (!Array.isArray(troncCommun) || troncCommun.length < 2) return false;
+    let minTronc = Infinity;
+    let pkTronc = null;
+    for (let i = 0; i < troncCommun.length - 1; i++) {
+      const a = troncCommun[i];
+      const b = troncCommun[i + 1];
+      if (a.lat == null || a.lon == null || b.lat == null || b.lon == null) continue;
+      const proj = projectToSegment(lat, lon, a, b);
+      if (proj.dist < minTronc) {
+        minTronc = proj.dist;
+        pkTronc = proj.pkProj;
+      }
+    }
+    return minTronc < 250 && pkTronc != null && pkTronc <= BRANCH_COMMON_MAX;
+  }
+
 function buildCalibrationPolylines() {
   // Cache : ne reconstruire que si nécessaire (nouveau recalage ou cache expiré)
   const now = Date.now();
@@ -7097,6 +7139,12 @@ function buildCalibrationPolylines() {
     if (pk <= BRANCH_COMMON_MAX) {
       geomTronc.push(point);
       return "central";
+    }
+    // PK de branche mais GPS encore sur le tronc (Nation→Vincennes) :
+    // ne pas l'injecter dans Chessy/Boissy, sinon la projection saute après 30000.
+    if (isGpsOnCommonTrunk(lat, lon)) {
+      console.warn("Accès ignoré pour la géométrie : PK > 30000 mais GPS sur le tronc", { pk, lat, lon });
+      return null;
     }
     const resolved = determineCalibrationBranch(pk, branchHint, lat, lon);
     if (resolved === "boissy") {
@@ -7703,6 +7751,68 @@ function buildCalibrationPolylines() {
     return best;
   }
 
+  function distancePkToInterval(pk, pkStart, pkEnd) {
+    if (!Number.isFinite(pk) || !Number.isFinite(pkStart) || !Number.isFinite(pkEnd)) {
+      return Infinity;
+    }
+    const a = Math.min(pkStart, pkEnd);
+    const b = Math.max(pkStart, pkEnd);
+    if (pk >= a && pk <= b) return 0;
+    return pk < a ? a - pk : pk - b;
+  }
+
+  function findNearestAccessForZone(pkStart, pkEnd, branchHint = null) {
+    if (!Number.isFinite(pkStart) || !Number.isFinite(pkEnd)) return null;
+    const a = Math.min(pkStart, pkEnd);
+    const b = Math.max(pkStart, pkEnd);
+    // Tronc commun jusqu'à la fourche de Fontenay (PK 31500), pas Vincennes (30000).
+    // Les zones Chessy en 29.xxx sont l'approche de cette bifurcation.
+    const fontenayForkPk = BOISSY_BRANCH_OFFSET;
+    const onCommonTrunkBeforeFontenay = b <= fontenayForkPk;
+    const overlapsTrunk = a <= fontenayForkPk;
+    let effectiveBranch = branchHint && branchHint !== "auto" ? branchHint : null;
+    if (!effectiveBranch) {
+      if (onCommonTrunkBeforeFontenay) effectiveBranch = "central";
+      else if (a >= BRANCH_CHESSY_MIN) effectiveBranch = "chessy";
+      else if (a >= BRANCH_BOISSY_MIN) effectiveBranch = "boissy";
+    }
+    if (onCommonTrunkBeforeFontenay) {
+      effectiveBranch = "central";
+    }
+
+    const candidates = [];
+    for (const acc of accessPoints) {
+      if (acc.pk == null || !Number.isFinite(acc.pk)) continue;
+      const accBranch = resolveAccessBranch(acc);
+      let include = true;
+      if (effectiveBranch === "central") {
+        include = accBranch === "central";
+      } else if (effectiveBranch === "boissy" || effectiveBranch === "chessy") {
+        include = accBranch === effectiveBranch || (overlapsTrunk && accBranch === "central");
+      }
+      if (!include) continue;
+      candidates.push({
+        acc,
+        distance: distancePkToInterval(acc.pk, a, b),
+        branch: accBranch
+      });
+    }
+
+    if (!candidates.length) {
+      for (const acc of accessPoints) {
+        if (acc.pk == null || !Number.isFinite(acc.pk)) continue;
+        candidates.push({
+          acc,
+          distance: distancePkToInterval(acc.pk, a, b),
+          branch: resolveAccessBranch(acc)
+        });
+      }
+    }
+    if (!candidates.length) return null;
+    candidates.sort((x, y) => x.distance - y.distance);
+    return candidates[0];
+  }
+
   // Trouve les accès d'une gare donnée
   function findAccessesForStation(stationName) {
     if (!stationName) return [];
@@ -8065,6 +8175,7 @@ function detectBranch(lat, lon) {
     activateTab(initialTab, { skipStore: true });
 
     loadPoteauxCatenaires().catch(err => console.warn("Chargement poteaux caténaires différé", err));
+    loadZonesDepeche().catch(err => console.warn("Chargement zones dépêche différé", err));
 
     const storedPkLookup = safeGetItem("pkLookupQuery");
     if (storedPkLookup && inputPkLookup) {
@@ -11300,6 +11411,8 @@ function detectBranch(lat, lon) {
   let searchLookupMode = "pk";
   let poteauxCatenairesData = null;
   let currentPoteauLookupResults = [];
+  let zonesDepecheData = null;
+  let currentDepecheLookupResults = [];
 
   const POTEAU_BRANCH_KEYS = {
     "Chessy": "chessy",
@@ -11398,8 +11511,69 @@ function detectBranch(lat, lon) {
     return { exact, similar };
   }
 
+  async function loadZonesDepeche() {
+    if (Array.isArray(zonesDepecheData) && zonesDepecheData.length) {
+      return zonesDepecheData;
+    }
+    if (typeof window !== "undefined" && Array.isArray(window.__ZONES_DEPECHE__) && window.__ZONES_DEPECHE__.length) {
+      zonesDepecheData = window.__ZONES_DEPECHE__;
+      return zonesDepecheData;
+    }
+    try {
+      const resp = await fetch("data/zones-depeche.json", { cache: "no-store" });
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const data = await resp.json();
+      zonesDepecheData = Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error("Impossible de charger les zones dépêche", error);
+      zonesDepecheData = [];
+    }
+    return zonesDepecheData;
+  }
+
+  function normalizeZoneId(str) {
+    let s = String(str || "").trim().toUpperCase();
+    s = s.replace(/[\s\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+/g, "");
+    if (s.charAt(0) === "Z" && (s.length === 1 || /[\d(]/.test(s.charAt(1)))) {
+      s = s.slice(1);
+    }
+    return s;
+  }
+
+  function formatDepechePk(pkMetric, branchKey) {
+    if (!Number.isFinite(pkMetric)) return "—";
+    const normalized = normalizeBranchKey(branchKey);
+    const offset = BRANCH_OFFSETS[normalized] || 0;
+    const display = Math.round(pkMetric - offset);
+    const sign = display < 0 ? "-" : "";
+    const abs = Math.abs(display);
+    const km = Math.floor(abs / 1000);
+    const rest = abs % 1000;
+    return sign + km + "." + String(rest).padStart(3, "0");
+  }
+
+  function searchZonesDepeche(query, data) {
+    const queryNorm = normalizeZoneId(query);
+    if (!queryNorm) return { exact: [], similar: [] };
+    const exact = [];
+    const similar = [];
+    for (const entry of data) {
+      const key = entry.zoneKey || normalizeZoneId(entry.zone);
+      if (key === queryNorm) {
+        exact.push(entry);
+      } else if (key.startsWith(queryNorm)) {
+        similar.push(entry);
+      }
+    }
+    return { exact, similar };
+  }
+
   function setSearchLookupMode(mode) {
-    searchLookupMode = mode === "poteau" ? "poteau" : "pk";
+    if (mode === "poteau" || mode === "depeche") {
+      searchLookupMode = mode;
+    } else {
+      searchLookupMode = "pk";
+    }
     if (btnSearchModePk) {
       btnSearchModePk.classList.toggle("is-active", searchLookupMode === "pk");
       btnSearchModePk.setAttribute("aria-pressed", searchLookupMode === "pk" ? "true" : "false");
@@ -11408,20 +11582,32 @@ function detectBranch(lat, lon) {
       btnSearchModePoteau.classList.toggle("is-active", searchLookupMode === "poteau");
       btnSearchModePoteau.setAttribute("aria-pressed", searchLookupMode === "poteau" ? "true" : "false");
     }
+    if (btnSearchModeDepeche) {
+      btnSearchModeDepeche.classList.toggle("is-active", searchLookupMode === "depeche");
+      btnSearchModeDepeche.setAttribute("aria-pressed", searchLookupMode === "depeche" ? "true" : "false");
+    }
     if (labelPkLookup) {
-      labelPkLookup.textContent = searchLookupMode === "poteau"
-        ? "Recherche par numéro de poteau caténaire"
-        : "Recherche par PK et GPS (accès le plus proche)";
+      if (searchLookupMode === "poteau") {
+        labelPkLookup.textContent = "Recherche par numéro de poteau caténaire";
+      } else if (searchLookupMode === "depeche") {
+        labelPkLookup.textContent = "Recherche de zone (dépêche)";
+      } else {
+        labelPkLookup.textContent = "Recherche par PK et GPS (accès le plus proche)";
+      }
     }
     if (inputPkLookup) {
-      inputPkLookup.placeholder = searchLookupMode === "poteau"
-        ? "ex : 45 5 ou 45-5"
-        : "ex : 32400 ou 32+400";
+      if (searchLookupMode === "poteau") {
+        inputPkLookup.placeholder = "ex : 45 5 ou 45-5";
+      } else if (searchLookupMode === "depeche") {
+        inputPkLookup.placeholder = "Zone : 1323A ou Z1323A";
+      } else {
+        inputPkLookup.placeholder = "ex : 32400 ou 32+400";
+      }
     }
     if (searchBranchWrapper) {
-      searchBranchWrapper.style.display = searchLookupMode === "poteau" ? "none" : "";
+      searchBranchWrapper.style.display = (searchLookupMode === "poteau" || searchLookupMode === "depeche") ? "none" : "";
     }
-    if (pkLookupResultField && searchLookupMode === "poteau") {
+    if (pkLookupResultField && (searchLookupMode === "poteau" || searchLookupMode === "depeche")) {
       pkLookupResultField.style.display = "none";
     }
   }
@@ -11458,6 +11644,99 @@ function detectBranch(lat, lon) {
     if (pkLookupActionsField) pkLookupActionsField.style.display = "none";
   }
 
+  function escapeLookupHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function buildDepecheZoneCard(entry) {
+    const nearest = findNearestAccessForZone(entry.pkStart, entry.pkEnd, entry.branche);
+    const access = nearest ? nearest.acc : null;
+    const accessBranch = access ? (getBranchForAccess(access.pk, access.name, access.address, access.branch) || entry.branche) : entry.branche;
+    let accessHtml = "<div><strong>Accès le plus proche :</strong> —</div>";
+    if (access) {
+      const dist = nearest.distance;
+      const distText = dist === 0
+        ? "dans la zone"
+        : "ΔPK ≈ " + Math.round(dist) + " m";
+      const pkText = Number.isFinite(access.pk) ? " · PK " + formatPk(access.pk, accessBranch) : "";
+      const addr = access.address ? `<div class="depeche-result-meta">${escapeLookupHtml(access.address)}</div>` : "";
+      accessHtml = `<div><strong>Accès le plus proche :</strong> ${escapeLookupHtml(access.name)}${pkText} · ${distText}</div>${addr}`;
+    }
+    return {
+      html: `<div class="poteau-result-item">
+        <div class="depeche-result-title">${escapeLookupHtml(entry.zone)} — Voie ${escapeLookupHtml(entry.voie)}</div>
+        <div class="depeche-result-pk">PK ${formatDepechePk(entry.pkStart, entry.branche)} → PK ${formatDepechePk(entry.pkEnd, entry.branche)}</div>
+        ${accessHtml}
+        <div class="depeche-result-meta">Secteur : ${escapeLookupHtml(entry.secteur || "—")}</div>
+        <div class="depeche-result-meta">Branche : ${escapeLookupHtml(entry.brancheLabel || getBranchLabel(entry.branche))}</div>
+      </div>`,
+      access
+    };
+  }
+
+  function renderDepecheLookupResults(results, options = {}) {
+    if (!pkLookupResult || !pkLookupResultField) return;
+    currentDepecheLookupResults = results.slice();
+    lastPkLookupAccess = null;
+    if (!results.length) {
+      pkLookupResult.innerHTML = "<span class='muted'>Zone introuvable</span>";
+      pkLookupResultField.style.display = "block";
+      if (pkLookupActionsField) pkLookupActionsField.style.display = "none";
+      return;
+    }
+    const heading = options.multiple
+      ? "<p class='poteau-results-heading'>Plusieurs zones correspondent :</p>"
+      : "";
+    const cards = results.map(entry => buildDepecheZoneCard(entry));
+    pkLookupResult.innerHTML = heading + cards.map(card => card.html).join("");
+    pkLookupResultField.style.display = "block";
+    if (results.length === 1 && cards[0].access) {
+      lastPkLookupAccess = cards[0].access;
+      if (pkLookupActionsField) pkLookupActionsField.style.display = "";
+    } else if (pkLookupActionsField) {
+      pkLookupActionsField.style.display = "none";
+    }
+  }
+
+  function looksLikeZoneQuery(raw) {
+    const text = String(raw || "").trim();
+    if (!text) return false;
+    if (/^z[\s\d(]/i.test(text)) return true;
+    const key = normalizeZoneId(text);
+    return /^\d{2,5}[A-Z]+(\([0-9A-Z]+\))?$/.test(key) || /^\d{2,5}\([0-9A-Z]+\)$/.test(key);
+  }
+
+  async function handleDepecheLookup() {
+    if (!inputPkLookup) return;
+    const rawInput = inputPkLookup.value.trim();
+    currentDepecheLookupResults = [];
+    if (!rawInput) {
+      alert("Saisis un numéro de zone.");
+      return;
+    }
+    safeSetItem("pkLookupQuery", rawInput);
+    const data = await loadZonesDepeche();
+    if (!data.length) {
+      if (pkLookupResult && pkLookupResultField) {
+        pkLookupResult.innerHTML = "<span class='muted'>Données des zones indisponibles.</span>";
+        pkLookupResultField.style.display = "block";
+        if (pkLookupActionsField) pkLookupActionsField.style.display = "none";
+      }
+      return;
+    }
+    const { exact, similar } = searchZonesDepeche(rawInput, data);
+    if (exact.length) {
+      renderDepecheLookupResults(exact, { multiple: exact.length > 1 });
+      return;
+    }
+    const prefix = similar.slice(0, 8);
+    renderDepecheLookupResults(prefix, { multiple: prefix.length > 1 });
+  }
+
   async function handlePoteauLookup() {
     if (!inputPkLookup) return;
     const rawInput = inputPkLookup.value.trim();
@@ -11483,7 +11762,19 @@ function detectBranch(lat, lon) {
   }
 
   function runPkLookupAction() {
-    const action = searchLookupMode === "poteau" ? handlePoteauLookup() : handlePkLookup();
+    let action;
+    const raw = inputPkLookup ? inputPkLookup.value.trim() : "";
+    if (searchLookupMode === "poteau") {
+      action = handlePoteauLookup();
+    } else if (searchLookupMode === "depeche" || looksLikeZoneQuery(raw)) {
+      if (searchLookupMode !== "depeche" && looksLikeZoneQuery(raw)) {
+        setSearchLookupMode("depeche");
+        if (inputPkLookup) inputPkLookup.value = raw;
+      }
+      action = handleDepecheLookup();
+    } else {
+      action = handlePkLookup();
+    }
     action.catch(err => console.error("lookup error", err));
   }
 

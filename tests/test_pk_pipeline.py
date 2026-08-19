@@ -19,6 +19,8 @@ from test_calibration_logic import (  # noqa: E402
 )
 
 BRANCH_OFFSETS_BOISSY = 25000
+INTERPOLATION_PK_MAX_DELTA = 2000
+BRANCH_COMMON_MAX = 30000
 
 PK_DISCONTINUITIES = [
     {
@@ -574,6 +576,36 @@ def run_tests() -> list[TestResult]:
         compute_pk_with_calibrations(pk_raw_input, "chessy", fixture=shared_built),
         True,
     )
+
+    # 20. Saint-Mandé / Vincennes : doublon GPS au PK 32200 ne doit pas tirer l'interpolation
+    geom_pk = 29000.0
+    nearby = [
+        {"pk": 28900, "dist": 83},
+        {"pk": 32200, "dist": 72},  # même GPS que Les ruches, PK erroné
+        {"pk": 29350, "dist": 289},
+        {"pk": 30000, "dist": 951},
+    ]
+    filtered = [
+        p for p in nearby
+        if abs(p["pk"] - geom_pk) <= INTERPOLATION_PK_MAX_DELTA
+    ]
+    check(
+        "vincennes interpolation drops 32200 outlier",
+        {"geomPk": 29000, "outlier": 32200},
+        True,
+        all(p["pk"] != 32200 for p in filtered) and any(p["pk"] == 28900 for p in filtered),
+    )
+
+    tw = 0.0
+    wp = 0.0
+    for pt in filtered:
+        w = 1.0 / ((pt["dist"] + 1) ** 0.8)
+        tw += w
+        wp += pt["pk"] * w
+    interpolated = wp / tw
+    # 70 % interp / 30 % projection (minDist 72 m < 200 m)
+    final_pk = geom_pk * 0.3 + interpolated * 0.7
+    check("vincennes pk 29000 stays below 30000", {"final": round(final_pk)}, True, final_pk < BRANCH_COMMON_MAX)
 
     return results
 
