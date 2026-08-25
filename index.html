@@ -3769,11 +3769,47 @@ const accessPoints = [
     lon: 2.35854652
   },
   {
+    name: "Traversée de la V2S de la LD (SNCF)",
+    address: "Traversée de la V2S de la LD (SNCF)",
+    note: "ATTENTION : traversée voie SNCF",
+    pk: 23490,
+    lat: null,
+    lon: null
+  },
+  {
     name: "Gare de Lyon, Accès face au 164 rue de Bercy, Paris 12e",
     address: "Gare de Lyon, Accès face au 164 rue de Bercy, Paris 12e",
     pk: 24902,
     lat: 48.84319067,
     lon: 2.37499372
+  },
+  {
+    name: "Musoir de Nation –<",
+    address: "Musoir de Nation –<",
+    pk: 26757,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Voie Z",
+    address: "Voie Z",
+    pk: 27315,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Musoir de voie Z –<",
+    address: "Musoir de voie Z –<",
+    pk: 27610,
+    lat: null,
+    lon: null
+  },
+  {
+    name: "Fin du musoir de voie Z >–",
+    address: "Fin du musoir de voie Z >–",
+    pk: 27850,
+    lat: null,
+    lon: null
   },
   {
     name: "Les ruches (entrée du tunnel), 5 av. Gambetta, Saint-Mandé",
@@ -3843,14 +3879,16 @@ const accessPoints = [
     address: "CAT VDF (accès par badge), 199 rue Carnot, Fontenay sous Bois",
     pk: 34660,
     lat: 48.85463889,
-    lon: 2.48977778
+    lon: 2.48977778,
+    branch: "chessy"
   },
   {
     name: "« Le bateau », Chemin de la Prairie, Neuilly Plaisance",
     address: "« Le bateau », Chemin de la Prairie, Neuilly Plaisance",
     pk: 35200,
     lat: 48.85713889,
-    lon: 2.49594444
+    lon: 2.49594444,
+    branch: "chessy"
   },
   {
     name: "18 rue Pasteur Neuilly Plaisance",
@@ -3941,7 +3979,8 @@ const accessPoints = [
     address: "13 av. Foch, Champigny-sur-Marne",
     pk: 40200,
     lat: null,
-    lon: null
+    lon: null,
+    branch: "boissy"
   },
   {
     name: "19 av. du Maréchal Leclerc, La Varenne",
@@ -3979,20 +4018,6 @@ const accessPoints = [
     lon: null
   },
   {
-    name: "102 av. du Général De Gaulle, Sucy-en-Brie",
-    address: "102 av. du Général De Gaulle, Sucy-en-Brie",
-    pk: 42750,
-    lat: 48.81308333,
-    lon: 2.57508333
-  },
-  {
-    name: "191 av. du Général De Gaulle, Sucy-en-Brie",
-    address: "191 av. du Général De Gaulle, Sucy-en-Brie",
-    pk: 43500,
-    lat: 48.80919444,
-    lon: 2.58255556
-  },
-  {
     name: "Gare de Sucy-Bonneuil",
     address: "Gare de Sucy-Bonneuil",
     pk: 44577,
@@ -4000,25 +4025,68 @@ const accessPoints = [
     lon: null
   },
   {
+    name: "Sucy SNCF (code portail 5153), arrêt de bus Varennes, Sucy-en-Brie",
+    address: "Sucy SNCF, arrêt de bus Varennes, Sucy-en-Brie",
+    pk: 44850,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
     name: "« La cantine » 11 chemin vert (accès au niveau du pont), Sucy en Brie",
     address: "« La cantine » 11 chemin vert (accès au niveau du pont), Sucy en Brie",
     pk: 45150,
     lat: 48.76594444,
-    lon: 2.50536111
+    lon: 2.50536111,
+    branch: "boissy"
   },
   {
     name: "Voie Mexico, Rue de Villeneuve, Boissy St Léger",
     address: "Voie Mexico, Rue de Villeneuve, Boissy St Léger",
     pk: 45800,
     lat: 48.75961111,
-    lon: 2.50802778
+    lon: 2.50802778,
+    branch: "boissy"
   },
   {
-    name: "Atelier MRF Sucy, 13 chemin vert, Sucy en brie",
-    address: "Atelier MRF Sucy, 13 chemin vert, Sucy en brie",
+    name: "Atelier MRF Sucy / PST Sucy, 13 et 17 chemin vert, Sucy en brie",
+    address: "Atelier MRF Sucy, 13 chemin vert / PST Sucy, 17 chemin vert, Sucy en brie",
     pk: 46200,
     lat: 48.76529003,
-    lon: 2.50217879
+    lon: 2.50217879,
+    branch: "boissy"
+  },
+  {
+    name: "Croisement Allée des FFI / av. du Gal Leclerc, Boissy-Saint-Léger (parking difficile)",
+    address: "Croisement Allée des FFI / av. du Gal Leclerc, Boissy-Saint-Léger",
+    pk: 46370,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "Fond de faisceau de Boissy, 1 rue de Brévannes, Boissy-Saint-Léger",
+    address: "Fond de faisceau de Boissy, 1 rue de Brévannes, Boissy-Saint-Léger",
+    pk: 46900,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "A proximité du 1 rue de Bellevue, Boissy-Saint-Léger",
+    address: "A proximité du 1 rue de Bellevue, Boissy-Saint-Léger",
+    pk: 47200,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "Voie de Verneuil (portail en fin de ligne A), 15 rue Denis Papin, Limeil-Brévannes",
+    address: "Voie de Verneuil, 15 rue Denis Papin, Limeil-Brévannes",
+    pk: 47300,
+    lat: null,
+    lon: null,
+    branch: "boissy"
   },
   {
     name: "Gare de Boissy-Saint-Léger",
@@ -4038,15 +4106,34 @@ const accessPoints = [
     name: "20 av. de l'hippodrome, La Varenne",
     address: "20 av. de l'hippodrome, La Varenne",
     pk: 44050,
-    lat: 48.86168940,
-    lon: 2.21708690
+    lat: null,
+    lon: null,
+    branch: "boissy"
   },
   {
-    name: "17 route de Brétigny, Bonneuil sur marne (Portail à droite avant le pont)",
-    address: "17 route de Brétigny, Bonneuil sur marne (Portail à droite avant le pont)",
+    name: "Traversée voie SNCF, PK 17 760 Boissy",
+    address: "78 rue de Saint-Hilaire, La Varenne Saint-Hilaire",
+    note: "ATTENTION : traversée voie SNCF",
+    pk: 42760,
+    lat: 48.7863301,
+    lon: 2.5080572,
+    branch: "boissy"
+  },
+  {
+    name: "Pont de Marne V1b, 17 route de Brétigny, Bonneuil-sur-Marne (porte à droite après le pont)",
+    address: "17 route de Brétigny, Bonneuil-sur-Marne",
+    pk: 43080,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "Pont de Marne V2b, 17 route de Brétigny, Bonneuil-sur-Marne (portail à droite avant le pont)",
+    address: "17 route de Brétigny, Bonneuil-sur-Marne",
     pk: 43160,
     lat: 48.78379361,
-    lon: 2.50701747
+    lon: 2.50701747,
+    branch: "boissy"
   },
   {
     name: "253 bvd de Créteil, St Maur des fossés",
@@ -4224,6 +4311,190 @@ const accessPoints = [
     lon: null
   },
   {
+    name: "« Voie Kéhops » V1B, croisement rue des pommiers / rue des murs du parc, Vincennes",
+    address: "Croisement rue des pommiers / rue des murs du parc, Vincennes",
+    pk: 32050,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "Rampe de Fontenay V2B (bétonnée), 33 av. des Charmes, Fontenay-sous-Bois",
+    address: "33 av. des Charmes, Fontenay-sous-Bois",
+    pk: 32200,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "Fontenay épuisement V1 (accès difficile) / trappe MLV 32.100, 56 bvd de Vincennes, Fontenay-sous-Bois",
+    address: "56 bvd de Vincennes, Fontenay-sous-Bois",
+    pk: 32300,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "PR Fontenay (clé CAT ?), 6 av. des Marronniers, Fontenay-sous-Bois",
+    address: "6 av. des Marronniers, Fontenay-sous-Bois",
+    pk: 32850,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "17 av. des Marronniers, Nogent-sur-Marne (clé CAT ?)",
+    address: "17 av. des Marronniers, Nogent-sur-Marne",
+    pk: 33525,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "Ancienne gare, 3 place Pierre Semard, Nogent-sur-Marne",
+    address: "3 place Pierre Semard, Nogent-sur-Marne",
+    pk: 33650,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "Joinville Chapsal, D86 av. du Tremblay (entrée du pont au-dessus de l'A4), Paris 12e",
+    address: "D86 av. du Tremblay, entrée du pont au-dessus de l'A4, Paris 12e",
+    pk: 34900,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "23 av. Jean Jaurès, Joinville-le-Pont",
+    address: "23 av. Jean Jaurès, Joinville-le-Pont",
+    pk: 35200,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "7 rue Émile Moutier, Joinville-le-Pont",
+    address: "7 rue Émile Moutier, Joinville-le-Pont",
+    pk: 35800,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "11 rue Aristide Briand, St-Maurice (accès difficile ; descendre par le signal 1420 côté V2b)",
+    address: "11 rue Aristide Briand, St-Maurice",
+    pk: 35975,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "Joinville Viaduc, croisement rue du pourtour des écoles / 27 rue Eugène Voisin, Joinville",
+    address: "Croisement rue du pourtour des écoles / 27 rue Eugène Voisin, Joinville-le-Pont",
+    pk: 36200,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "A proximité du 2 rue Politzer, St-Maur-des-Fossés (accès difficile : en contrebas)",
+    address: "A proximité du 2 rue Politzer, St-Maur-des-Fossés",
+    pk: 36800,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "PR St-Maur-Créteil, 10 av. Ronsard, St-Maur-des-Fossés",
+    address: "10 av. Ronsard, St-Maur-des-Fossés",
+    pk: 37000,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "32 rue d'Alsace-Lorraine, St-Maur-des-Fossés",
+    address: "32 rue d'Alsace-Lorraine, St-Maur-des-Fossés",
+    pk: 37500,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "Croisement chemin latéral de St-Maur (le long du cimetière) / rue Bourdignon, St-Maur-des-Fossés",
+    address: "Chemin latéral de St-Maur / rue Bourdignon, St-Maur-des-Fossés",
+    pk: 37740,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "PR de Parc St-Maur, 98 rue d'Alsace-Lorraine, St-Maur-des-Fossés",
+    address: "98 rue d'Alsace-Lorraine, St-Maur-des-Fossés",
+    pk: 38060,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "Parc St-Maur côté V1B, 5 av. de Lattre de Tassigny, St-Maur-des-Fossés",
+    address: "5 av. de Lattre de Tassigny, St-Maur-des-Fossés",
+    pk: 38502,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "Pointe du 1501, 25 av. de Lattre de Tassigny, St-Maur-des-Fossés",
+    address: "25 av. de Lattre de Tassigny, St-Maur-des-Fossés",
+    pk: 38600,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "« Gros nichons », 72 av. du général Leclerc, St-Maur-des-Fossés",
+    address: "72 av. du général Leclerc, St-Maur-des-Fossés",
+    pk: 39200,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "Portail de Champigny, 150 av. du général Leclerc, St-Maur-des-Fossés",
+    address: "150 av. du général Leclerc, St-Maur-des-Fossés",
+    pk: 40000,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "« La guillotine », 65 av. Didier, St-Maur-des-Fossés",
+    address: "65 av. Didier, St-Maur-des-Fossés",
+    pk: 41050,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "SERNAM, nouvelle rue face au 17 rue Condorcet, St-Maur-des-Fossés (2 accès)",
+    address: "Nouvelle rue face au 17 rue Condorcet, St-Maur-des-Fossés",
+    pk: 41350,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
+    name: "Gare de La Varenne (côté V2B), 72 av. du Bac, St-Maur-des-Fossés",
+    address: "72 av. du Bac, St-Maur-des-Fossés",
+    pk: 41800,
+    lat: null,
+    lon: null,
+    branch: "boissy"
+  },
+  {
     name: "145 av. du Général Leclerc, St Mandé",
     address: "145 av. du Général Leclerc, St Mandé",
     pk: 31950,
@@ -4286,7 +4557,8 @@ const accessPoints = [
     address: "« Razel » / 1 rue des Vignes, Bry-sur-Marne",
     pk: 38600,
     lat: 48.84108994,
-    lon: 2.53137569
+    lon: 2.53137569,
+    branch: "chessy"
   },
   {
     name: "Gare de Noisy le Gd – Mt d'Est (Accès ascenseur bout de quai 2)",
@@ -4300,7 +4572,8 @@ const accessPoints = [
     address: "Escalier métallique / Face au 14 av. du Pavé Neuf, Noisy-le-Grand",
     pk: 40200,
     lat: 48.84055556,
-    lon: 2.55380556
+    lon: 2.55380556,
+    branch: "chessy"
   },
   {
     name: "1 Rue du Marnois Noisy-le-Grand",
@@ -4314,7 +4587,8 @@ const accessPoints = [
     address: "A proximité du 120 rue Malnoue, Noisy-le-Grand",
     pk: 41350,
     lat: 48.84144444,
-    lon: 2.56930556
+    lon: 2.56930556,
+    branch: "chessy"
   },
   {
     name: "(Accès à confirmer) / A proximité du 21 rue du Maréchal Juin (Accès difficile), Noisy-le-Grand",
@@ -4356,7 +4630,8 @@ const accessPoints = [
     address: "42 cours du Luzard (accès de chaque côté du pont), Champs-sur-Marne",
     pk: 44050,
     lat: 48.84247222,
-    lon: 2.60525000
+    lon: 2.60525000,
+    branch: "chessy"
   },
   {
     name: "Gare de Noisiel (Le Luzard)",
@@ -4364,6 +4639,14 @@ const accessPoints = [
     pk: 44754,
     lat: null,
     lon: null
+  },
+  {
+    name: "2 allée Jean-Paul Sartre / Cours du Buisson (2 accès de chaque côté du rd-pt Salvador Allende), Noisiel",
+    address: "2 allée Jean-Paul Sartre / Cours du Buisson, Noisiel",
+    pk: 45080,
+    lat: null,
+    lon: null,
+    branch: "chessy"
   },
   {
     name: "« Chocolaterie » / 111 grande allée du 12 février 1934, Noisiel",
@@ -10401,7 +10684,8 @@ function detectBranch(lat, lon) {
             zIndexOffset: 800,
           });
           accessMarker.bindPopup(
-            "Accès : " + access.name + "<br>PK : " + (access.pk ? formatPk(access.pk) : "—")
+            "Accès : " + access.name + "<br>PK : " + (access.pk ? formatPk(access.pk) : "—") +
+            (access.note ? "<br>⚠️ " + access.note : "")
           );
           allAccesMarkers.push(accessMarker);
         }
@@ -11804,8 +12088,11 @@ function detectBranch(lat, lon) {
     const actualBranch = accessBranch || branchChoice || currentBranch;
     const branchLabel = getBranchLabel(actualBranch);
     details.push(`<span class="muted">${branchLabel}</span>`);
-    if (access.address) {
+    if (access.address && access.address !== access.name) {
       details.push(`<span class="muted">${access.address}</span>`);
+    }
+    if (access.note) {
+      details.push(`<span class="badge-warn" style="display:inline-block;padding:4px 8px;border-radius:8px;margin-top:4px;">⚠️ ${access.note}</span>`);
     }
     if (distanceLabel) {
       details.push(`<span class="muted">À ≈ ${distanceLabel}</span>`);
