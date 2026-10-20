@@ -634,6 +634,51 @@
     color: rgba(216, 222, 255, 0.72);
   }
 
+  .pk-lookup-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .pk-lookup-step[hidden] {
+    display: none !important;
+  }
+
+  .pk-lookup-step-btn {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid rgba(200, 206, 236, 0.28);
+    background: rgba(40, 46, 66, 0.7);
+    color: rgba(238, 242, 255, 0.95);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .pk-lookup-step-btn:hover:not(:disabled),
+  .pk-lookup-step-btn:focus:not(:disabled) {
+    outline: none;
+    border-color: rgba(238, 242, 255, 0.45);
+    background: rgba(52, 58, 82, 0.85);
+  }
+
+  .pk-lookup-step-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .pk-lookup-step-hint {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.82rem;
+    line-height: 1.3;
+    color: rgba(216, 222, 255, 0.72);
+  }
+
   .search-mode-toggle {
     display: flex;
     align-items: center;
@@ -2997,6 +3042,11 @@ body[data-page-hidden="true"] .direction-arrow-moving {
             </div>
             <div class="field" id="pkLookupResultField" style="display:none;">
               <div id="pkLookupResult" class="muted"></div>
+              <div id="pkLookupStepField" class="pk-lookup-step" hidden>
+                <button id="btnPkLookupPrev" class="pk-lookup-step-btn" type="button" aria-label="Accès précédent, PK plus petit, même branche" title="Accès précédent (PK plus petit, même branche)">−</button>
+                <span id="pkLookupStepHint" class="pk-lookup-step-hint">Même branche</span>
+                <button id="btnPkLookupNext" class="pk-lookup-step-btn" type="button" aria-label="Accès suivant, PK plus grand, même branche" title="Accès suivant (PK plus grand, même branche)">+</button>
+              </div>
               <div id="pkLookupActionsField" class="field">
                 <button id="btnPkLookupOpenMaps" class="btn btn-primary btn-icon" type="button">
                   <span>📍</span><span>Google Maps</span>
@@ -4093,14 +4143,16 @@ const accessPoints = [
     address: "Gare de Boissy-Saint-Léger",
     pk: 47795,
     lat: null,
-    lon: null
+    lon: null,
+    branch: "boissy"
   },
   {
     name: "Bvd Georges Clémenceau",
     address: "Bvd Georges Clémenceau",
     pk: 47380,
     lat: null,
-    lon: null
+    lon: null,
+    branch: "boissy"
   },
   {
     name: "20 av. de l'hippodrome, La Varenne",
@@ -4660,21 +4712,24 @@ const accessPoints = [
     address: "Bv de la Malvoisine, Lognes",
     pk: 45900,
     lat: 48.84027778,
-    lon: 2.62963889
+    lon: 2.62963889,
+    branch: "chessy"
   },
   {
     name: "Gare de Lognes / Accès parking 18 rue Nicolas Appert",
     address: "Gare de Lognes / Accès parking 18 rue Nicolas Appert",
     pk: 46107,
     lat: 48.83947222,
-    lon: 2.63150000
+    lon: 2.63150000,
+    branch: "chessy"
   },
   {
     name: "« Les paraboles » / Vers le 11 Bvd Frédéric Chopin, Lognes",
     address: "« Les paraboles » / Vers le 11 Bvd Frédéric Chopin, Lognes",
     pk: 47100,
     lat: 48.83830556,
-    lon: 2.64500000
+    lon: 2.64500000,
+    branch: "chessy"
   },
   {
     name: "Gare de Torcy (2 accès : 2 av. Jean Moulin / 2 Rue Léon Blum)",
@@ -4828,27 +4883,28 @@ const accessPoints = [
       }
     };
     
-    const normalizedGareName = normalizeString(gareName);
-    const stationNameNormalized = normalizeString(st.name);
-    
+    const compactStationKey = (value) => {
+      return normalizeString(value)
+        .replace(/^gare\s+(de\s+)?/, "")
+        .split(/[,(/]/)[0]
+        .replace(/\bst\b/g, "saint")
+        .replace(/\bmt\b/g, "mont")
+        .replace(/\bgd\b/g, "grand")
+        .replace(/[^a-z0-9]/g, "");
+    };
+    const stationKey = compactStationKey(st.name);
+
     const existingGare = accessPoints.find(acc => {
       if (!acc || !acc.name) return false;
       const normalizedAccName = normalizeString(acc.name);
-      // Extraire le nom de la gare de l'accès (enlever "gare de" et variations)
-      const accStationName = normalizedAccName.replace(/^gare\s+(de\s+)?/i, "").trim();
-      
-      // Vérifier si le nom de la gare correspond (même après normalisation)
-      const nameMatches = accStationName === stationNameNormalized ||
-                         accStationName.includes(stationNameNormalized) ||
-                         stationNameNormalized.includes(accStationName) ||
-                         // Vérifier les mots-clés communs (ex: "nanterre universite" vs "nanterre-universite")
-                         accStationName.split(/[\s-]+/).some(word => word.length > 3 && stationNameNormalized.includes(word)) ||
-                         stationNameNormalized.split(/[\s-]+/).some(word => word.length > 3 && accStationName.includes(word));
-      
-      // Vérifier aussi si le PK est très proche (moins de 200m) comme fallback
-      const pkClose = acc.pk != null && st.pk != null && Math.abs(acc.pk - st.pk) < 200;
-      
-      return normalizedAccName.includes("gare") && (nameMatches || pkClose);
+      if (!normalizedAccName.includes("gare")) return false;
+      const accKey = compactStationKey(acc.name);
+      if (!accKey || !stationKey) return false;
+      if (accKey === stationKey) return true;
+      const shorter = accKey.length < stationKey.length ? accKey : stationKey;
+      const longer = accKey.length < stationKey.length ? stationKey : accKey;
+      // « Fontenay » peut viser « Fontenay-sous-Bois », pas un mot isolé trop court
+      return shorter.length >= 8 && longer.startsWith(shorter);
     });
     
     // Si la gare n'existe pas déjà, l'ajouter
@@ -5857,6 +5913,10 @@ async function loadSharedCalibrations() {
   const pkLookupActionsField = document.getElementById("pkLookupActionsField");
   const btnPkLookupOpenMaps = document.getElementById("btnPkLookupOpenMaps");
   const btnPkLookupOpenWaze = document.getElementById("btnPkLookupOpenWaze");
+  const pkLookupStepField = document.getElementById("pkLookupStepField");
+  const btnPkLookupPrev = document.getElementById("btnPkLookupPrev");
+  const btnPkLookupNext = document.getElementById("btnPkLookupNext");
+  const pkLookupStepHint = document.getElementById("pkLookupStepHint");
   const btnSearchModePk = document.getElementById("btnSearchModePk");
   const btnSearchModePoteau = document.getElementById("btnSearchModePoteau");
   const btnSearchModeDepeche = document.getElementById("btnSearchModeDepeche");
@@ -7625,7 +7685,7 @@ function buildCalibrationPolylines() {
         // Villes Boissy dans la zone ambiguë
         const boissyCityKeywords = ["joinville", "nogent", "st maur", "champigny", "varenne", "sucy", "boissy"];
         // Villes Chessy dans la zone ambiguë
-        const chessyCityKeywords = ["val de fontenay", "neuilly", "bry", "noisy", "noisiel"];
+        const chessyCityKeywords = ["val de fontenay", "neuilly", "bry", "noisy", "noisiel", "lognes", "torcy", "bussy", "chessy", "collegien", "montevrain", "jossigny", "val d'europe", "coupvray"];
         
         let hasBoissyCity = boissyCityKeywords.some(keyword => accText.includes(keyword));
         let hasChessyCity = chessyCityKeywords.some(keyword => accText.includes(keyword));
@@ -11692,6 +11752,20 @@ function detectBranch(lat, lon) {
     }
   }
 
+  function getShortBranchLabel(branch) {
+    switch (branch) {
+      case "boissy":
+        return "Boissy";
+      case "chessy":
+        return "Chessy";
+      case "central":
+      case "both":
+        return "tronçon central";
+      default:
+        return "cette branche";
+    }
+  }
+
   let searchLookupMode = "pk";
   let poteauxCatenairesData = null;
   let currentPoteauLookupResults = [];
@@ -11900,6 +11974,7 @@ function detectBranch(lat, lon) {
     if (!pkLookupResult || !pkLookupResultField) return;
     currentPoteauLookupResults = results.slice();
     lastPkLookupAccess = null;
+    hidePkLookupStepControls();
     if (!results.length) {
       pkLookupResult.innerHTML = "<span class='muted'>Aucun poteau correspondant n'a été trouvé.</span>";
       pkLookupResultField.style.display = "block";
@@ -11926,6 +12001,7 @@ function detectBranch(lat, lon) {
     pkLookupResult.innerHTML = heading + items;
     pkLookupResultField.style.display = "block";
     if (pkLookupActionsField) pkLookupActionsField.style.display = "none";
+    hidePkLookupStepControls();
   }
 
   function escapeLookupHtml(value) {
@@ -11966,6 +12042,7 @@ function detectBranch(lat, lon) {
     if (!pkLookupResult || !pkLookupResultField) return;
     currentDepecheLookupResults = results.slice();
     lastPkLookupAccess = null;
+    hidePkLookupStepControls();
     if (!results.length) {
       pkLookupResult.innerHTML = "<span class='muted'>Zone introuvable</span>";
       pkLookupResultField.style.display = "block";
@@ -11984,6 +12061,7 @@ function detectBranch(lat, lon) {
     } else if (pkLookupActionsField) {
       pkLookupActionsField.style.display = "none";
     }
+    hidePkLookupStepControls();
   }
 
   function looksLikeZoneQuery(raw) {
@@ -12069,6 +12147,72 @@ function detectBranch(lat, lon) {
     return detectBranchForPk(accPk, nameHint, addressHint);
   }
 
+  function accessesOnSameBranch(branch) {
+    if (!branch || !Array.isArray(accessPoints)) return [];
+    const list = [];
+    for (const acc of accessPoints) {
+      if (!acc || !Number.isFinite(acc.pk)) continue;
+      if (resolveAccessBranch(acc) !== branch) continue;
+      list.push(acc);
+    }
+    list.sort((a, b) => {
+      if (a.pk !== b.pk) return a.pk - b.pk;
+      return String(a.name || "").localeCompare(String(b.name || ""), "fr");
+    });
+    return list;
+  }
+
+  function findAccessIndexOnBranch(list, access) {
+    if (!access || !Array.isArray(list)) return -1;
+    const byRef = list.indexOf(access);
+    if (byRef >= 0) return byRef;
+    return list.findIndex(acc =>
+      acc.pk === access.pk &&
+      acc.name === access.name &&
+      (acc.address || "") === (access.address || "") &&
+      (acc.branch || "") === (access.branch || "")
+    );
+  }
+
+  function hidePkLookupStepControls() {
+    if (pkLookupStepField) pkLookupStepField.hidden = true;
+  }
+
+  function updatePkLookupStepControls(access) {
+    if (!pkLookupStepField || !btnPkLookupPrev || !btnPkLookupNext) return;
+    if (!access || !Number.isFinite(access.pk)) {
+      hidePkLookupStepControls();
+      return;
+    }
+    const branch = resolveAccessBranch(access);
+    const list = accessesOnSameBranch(branch);
+    const index = findAccessIndexOnBranch(list, access);
+    pkLookupStepField.hidden = false;
+    btnPkLookupPrev.disabled = index <= 0;
+    btnPkLookupNext.disabled = index < 0 || index >= list.length - 1;
+    if (pkLookupStepHint) {
+      const place = index >= 0 ? (index + 1) + " / " + list.length : "";
+      pkLookupStepHint.textContent = place
+        ? place + " · " + getShortBranchLabel(branch)
+        : getShortBranchLabel(branch);
+    }
+  }
+
+  function stepPkLookupAccess(delta) {
+    const access = lastPkLookupAccess;
+    if (!access || !Number.isFinite(access.pk)) return;
+    const branch = resolveAccessBranch(access);
+    const list = accessesOnSameBranch(branch);
+    const index = findAccessIndexOnBranch(list, access);
+    if (index < 0) return;
+    const nextIndex = index + delta;
+    if (nextIndex < 0 || nextIndex >= list.length) return;
+    renderPkLookupSummary({
+      access: list[nextIndex],
+      branchChoice: branch
+    });
+  }
+
   function renderPkLookupSummary({ access, targetPk = null, distanceLabel = null, branchChoice = null }) {
     if (!pkLookupResult || !pkLookupResultField || !access) return;
     const details = [];
@@ -12102,6 +12246,7 @@ function detectBranch(lat, lon) {
     pkLookupResultField.style.display = "block";
     if (pkLookupActionsField) pkLookupActionsField.style.display = "";
     lastPkLookupAccess = access;
+    updatePkLookupStepControls(access);
     try {
       safeSetItem("pkLookupLastAccess", JSON.stringify({
         name: access.name,
@@ -12121,6 +12266,7 @@ function detectBranch(lat, lon) {
   function showPkLookupNoResultMessage() {
     currentPkLookupTextResults = [];
     lastPkLookupAccess = null;
+    hidePkLookupStepControls();
     if (!pkLookupResult || !pkLookupResultField) return;
     pkLookupResult.innerHTML = "<span class='muted'>Aucun accès trouvé. Essaie un autre PK, une rue ou un nom d'accès.</span>";
     pkLookupResultField.style.display = "block";
@@ -12156,6 +12302,7 @@ function detectBranch(lat, lon) {
     pkLookupResultField.style.display = "block";
     if (pkLookupActionsField) pkLookupActionsField.style.display = "none";
     lastPkLookupAccess = null;
+    hidePkLookupStepControls();
   }
 
   async function handlePkLookupChoice(entry) {
@@ -12722,6 +12869,12 @@ if (btnPkLookupOpenMaps) {
 }
 if (btnPkLookupOpenWaze) {
   btnPkLookupOpenWaze.addEventListener("click", openPkLookupInWaze);
+}
+if (btnPkLookupPrev) {
+  btnPkLookupPrev.addEventListener("click", () => stepPkLookupAccess(-1));
+}
+if (btnPkLookupNext) {
+  btnPkLookupNext.addEventListener("click", () => stepPkLookupAccess(1));
 }
 
 // AJOUT CALIBRAGE : clic sur "Exporter mes recalages"
