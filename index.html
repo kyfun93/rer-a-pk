@@ -361,6 +361,15 @@
     accent-color: var(--accent);
   }
 
+  .plan-livetrafic .btn {
+    width: 100%;
+    text-decoration: none;
+  }
+
+  .plan-livetrafic .muted {
+    margin: 8px 0 0;
+  }
+
   .plan-line-container {
     margin-top: 12px;
     border-radius: 18px;
@@ -2911,6 +2920,12 @@ body[data-page-hidden="true"] .direction-arrow-moving {
                   <canvas class="plan-line-canvas" data-pdf-canvas="chessy"></canvas>
                 </div>
               </div>
+            </div>
+            <div class="field plan-livetrafic">
+              <a class="btn btn-secondary btn-icon" href="https://livetrafic.ratp.io/tco-network" target="_blank" rel="noopener noreferrer">
+                <span>🚆</span><span>Live Trafic</span>
+              </a>
+              <p class="muted">Connexion RATP requise. Choisir ensuite la ligne A dans Live Trafic.</p>
             </div>
           </div>
          </div>
