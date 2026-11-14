@@ -3376,7 +3376,7 @@ body[data-page-hidden="true"] .direction-arrow-moving {
     { name: "Saint-Maur – Créteil",        lat: 48.8088207060, lon: 2.4708026167, pk: 37500, pkStart: 37500, pkEnd: 37200 }, // PK relatif 12500 → absolu 37500, 12200 → 37200
     { name: "Parc de Saint-Maur",           lat: null, lon: null, pk: 38500, pkStart: 38500, pkEnd: 38250 }, // PK relatif 13500 → absolu 38500, 13250 → 38250
     { name: "Champigny",                   lat: null, lon: null, pk: 40300, pkStart: 40300, pkEnd: 40100 }, // PK relatif 15300 → absolu 40300, 15100 → 40100
-    { name: "La Varenne – Chennevières",   lat: 48.7941968899, lon: 2.5135124577, pk: 41800, pkStart: 41800, pkEnd: 41500 }, // PK relatif 16800 → absolu 41800, 16500 → 41500
+    { name: "La Varenne – Chennevières",   lat: 48.7941968899, lon: 2.5135124577, pk: 41766, pkStart: 41766, pkEnd: 41546 }, // PK relatif 16766 → absolu 41766, 16546 → 41546
     { name: "Sucy – Bonneuil",             lat: 48.7709911746, lon: 2.5083777258, pk: 44500, pkStart: 44500, pkEnd: 44200 }, // PK relatif 19500 → absolu 44500, 19200 → 44200
     { name: "Boissy-Saint-Léger",          lat: 48.7539872386, lon: 2.5059802969, pk: 47200, pkStart: 47200, pkEnd: 46900 } // PK relatif 22200 → absolu 47200, 21900 → 46900
   ];
@@ -4023,14 +4023,16 @@ const accessPoints = [
     address: "Parking du RER (4 accès), 3 av. Jean Kiffer, Champigny-sur-Marne",
     pk: 39400,
     lat: 48.84175000,
-    lon: 2.54502778
+    lon: 2.54502778,
+    branch: "chessy"
   },
   {
     name: "Gare de Champigny",
     address: "Gare de Champigny",
-    pk: 39529,
+    pk: 40300,
     lat: null,
-    lon: null
+    lon: null,
+    branch: "boissy"
   },
   {
     name: "39 av. J. Baptiste Clément, Champigny-sur-Marne",
@@ -4064,9 +4066,10 @@ const accessPoints = [
   {
     name: "Gare de La Varenne - Chennevières",
     address: "Gare de La Varenne - Chennevières",
-    pk: 41229,
+    pk: 41766,
     lat: null,
-    lon: null
+    lon: null,
+    branch: "boissy"
   },
   {
     name: "60 av. du Maréchal Leclerc, La Varenne",
@@ -4240,16 +4243,18 @@ const accessPoints = [
   {
     name: "50 av. du Bac, St Maur des fossés",
     address: "50 av. du Bac, St Maur des fossés",
-    pk: 39500,
-    lat: 48.79488373,
-    lon: 2.51269474
+    pk: 41500,
+    lat: 48.79526100,
+    lon: 2.50931700,
+    branch: "boissy"
   },
   {
     name: "86 av. du Bac, St Maur des fossés",
     address: "86 av. du Bac, St Maur des fossés",
-    pk: 39150,
-    lat: 48.79407368,
-    lon: 2.51247564
+    pk: 41880,
+    lat: 48.79348000,
+    lon: 2.51424500,
+    branch: "boissy"
   },
   {
     name: "Gare de Le Parc de St-Maur",
@@ -4525,8 +4530,8 @@ const accessPoints = [
     name: "« Gros nichons », 72 av. du général Leclerc, St-Maur-des-Fossés",
     address: "72 av. du général Leclerc, St-Maur-des-Fossés",
     pk: 39200,
-    lat: null,
-    lon: null,
+    lat: 48.80670800,
+    lon: 2.49787600,
     branch: "boissy"
   },
   {
@@ -7714,7 +7719,7 @@ function buildCalibrationPolylines() {
       }
       
       // Sinon, déterminer selon la gare la plus proche
-      const boissyStations = [34000, 35600, 37500, 38500, 40300, 41800, 44500, 47200];
+      const boissyStations = [34000, 35600, 37500, 38500, 40300, 41766, 44500, 47200];
       const chessyStations = [34525, 36750, 37950, 39850, 42150, 44850];
       let minBoissyDist = Infinity;
       let minChessyDist = Infinity;
@@ -9635,7 +9640,7 @@ function detectBranch(lat, lon) {
       {
         name: "La Varenne – Chennevières",
         branch: "boissy",
-        pk: varenneStation ? varenneStation.pk : 41800,
+        pk: varenneStation ? varenneStation.pk : 41766,
         lat: varenneStation ? varenneStation.lat : 48.7941968899,
         lon: varenneStation ? varenneStation.lon : 2.5135124577,
         radius: 1200,
